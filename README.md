@@ -2,7 +2,7 @@
 
 A full-stack **Spoken English Practice** application built with **Next.js 16 (App Router & Turbopack)**, **TypeScript**, **Tailwind CSS v4**, **PostgreSQL**, and **Prisma ORM 7** with the `@prisma/adapter-pg` driver.
 
-This repository currently contains the **layout-first foundation**: the application shell, navigation, three portal pages, the shared UI primitives, and the database wiring. Feature screens will be built on top of this foundation in later steps.
+This repository contains the **layout-first foundation** plus the interactive **Practice workspace**: the application shell, navigation, three portal pages, shared UI primitives, database wiring, and client-side IPA and speech playback for practice text. IPA transcription is provided by `phonemize`; voice playback uses the browser Web Speech API.
 
 ---
 
@@ -13,22 +13,23 @@ This repository currently contains the **layout-first foundation**: the applicat
 4. [Database Setup](#4-database-setup)
 5. [Project Structure](#5-project-structure)
 6. [Layout & Navigation](#6-layout--navigation)
-7. [Shared UI Primitives](#7-shared-ui-primitives)
-8. [Quality Gates](#8-quality-gates)
+7. [Practice Workspace](#7-practice-workspace)
+8. [Shared UI Primitives](#8-shared-ui-primitives)
+9. [Quality Gates](#9-quality-gates)
 
 ---
 
 ## 1. Current Scope
 
-The application currently ships the shared application shell and three empty portal pages:
+The application currently ships the shared application shell and three portal pages:
 
-| Route | Page | Sidebar Label |
+| Route | Page | Description |
 | :--- | :--- | :--- |
-| `/` | Home | Home |
-| `/presentation` | Presentation | Presentation |
-| `/practice` | Practice | Practice |
+| `/` | Home | Page heading only |
+| `/presentation` | Presentation | Page heading only |
+| `/practice` | Practice | Interactive text, IPA, and speech workspace |
 
-Each page intentionally renders only its page name inside a bordered page header. The top header is deliberately empty apart from the mobile menu button needed to open the sidebar drawer on small screens.
+Home and Presentation intentionally render only their page name inside a bordered page header. Practice contains the first feature screen. The top header remains deliberately empty apart from the mobile menu button needed to open the sidebar drawer on small screens.
 
 **What is already in place**
 
@@ -40,6 +41,7 @@ Each page intentionally renders only its page name inside a bordered page header
 - Tailwind CSS v4 theme, custom scrollbars, and horizontal-overflow guard.
 - Prisma 7 schema, PostgreSQL datasource, Prisma client singleton, and a `.env` connection string.
 - The reusable `components/ui` primitive library, ready for use by upcoming features.
+- A Practice workspace with English text input, sentence-by-sentence or full IPA transcription, and browser speech playback with accent and speed controls.
 
 ---
 
@@ -111,7 +113,7 @@ Create a `.env` file in the project root based on `.env.example`:
 - **Runtime driver**: `@prisma/adapter-pg` wrapped by the singleton in `src/lib/prisma.ts`
 - **Configuration**: `prisma.config.ts` loads `.env` via `dotenv/config` and supplies the datasource URL
 
-The schema currently declares only the generator and datasource — no domain models yet. The first feature step will introduce the initial models and its migration. Until then, `npx prisma migrate dev` reports the database is already in sync.
+The schema currently declares only the generator and datasource — no domain models yet. A later persistence step will introduce the initial models and their migration. Until then, `npx prisma migrate dev` reports the database is already in sync.
 
 When models are added:
 
@@ -142,6 +144,9 @@ src/
 │   │   └── practice/
 │   ├── shared/                  # AppLayoutShell, Sidebar, Navbar, Footer
 │   └── ui/                      # Reusable primitives (buttons, inputs, tables, ...)
+├── features/
+│   └── practice/
+│       └── PracticeWorkspace.tsx # Client island: text, IPA, accent and speech controls
 ├── lib/
 │   ├── prisma.ts                # PrismaClient singleton with @prisma/adapter-pg
 │   └── utils.ts                 # Date, currency and pagination helpers
@@ -150,7 +155,7 @@ src/
 └── generated/prisma/            # Generated Prisma client (gitignored)
 ```
 
-Reserved for upcoming features (created as needed): `src/features` for client islands, `src/server/{services,repositories}`, `src/types`, and `src/lib/validations`.
+Reserved for upcoming features (created as needed): `src/server/{services,repositories}`, `src/types`, and `src/lib/validations`.
 
 ---
 
@@ -168,7 +173,26 @@ Active sidebar items use the established styling: `bg-indigo-50 text-indigo-700 
 
 ---
 
-## 7. Shared UI Primitives
+## 7. Practice Workspace
+
+`src/features/practice/PracticeWorkspace.tsx` is a client island embedded by the Practice page:
+
+- **English text** — a textarea for the text to practice; speech and IPA both follow its current value.
+- **Accent dropdown** — British English (`en-GB`) or American English (`en-US`).
+- **Speed dropdown** — `0.5×` through `1.5×`, applied to the utterance's `rate`. Changing speed during playback stops speech and asks you to press Start again.
+- **Show IPA translation** — computes a dialect-aware IPA transcription. The `phonemize` package is loaded on demand, so its pronunciation data is not part of the initial page bundle.
+- **IPA view dropdown** — switches between *Sentence by sentence*, where each sentence is paired with its own IPA line in a separated card, and *Full translation*, a single continuous transcription block. Sentences are found with `Intl.Segmenter`, with abbreviation handling for forms such as `Mr.`, `Dr.`, and `Jan.`, so manual line breaks are not required.
+- **Start / Resume** — starts speech in the selected accent and speed, or resumes a paused utterance.
+- **Pause** — pauses the active utterance; Start changes to Resume while paused.
+- **Reset** — cancels playback, clears the pause state, and returns the status to ready.
+
+The workspace uses a responsive card layout: controls and action buttons stack on phones, the control grid becomes two columns on tablets (`sm`) and three on wide screens (`xl`), and nothing overflows horizontally at 390 px, 768 px, or 1440 px.
+
+Speech playback uses `window.speechSynthesis`. Available voices come from the operating system and browser. If no voice matches the selected accent, the app falls back to the browser's default English voice and displays a notice. The practice text is saved to `localStorage` (`spoken-english-practice:text`) as you type and restored on reload; emptying the textarea removes the saved entry. IPA and audio remain session-only, audio never leaves the browser, and nothing is written to the database yet.
+
+---
+
+## 8. Shared UI Primitives
 
 The following primitives are available in `src/components/ui` and ready for reuse:
 
@@ -188,7 +212,7 @@ The following primitives are available in `src/components/ui` and ready for reus
 
 ---
 
-## 8. Quality Gates
+## 9. Quality Gates
 
 | Check | Command | Current Result |
 | :--- | :--- | :--- |

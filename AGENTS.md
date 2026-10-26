@@ -16,8 +16,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - **Language**: TypeScript (Strict mode)
 - **ORM & Database**: Prisma 7 with `@prisma/adapter-pg` and PostgreSQL
 - **Styling**: Tailwind CSS v4, `react-icons`, shared UI primitives in `src/components/ui`
+- **Speech & IPA**: Browser `speechSynthesis` for playback; `phonemize` for dialect-aware IPA
 
-The project is currently at the **layout-foundation stage**. The app shell, navigation, three empty pages, UI primitives, and database wiring are in place. Do not add feature content to Home, Presentation, or Practice until a feature step explicitly asks for it.
+The project is at the **foundation + Practice workspace stage**. The app shell, navigation, UI primitives, database wiring, and the Practice feature are in place. Home and Presentation remain placeholders — do not add feature content to them until a feature step explicitly asks for it.
 
 ---
 
@@ -39,7 +40,8 @@ src/
 │   │   └── practice/
 │   ├── shared/                  # AppLayoutShell, Sidebar, Navbar, Footer
 │   └── ui/                      # Generic reusable primitives
-├── features/                    # Client islands (forms, modals) — added with features
+├── features/                    # Client islands
+│   └── practice/                # PracticeWorkspace: text, IPA, accent, speech controls
 ├── server/
 │   ├── services/                # Business workflows, pagination and KPI aggregation
 │   ├── repositories/            # Prisma data access; visibility rules live here
@@ -80,11 +82,20 @@ src/
 - **No authentication yet**: There is no auth or role layer. Do not invent one until a requirement defines users and permissions.
 - **Request data**: If a page reads `request.url` or search params, await `connection()` before the read so it does not serve a stale prerendered snapshot.
 
-### 4. UI Primitives
+### 4. Practice Feature (IPA & Speech)
+- **Client island**: `src/features/practice/PracticeWorkspace.tsx` owns text, accent, speed, IPA, and playback state. The Practice page remains a Server Component.
+- **IPA**: Import `phonemize` dynamically inside the transcription effect so its pronunciation data stays out of the initial bundle. Pass the selected dialect (`en-GB` / `en-US`), debounce text changes, and handle loading and failure states. Produce both a full transcription and sentence pairs so the "Sentence by sentence" / "Full translation" view dropdown can switch without recomputing.
+- **Sentence splitting**: Use `Intl.Segmenter` with `granularity: "sentence"` and treat newlines as hard boundaries. Merge segments that end in a known abbreviation (`Mr.`, `Dr.`, `e.g.`, `Jan.`), a single capital initial, or a list number so they are not shown as separate cards.
+- **Speech**: Use `window.speechSynthesis` and `SpeechSynthesisUtterance`. Set `utterance.rate` from the Speed dropdown, cancel playback when the text, accent, or speed changes, on reset, and on unmount. Guard callbacks with the active utterance ref so a cancelled utterance cannot overwrite newer playback state.
+- **Voice availability**: Voices are supplied by the OS/browser. Prefer an exact `en-GB`/`en-US` voice; if none exists, leave the voice unset and show the fallback notice instead of silently using the wrong accent.
+- **Responsive layout**: Keep the workspace on the shared card styling (`rounded-xl border-slate-200`). Controls use `grid-cols-1 sm:grid-cols-2 xl:grid-cols-3`; action buttons are full width below `sm` and auto width above. Verify no horizontal overflow at 390 px, 768 px, and 1440 px.
+- **Browser persistence**: The practice text is saved to `localStorage` under `spoken-english-practice:text` on every edit and read through `useSyncExternalStore` so hydration stays consistent; emptying the textarea removes the entry. IPA and audio remain session-only. Do not add database writes or audio uploads until a requirement defines them.
+
+### 5. UI Primitives
 - Reuse `src/components/ui` before building new primitives. The library includes `Button`, `Input`, `SearchInput`, `Dropdown`, `Modal`, `DataTable`, `Pagination`, `StatCard`, `Badge`, `TableActionButton`, and the SweetAlert helpers.
 - Shared composites belong in `src/components/shared`; page-specific sections belong in `src/components/features/<area>`; client-only forms/modals belong in `src/features/<domain>`.
 
-### 5. Code Quality & Verification
+### 6. Code Quality & Verification
 - **Strict TypeScript**: Avoid `any`; use Prisma model types from `@/generated/prisma/client`.
 - **Lint**: `npm run lint` must stay at zero errors. The only accepted warning is the deliberate `react-hooks/exhaustive-deps` deviation in `SearchInput.tsx`; keep it documented with a reasoned `eslint-disable` rather than restructuring the effect.
 - **Build**: Run `npx tsc --noEmit` and `npm run build` after structural or schema changes. Keep the build clean.

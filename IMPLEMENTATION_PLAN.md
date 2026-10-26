@@ -8,7 +8,7 @@ This document tracks the step-by-step implementation of the Spoken English Pract
 
 - [x] **Step 0: Project Bootstrap, Layout Shell, Routes, Prisma & UI Primitives** *(Completed)*
 - [ ] **Step 1: Presentation Module** *(Planned)*
-- [ ] **Step 2: Practice Module** *(Planned)*
+- [x] **Step 2: Practice Module — IPA & Speech Workspace** *(Completed)*
 - [ ] **Step 3: Persistence & Progress Tracking** *(Planned)*
 - [ ] **Step 4: Polish, Responsive QA & Documentation** *(Planned)*
 
@@ -82,25 +82,51 @@ This document tracks the step-by-step implementation of the Spoken English Pract
 
 ---
 
-### Step 2: Practice Module *(Planned — scope to be confirmed)*
-**Goal**: Build the speaking practice experience on the Practice page.
+### Step 2: Practice Module — IPA & Speech Workspace *(Completed)*
+**Goal**: Build a browser-based speaking practice workspace with dialect-aware IPA transcription and speech playback.
 
-- [ ] **2.1 Data Model & API**:
-  - [ ] Define the practice session/attempt models and their relation to presentation content.
-  - [ ] Add the migration, validation schemas, repository, service, and route handlers.
-- [ ] **2.2 UI Layer**:
-  - [ ] Replace the Practice page placeholder with the practice workspace.
-  - [ ] Add client islands under `src/features/practice` for any recording, form, or modal flows.
-- [ ] **2.3 Verification**:
-  - [ ] Test the full practice flow and persistence end to end.
+- [x] **2.1 Workspace Foundation**:
+  - [x] Add the `phonemize` dependency for English IPA generation (`en-GB` and `en-US`).
+  - [x] Create the `PracticeWorkspace` client island in `src/features/practice`.
+  - [x] Render the workspace from the server-rendered Practice page below the existing page header.
+  - [x] Add a labelled English text textarea, accent dropdown, speed dropdown, IPA toggle, and playback status area.
+  - [x] Save the practice text to `localStorage` as it changes, restore it on reload through `useSyncExternalStore`, and clear the entry when the textarea is emptied.
+
+- [x] **2.2 IPA Translation**:
+  - [x] Show IPA only when the "Show IPA translation" toggle is enabled.
+  - [x] Generate a dialect-aware transcription for the current text and accent.
+  - [x] Import `phonemize` on demand so its dictionary is excluded from the initial page bundle.
+  - [x] Debounce text changes and expose loading, empty, and error states.
+  - [x] Produce sentence pairs with `Intl.Segmenter`, merge abbreviation endings, and add an IPA view dropdown for "Sentence by sentence" (English sentence, IPA line, then spacing) or "Full translation".
+
+- [x] **2.3 Speech Playback**:
+  - [x] Add Start/Resume, Pause, and Reset controls with disabled states that follow playback status.
+  - [x] Use `SpeechSynthesisUtterance` with the selected `en-GB` / `en-US` accent and an exact-match system voice.
+  - [x] Add a Speed dropdown (`0.5×`–`1.5×`) wired to `utterance.rate`; stop playback and show a notice when speed changes mid-playback.
+  - [x] Show a fallback notice when the selected accent has no installed voice.
+  - [x] Cancel playback on reset, text change, accent change, speed change, and component unmount.
+  - [x] Guard end/error callbacks with the active utterance ref so cancelled speech cannot overwrite newer state.
+
+- [x] **2.4 Styling & Responsive QA**:
+  - [x] Restyle the workspace with shared card, control, and status patterns that match the shell.
+  - [x] Verify the control grid at mobile (1 column), tablet (2), and desktop (3), with full-width action buttons below `sm`.
+  - [x] Confirm no horizontal overflow at 390 px, 768 px, and 1440 px.
+
+- [x] **2.5 Verification**:
+  - [x] `npx tsc --noEmit`: clean.
+  - [x] `npm run lint`: 0 errors (1 known `SearchInput` warning).
+  - [x] `npm run build`: clean.
+  - [x] Browser-verified British and American IPA output, accent switching, speed-driven `utterance.rate`, mid-playback speed changes, IPA view switching, Start/Pause/Resume/Reset transitions, text restoration after reload, and the missing-voice notice.
+  - [ ] Database persistence of practice sessions is intentionally deferred to Step 3.
 
 ---
 
 ### Step 3: Persistence & Progress Tracking *(Planned — scope to be confirmed)*
-**Goal**: Surface practice history and progress once sessions are persisted.
+**Goal**: Persist practice sessions and surface practice history and progress.
 
-- [ ] Add a progress/history read model and service aggregation.
-- [ ] Add progress panels and KPI cards using the existing `StatCard` and `DataTable` primitives.
+- [ ] Define the practice session/attempt Prisma models and add the first migration.
+- [ ] Add validation schemas, repositories, services, and route handlers.
+- [ ] Surface practice history and progress panels using the existing `StatCard` and `DataTable` primitives.
 - [ ] Keep summary reads unfiltered and independent from ledger filters.
 
 ---
