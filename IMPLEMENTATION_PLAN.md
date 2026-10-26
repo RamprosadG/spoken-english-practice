@@ -9,8 +9,9 @@ This document tracks the step-by-step implementation of the Spoken English Pract
 - [x] **Step 0: Project Bootstrap, Layout Shell, Routes, Prisma & UI Primitives** *(Completed)*
 - [ ] **Step 1: Presentation Module** *(Planned)*
 - [x] **Step 2: Practice Module — IPA & Speech Workspace** *(Completed)*
-- [ ] **Step 3: Persistence & Progress Tracking** *(Planned)*
-- [ ] **Step 4: Polish, Responsive QA & Documentation** *(Planned)*
+- [x] **Step 3: Authentication — Header Login, Google, Complete Profile & Admin Register** *(Completed)*
+- [ ] **Step 4: Persistence & Progress Tracking** *(Planned)*
+- [ ] **Step 5: Polish, Responsive QA & Documentation** *(Planned)*
 
 ---
 
@@ -117,11 +118,51 @@ This document tracks the step-by-step implementation of the Spoken English Pract
   - [x] `npm run lint`: 0 errors (1 known `SearchInput` warning).
   - [x] `npm run build`: clean.
   - [x] Browser-verified British and American IPA output, accent switching, speed-driven `utterance.rate`, mid-playback speed changes, IPA view switching, Start/Pause/Resume/Reset transitions, text restoration after reload, and the missing-voice notice.
-  - [ ] Database persistence of practice sessions is intentionally deferred to Step 3.
+  - [ ] Database persistence of practice sessions is intentionally deferred to Step 4.
 
 ---
 
-### Step 3: Persistence & Progress Tracking *(Planned — scope to be confirmed)*
+### Step 3: Authentication — Header Login, Google, Complete Profile & Admin Register *(Completed)*
+**Goal**: Add cookie-based authentication that only changes the header controls; no page or route is protected.
+
+- [x] **3.1 Schema, Environment & Dependencies**:
+  - [x] Use the user-provided `User` and `RefreshToken` Prisma models and the `20261026161057_create_user_and_refresh_token_tables` migration.
+  - [x] Add `JWT_ACCESS_TOKEN_SECRET`, `JWT_REFRESH_TOKEN_SECRET`, `HASH_SALT_ROUNDS`, `ADMIN_REGISTER_KEY`, and `NEXT_PUBLIC_GOOGLE_CLIENT_ID` to `.env` and `.env.example`.
+  - [x] Install `bcryptjs`, `jsonwebtoken`, `@react-oauth/google`, and `@types/jsonwebtoken`; remove the redundant `@types/bcryptjs`.
+  - [x] Render the header user badge from the account's name initial; no profile pictures are stored.
+
+- [x] **3.2 Server Foundation**:
+  - [x] Add `src/lib/auth/tokens.ts`: HS512 signing, verification, SHA-256 hashing, cookie helpers, 30-minute access / 7-day refresh TTLs, and a 30-second reuse grace period.
+  - [x] Add `src/lib/auth/password.ts` (bcrypt) and Zod schemas in `src/lib/validations/auth.ts`.
+  - [x] Add an `ApiError` / `handleApiError` helper that maps `ZodError` to `400` and `ApiError` to its status.
+  - [x] Add `user` and `refresh-token` repositories, including transactional token rotation.
+
+- [x] **3.3 Auth Service & API Routes**:
+  - [x] Implement register, admin register, email/password login, Google login, profile, complete profile, logout, and `resolveSessionUser` in `src/server/services/auth.service.ts`.
+  - [x] Add direct-service route handlers for `register`, `register-admin`, `login`, `login-google`, `profile`, `complete-profile`, and `logout`.
+  - [x] Return the shared `{ success, message, data }` shape and set/clear httpOnly cookies with environment-aware flags.
+  - [x] Await `connection()` before reading cookies in `/api/auth/profile` so it is never prerendered.
+
+- [x] **3.4 Header UI & Hidden Admin Page**:
+  - [x] Add `AuthProvider`, `GoogleAuthProvider`, and the auth fetch helper in `src/features/auth`.
+  - [x] Add login, register, complete-profile, and admin-register forms plus `AuthModals`.
+  - [x] Show **Login** / **Register** in the header when signed out and `UserMenu` when signed in, including the incomplete-profile prompt and logout.
+  - [x] Add the unlinked `/admin-register` page with `noindex` metadata and the private admin key field.
+  - [x] Keep the header responsive, including a loading placeholder and disabled Google button when unconfigured.
+
+- [x] **3.5 Verification**:
+  - [x] API: register `201`, duplicate `409`, wrong password `401`, login `200`, profile `200`, complete-profile `200`, logout `200` then profile `401`, re-login with the new password `200`.
+  - [x] Admin registration: wrong key `403`, correct key `201`, created role `admin`.
+  - [x] Refresh-only rotation returns new cookies; reuse past the grace period invalidates all sessions (`401`); invalid Google token `401`.
+  - [x] Browser: header buttons, all modals, login/user menu/logout, register-to-login switch, incomplete-profile prompt, complete-profile flow, admin page fields, and no sidebar link.
+  - [x] Responsive checks at 390 px, 768 px, and 1440 px show no horizontal overflow; the login modal fits a 390 px viewport.
+  - [x] Production build clean; `npm start` smoke test confirms `Secure; HttpOnly; SameSite=none` cookies.
+  - [ ] Google login with real credentials remains for the user to test later.
+  - [x] Temporary test accounts and refresh tokens removed; the database is back to zero users.
+
+---
+
+### Step 4: Persistence & Progress Tracking *(Planned — scope to be confirmed)*
 **Goal**: Persist practice sessions and surface practice history and progress.
 
 - [ ] Define the practice session/attempt Prisma models and add the first migration.
@@ -131,7 +172,7 @@ This document tracks the step-by-step implementation of the Spoken English Pract
 
 ---
 
-### Step 4: Polish, Responsive QA & Documentation *(Planned)*
+### Step 5: Polish, Responsive QA & Documentation *(Planned)*
 **Goal**: Harden the application and keep documentation current.
 
 - [ ] Verify desktop, tablet, and mobile layouts for all routes.

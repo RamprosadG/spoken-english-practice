@@ -2,7 +2,7 @@
 
 A full-stack **Spoken English Practice** application built with **Next.js 16 (App Router & Turbopack)**, **TypeScript**, **Tailwind CSS v4**, **PostgreSQL**, and **Prisma ORM 7** with the `@prisma/adapter-pg` driver.
 
-This repository contains the **layout-first foundation** plus the interactive **Practice workspace**: the application shell, navigation, three portal pages, shared UI primitives, database wiring, and client-side IPA and speech playback for practice text. IPA transcription is provided by `phonemize`; voice playback uses the browser Web Speech API.
+This repository contains the **layout-first foundation**, the interactive **Practice workspace**, and cookie-based **authentication**: the application shell, navigation, three portal pages, shared UI primitives, database wiring, client-side IPA and speech playback for practice text, and email/password plus Google sign-in. IPA transcription is provided by `phonemize`; voice playback uses the browser Web Speech API; sessions use HS512 JWTs with rotating refresh tokens stored in PostgreSQL.
 
 ---
 
@@ -13,9 +13,10 @@ This repository contains the **layout-first foundation** plus the interactive **
 4. [Database Setup](#4-database-setup)
 5. [Project Structure](#5-project-structure)
 6. [Layout & Navigation](#6-layout--navigation)
-7. [Practice Workspace](#7-practice-workspace)
-8. [Shared UI Primitives](#8-shared-ui-primitives)
-9. [Quality Gates](#9-quality-gates)
+7. [Authentication](#7-authentication)
+8. [Practice Workspace](#8-practice-workspace)
+9. [Shared UI Primitives](#9-shared-ui-primitives)
+10. [Quality Gates](#10-quality-gates)
 
 ---
 
@@ -28,20 +29,22 @@ The application currently ships the shared application shell and three portal pa
 | `/` | Home | Page heading only |
 | `/presentation` | Presentation | Page heading only |
 | `/practice` | Practice | Interactive text, IPA, and speech workspace |
+| `/admin-register` | Admin Registration | Hidden form for creating an admin with the private secret key |
 
-Home and Presentation intentionally render only their page name inside a bordered page header. Practice contains the first feature screen. The top header remains deliberately empty apart from the mobile menu button needed to open the sidebar drawer on small screens.
+Home and Presentation intentionally render only their page name inside a bordered page header. Practice contains the first feature screen. The top header shows **Login** and **Register** actions on the right; once signed in, they are replaced by a user menu with the account name, email, complete-profile action when needed, and logout. No page or route is protected — authentication only changes the header controls and exposes the account API.
 
 **What is already in place**
 
 - Fixed desktop sidebar (`w-64`) with active-state styling and `react-icons`.
 - Mobile slide-in sidebar drawer with backdrop and close control.
-- Fixed top header shell that reserves its height with `--app-nav-height`.
+- Fixed top header shell that reserves its height with `--app-nav-height` and hosts the auth controls.
 - Full-width main content viewport with the established padding rhythm (`p-6 md:p-8`).
 - Shared footer.
 - Tailwind CSS v4 theme, custom scrollbars, and horizontal-overflow guard.
-- Prisma 7 schema, PostgreSQL datasource, Prisma client singleton, and a `.env` connection string.
+- Prisma 7 schema with `User` and `RefreshToken` models, PostgreSQL datasource, Prisma client singleton, and a `.env` connection string.
 - The reusable `components/ui` primitive library, ready for use by upcoming features.
 - A Practice workspace with English text input, sentence-by-sentence or full IPA transcription, and browser speech playback with accent and speed controls.
+- Email/password registration and login, Google login, complete-profile flow, hidden admin registration, logout, and rotating refresh-token sessions.
 
 ---
 
@@ -67,14 +70,14 @@ Home and Presentation intentionally render only their page name inside a bordere
    # Linux/macOS:
    cp .env.example .env
    ```
-   Update `DATABASE_URL` with your PostgreSQL credentials.
+   Update `DATABASE_URL` with your PostgreSQL credentials, fill in the JWT and admin secrets, and add a Google OAuth client ID if you want Google sign-in enabled. See [Environment Variables](#3-environment-variables).
 
 3. **Generate the Prisma client:**
    ```bash
    npx prisma generate
    ```
 
-4. **Create the database** (if it does not exist yet), then verify the migration state:
+4. **Apply the migrations** (creates the `users` and `refresh_tokens` tables):
    ```bash
    npx prisma migrate dev
    ```
@@ -101,8 +104,19 @@ Create a `.env` file in the project root based on `.env.example`:
 | :--- | :--- | :--- |
 | `DATABASE_URL` | PostgreSQL connection string used by Prisma with `@prisma/adapter-pg` | `postgres://postgres:password@localhost:5432/spoken_english_practice?schema=public` |
 | `NODE_ENV` | Application runtime environment | `development` |
+| `JWT_ACCESS_TOKEN_SECRET` | HS512 secret used to sign 30-minute access tokens | 128-character random hex string |
+| `JWT_REFRESH_TOKEN_SECRET` | HS512 secret used to sign 7-day refresh tokens; must differ from the access secret | 128-character random hex string |
+| `HASH_SALT_ROUNDS` | bcrypt cost factor for password hashing | `10` |
+| `ADMIN_REGISTER_KEY` | Private key required by the hidden `/admin-register` form | random 48-character hex string |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Google OAuth 2.0 Web client ID; Google sign-in stays disabled while empty | `1234567890-abc.apps.googleusercontent.com` |
 
-`.env` is gitignored; only `.env.example` is committed.
+Generate secrets locally without hardcoding them:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+```
+
+`.env` is gitignored; only `.env.example` with placeholders is committed. `NEXT_PUBLIC_*` values are inlined in the client bundle, so restart the dev server after changing the Google client ID.
 
 ---
 
@@ -113,16 +127,19 @@ Create a `.env` file in the project root based on `.env.example`:
 - **Runtime driver**: `@prisma/adapter-pg` wrapped by the singleton in `src/lib/prisma.ts`
 - **Configuration**: `prisma.config.ts` loads `.env` via `dotenv/config` and supplies the datasource URL
 
-The schema currently declares only the generator and datasource — no domain models yet. A later persistence step will introduce the initial models and their migration. Until then, `npx prisma migrate dev` reports the database is already in sync.
+The schema declares the authentication models:
 
-When models are added:
+- `User` — UUID id, unique email, optional bcrypt password, `admin` / `public` role, `isComplete`, and timestamps. Google-created users start with `isComplete: false` until they set a password.
+- `RefreshToken` — UUID id, unique SHA-256 hash of the refresh JWT, owning user (cascade delete), `used` / `usedAt` for rotation, and `expiresAt`.
+
+The migration in `prisma/migrations/20261026161057_create_user_and_refresh_token_tables` creates both tables, and `20261026173014_remove_user_picture` drops the unused profile-picture column. After any schema change:
 
 ```bash
 npx prisma generate
 npx prisma migrate dev --name <migration-name>
 ```
 
-All entity IDs should follow the project convention: `String @id @default(uuid())`.
+All entity IDs follow the project convention: `String @id @default(uuid())`.
 
 ---
 
@@ -134,28 +151,36 @@ src/
 │   ├── page.tsx                 # Home page
 │   ├── presentation/page.tsx    # Presentation page
 │   ├── practice/page.tsx        # Practice page
-│   ├── layout.tsx               # Root layout — fonts, metadata, AppLayoutShell
+│   ├── admin-register/page.tsx  # Hidden admin registration page
+│   ├── api/auth/                # register, login, Google login, profile, complete-profile, admin, logout
+│   ├── layout.tsx               # Root layout — fonts, metadata, providers, AppLayoutShell
 │   ├── globals.css              # Tailwind import, theme variables, scrollbars
 │   └── not-found.tsx            # 404 page
 ├── components/
 │   ├── features/                # Page-level sections, one folder per page
+│   │   ├── auth/
 │   │   ├── home/
 │   │   ├── presentation/
 │   │   └── practice/
-│   ├── shared/                  # AppLayoutShell, Sidebar, Navbar, Footer
+│   ├── shared/                  # AppLayoutShell, Sidebar, Navbar, UserMenu, Footer
 │   └── ui/                      # Reusable primitives (buttons, inputs, tables, ...)
 ├── features/
+│   ├── auth/                    # AuthProvider, auth modals/forms, Google button, fetch helper
 │   └── practice/
 │       └── PracticeWorkspace.tsx # Client island: text, IPA, accent and speech controls
 ├── lib/
+│   ├── auth/                    # JWT signing/verification, cookies, bcrypt helpers
+│   ├── validations/             # Zod request schemas
+│   ├── api-error.ts             # ApiError + shared route error formatting
 │   ├── prisma.ts                # PrismaClient singleton with @prisma/adapter-pg
 │   └── utils.ts                 # Date, currency and pagination helpers
 ├── server/
+│   ├── repositories/            # Prisma data access for users and refresh tokens
+│   ├── services/                # Auth workflows and session resolution
 │   └── types/                   # Server-side payload and pagination interfaces
+├── types/                       # Client-facing view-model types
 └── generated/prisma/            # Generated Prisma client (gitignored)
 ```
-
-Reserved for upcoming features (created as needed): `src/server/{services,repositories}`, `src/types`, and `src/lib/validations`.
 
 ---
 
@@ -165,7 +190,7 @@ The shell is composed in `src/app/layout.tsx` and `src/components/shared/AppLayo
 
 - `AppLayoutShell` is a client component that owns the mobile sidebar open/closed state.
 - `Sidebar` renders the fixed desktop rail plus the mobile drawer, sharing one `navItems` list.
-- `Navbar` is the fixed header. Its only control is the mobile hamburger; all other header content is intentionally absent for now.
+- `Navbar` is the fixed header. It keeps the mobile hamburger on the left and renders the auth area on the right: a loading placeholder, **Login** / **Register** buttons, or the `UserMenu` account dropdown when signed in. The login, register, and complete-profile modals are mounted alongside it.
 - `main` offsets itself with `pt-[var(--app-nav-height)]` so the fixed header never overlaps content.
 - `Footer` sits at the bottom of the main column.
 
@@ -173,7 +198,61 @@ Active sidebar items use the established styling: `bg-indigo-50 text-indigo-700 
 
 ---
 
-## 7. Practice Workspace
+## 7. Authentication
+
+Authentication is header-only: **no page or route is protected**. Signed-out visitors can use every screen; signing in adds the account menu and unlocks the account API. The flow intentionally mirrors the project's other applications: short-lived access JWT, rotating refresh token in PostgreSQL, and direct service calls from route handlers.
+
+### Session model
+
+- **Access token** — HS512 JWT, 30 minutes, stored in the `accessToken` httpOnly cookie.
+- **Refresh token** — HS512 JWT, 7 days, stored in the `refreshToken` httpOnly cookie. Only its SHA-256 hash is persisted in `RefreshToken`.
+- **Rotation** — `resolveSessionUser` verifies the access token first; when it expires, the refresh token is validated against the database, rotated, and both cookies are reissued.
+- **Reuse detection** — a refresh token used again after the 30-second grace period deletes all of that user's refresh tokens, invalidating every session.
+- **Cookie flags** — `httpOnly`; `sameSite=lax` in development and `secure` + `sameSite=none` in production.
+- **Passwords** — bcrypt with `HASH_SALT_ROUNDS` (default `10`); Google-only accounts have no password until they complete their profile.
+
+### API routes
+
+All handlers return `{ success, message, data }` (or `{ success: false, message }` on error), validate input with Zod, and call `src/server/services/auth.service.ts` directly — there is no internal HTTP hop.
+
+| Method | Route | Purpose |
+| :--- | :--- | :--- |
+| `POST` | `/api/auth/register` | Create a public account with name, email, and password |
+| `POST` | `/api/auth/login` | Email/password sign-in; sets the auth cookies |
+| `POST` | `/api/auth/login-google` | Exchange a Google access token for a session via the Google userinfo endpoint |
+| `GET` | `/api/auth/profile` | Return the signed-in user, or `401` when signed out |
+| `PATCH` | `/api/auth/complete-profile` | Set a password for an incomplete account and reissue the session |
+| `POST` | `/api/auth/register-admin` | Create an admin account; requires the private `ADMIN_REGISTER_KEY` |
+| `POST` | `/api/auth/logout` | Delete the user's refresh tokens and clear both cookies |
+
+### UI behavior
+
+- `AuthProvider` (`src/features/auth/AuthProvider.tsx`) owns the current user, loading state, and which auth modal is open. It fetches `/api/auth/profile` on mount; a `401` simply leaves the visitor signed out.
+- The header shows **Login** and **Register** buttons when signed out and the `UserMenu` dropdown with the account's initial badge when signed in. The menu displays the account, a *Complete your profile* action for Google accounts without a password, and logout.
+- Login, register, and complete-profile are modal flows sharing the `Button`, `Input`, and `Modal` primitives. Registering succeeds with a notice and switches to the login modal; it does not sign the user in.
+- Google accounts that have not set a password land on `isComplete: false`, and the user menu prompts them to complete the profile. Completing it stores a bcrypt password, sets `isComplete: true`, and reissues the session.
+- The header badge shows the first letter of the user's name; the app does not use profile pictures.
+
+### Google sign-in setup
+
+Google sign-in uses the implicit flow through `@react-oauth/google`: the browser obtains an access token, and `/api/auth/login-google` calls `https://www.googleapis.com/oauth2/v3/userinfo` to read the profile.
+
+1. Create an OAuth 2.0 **Web application** client in Google Cloud Console.
+2. Add `http://localhost:3000` to the authorized JavaScript origins. If you open the app through `127.0.0.1` or a LAN address, add that exact origin too.
+3. While the OAuth consent screen is in **Testing**, add the Google account you sign in with as a test user.
+4. Put the client ID in `NEXT_PUBLIC_GOOGLE_CLIENT_ID` and restart the dev server — `NEXT_PUBLIC_*` values are read at startup.
+5. Allow popups for `localhost:3000`; the popup-based implicit flow cannot complete if the browser blocks the Google window.
+6. After a successful Google login, the API creates an incomplete account when the email is new and signs the user in.
+
+While the client ID is empty the Google button renders disabled with a notice instead of failing at runtime. Popup-blocked and cancelled attempts are reported in the login form, and the button stays disabled until the Google script has loaded. Google login has not been exercised against real credentials in this repository; the API has only been verified to reject invalid tokens.
+
+### Hidden admin registration
+
+`/admin-register` is a standalone page that is **not linked from the sidebar** and sets `robots: { index: false, follow: false }`. It asks for name, email, password, confirmation, and the private admin secret key, then calls `/api/auth/register-admin`. The service compares the submitted key to `ADMIN_REGISTER_KEY` and returns `403` for a mismatch. Successful registration creates an `admin` user; it does not sign them in, so the form redirects to the home page and opens the login modal.
+
+---
+
+## 8. Practice Workspace
 
 `src/features/practice/PracticeWorkspace.tsx` is a client island embedded by the Practice page:
 
@@ -192,7 +271,7 @@ Speech playback uses `window.speechSynthesis`. Available voices come from the op
 
 ---
 
-## 8. Shared UI Primitives
+## 9. Shared UI Primitives
 
 The following primitives are available in `src/components/ui` and ready for reuse:
 
@@ -212,12 +291,12 @@ The following primitives are available in `src/components/ui` and ready for reus
 
 ---
 
-## 9. Quality Gates
+## 10. Quality Gates
 
 | Check | Command | Current Result |
 | :--- | :--- | :--- |
 | Lint | `npm run lint` | 0 errors, 1 known `react-hooks/exhaustive-deps` warning in `SearchInput` |
 | Types | `npx tsc --noEmit` | Clean |
-| Build | `npm run build` | Clean — `/`, `/practice`, `/presentation`, `/_not-found` prerendered |
+| Build | `npm run build` | Clean — `/`, `/practice`, `/presentation`, `/admin-register`, and `/_not-found` prerendered; `/api/auth/*` built as dynamic routes |
 
-The pages currently prerender statically because they do not read request data. When a page starts reading URL search params or per-request data, await `connection()` before the read so it renders as a partial prerender instead of a stale static snapshot.
+The pages currently prerender statically because they do not read request data. When a page starts reading URL search params or per-request data, await `connection()` before the read so it renders as a partial prerender instead of a stale static snapshot. `/api/auth/profile` awaits `connection()` before reading cookies so it is always evaluated per request.
