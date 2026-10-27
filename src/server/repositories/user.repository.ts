@@ -40,6 +40,10 @@ export function findUserById(id: string) {
   });
 }
 
+export function countUsers() {
+  return prisma.user.count();
+}
+
 export function createUser(data: CreateUserData) {
   return prisma.user.create({
     data,

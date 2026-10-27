@@ -92,6 +92,10 @@ export function findVocabularyById(id: string) {
   return prisma.vocabulary.findUnique({ where: { id } });
 }
 
+export function countVocabulary() {
+  return prisma.vocabulary.count();
+}
+
 export function createVocabulary(data: VocabularyWriteData) {
   return prisma.vocabulary.create({ data });
 }

@@ -29,7 +29,7 @@ The application currently ships the shared application shell and its portal page
 
 | Route | Page | Description |
 | :--- | :--- | :--- |
-| `/` | Home | Page heading only |
+| `/` | Home | Landing page with the library totals and navigation into every practice area |
 | `/presentation` | Presentation | Admin-managed library of saved titles and practice texts |
 | `/presentation/[id]` | Presentation Practice | Read-only practice for one saved presentation: title, scrollable text, IPA, and speech |
 | `/sentences` | Sentences | Admin-managed sentence library with Bengali meanings and inline, single-row practice |
@@ -37,7 +37,7 @@ The application currently ships the shared application shell and its portal page
 | `/practice` | Practice | Interactive text, IPA, and speech workspace |
 | `/admin-register` | Admin Registration | Hidden form for creating an admin with the private secret key |
 
-Home intentionally renders only its page name inside a bordered page header. Presentation is the first server-rendered data screen. The top header shows **Login** and **Register** actions on the right; once signed in, they are replaced by a user menu with the account name, email, complete-profile action when needed, and logout. Pages remain public — authentication changes the header controls, and only presentation, sentence, and vocabulary mutations are restricted to admins.
+Home is the landing page: a gradient hero with the two primary calls to action, four live totals (Learners, Presentations, Sentences, Vocabulary), and a card for each destination. The hero prerenders while the totals stream from the database, so the route stays a partial prerender. The top header shows **Login** and **Register** actions on the right; once signed in, they are replaced by a user menu with the account name, email, update profile and update password actions, complete-profile action when needed, and logout. Pages remain public — authentication changes the header controls, and only presentation, sentence, and vocabulary mutations are restricted to admins.
 
 **What is already in place**
 
@@ -49,6 +49,7 @@ Home intentionally renders only its page name inside a bordered page header. Pre
 - Tailwind CSS v4 theme, custom scrollbars, and horizontal-overflow guard.
 - Prisma 7 schema with `User`, `RefreshToken`, `Presentation`, `Sentence`, and `Vocabulary` models, PostgreSQL datasource, Prisma client singleton, and a `.env` connection string.
 - The reusable `components/ui` primitive library, ready for use by upcoming features.
+- A Home landing page with a gradient hero, four live totals (learners, presentations, sentences, vocabulary), and cards that link into every practice area.
 - A Presentation library with a server-rendered, searchable, paginated table; admin-only create/update modals and delete confirmation; and a per-row **Practice now** link into the dynamic route.
 - A Sentence library with a searchable, paginated table, admin-only create/edit/delete, and an inline practice panel that expands one row at a time with the English sentence, automatic IPA beneath it, Bengali meaning, per-sentence Listen, and accent/speed controls.
 - A Vocabulary library with a searchable, paginated table, an initial-letter filter, admin-only create/edit/delete, and an inline practice panel showing automatic IPA and Listen for the word, example sentence, and each optional synonym and antonym.
@@ -160,7 +161,7 @@ All entity IDs follow the project convention: `String @id @default(uuid())`.
 ```text
 src/
 ├── app/
-│   ├── page.tsx                 # Home page
+│   ├── page.tsx                 # Home landing page (hero + Suspense-streamed totals)
 │   ├── presentation/page.tsx    # Presentation library (Server Component + Suspense)
 │   ├── presentation/[id]/page.tsx # Presentation practice (server read + read-only workspace)
 │   ├── sentences/page.tsx       # Sentence library (Server Component + Suspense)
@@ -177,7 +178,7 @@ src/
 ├── components/
 │   ├── features/                # Page-level sections, one folder per page
 │   │   ├── auth/
-│   │   ├── home/
+│   │   ├── home/                # HomeHeader, HomeContent + HomeLoading, HomeView
 │   │   ├── presentation/
 │   │   ├── practice/
 │   │   ├── sentence/
@@ -207,7 +208,7 @@ src/
 │   └── utils.ts                 # Date, currency and pagination helpers
 ├── server/
 │   ├── repositories/            # Prisma data access for users, refresh tokens, presentations, sentences, and vocabulary
-│   ├── services/                # Auth, session resolution, presentation, sentence, and vocabulary workflows
+│   ├── services/                # Auth, session resolution, home summary, presentation, sentence, and vocabulary workflows
 │   └── types/                   # Server-side payload and pagination interfaces
 ├── types/                       # Client-facing view-model types
 └── generated/prisma/            # Generated Prisma client (gitignored)
@@ -226,6 +227,15 @@ The shell is composed in `src/app/layout.tsx` and `src/components/shared/AppLayo
 - `Footer` sits at the bottom of the main column.
 
 Active sidebar items use the established styling: `bg-indigo-50 text-indigo-700 font-semibold` with an indigo icon.
+
+### Home landing page
+
+`src/app/page.tsx` composes the landing screen in two parts so the route can still prerender its shell:
+
+- `HomeHeader` is the static gradient hero — pill label, headline, benefit copy, and the **Start practicing free** (`/practice`) and **Explore the library** (`/vocabulary`) actions. `overflow-hidden` keeps its decorative blur from creating horizontal scroll.
+- `HomeContent` awaits `connection()`, calls `getHomeSummary()`, and passes the totals to `HomeView`. `HomeLoading` is the skeleton `<Suspense>` fallback shipped in the initial HTML.
+- `HomeView` renders four `StatCard` totals (Learners, Presentations, Sentences, Vocabulary) and four destination cards linking to `/presentation`, `/sentences`, `/vocabulary`, and `/practice`.
+- Each total is one unfiltered `COUNT` in PostgreSQL and all four run in parallel; rows are never loaded to be counted. Home is server-rendered only, so there is no `/api/home` route.
 
 ---
 
@@ -459,7 +469,7 @@ The following primitives are available in `src/components/ui` and ready for reus
 | `src/components/ui/stats/StatCard.tsx` | `StatCard` |
 | `src/components/ui/tables/DataTable.tsx` | `DataTable`, `Column` |
 
-`DataTable` also supports single-row expansion via optional `expandedRowId` and `renderExpandedRow` props (used by the Sentence and Vocabulary libraries). `Dropdown` portal-renders its menu into `document.body` with fixed, viewport-aware positioning so it is never clipped by table scroll containers. Modal footers keep their submit and cancel buttons at equal full width inside `flex items-center gap-3`, with Cancel as the `secondary` variant.
+`DataTable` also supports single-row expansion via optional `expandedRowId` and `renderExpandedRow` props (used by the Sentence and Vocabulary libraries). `Dropdown` portal-renders its menu into `document.body` with fixed, viewport-aware positioning so it is never clipped by table scroll containers. Modal footers keep their submit and cancel buttons at equal full width inside `flex items-center gap-3`, with Cancel as the `secondary` variant. `StatCard` powers the home totals, and its sub-`sm` sizes are tuned so a count stays readable on a phone.
 
 ---
 

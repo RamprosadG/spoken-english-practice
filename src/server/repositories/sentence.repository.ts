@@ -66,6 +66,10 @@ export function findSentenceById(id: string) {
   return prisma.sentence.findUnique({ where: { id } });
 }
 
+export function countSentences() {
+  return prisma.sentence.count();
+}
+
 export function createSentence(data: SentenceWriteData) {
   return prisma.sentence.create({ data });
 }

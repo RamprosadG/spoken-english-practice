@@ -63,6 +63,10 @@ export function findPresentationById(id: string) {
   return prisma.presentation.findUnique({ where: { id } });
 }
 
+export function countPresentations() {
+  return prisma.presentation.count();
+}
+
 export function createPresentation(data: PresentationWriteData) {
   return prisma.presentation.create({ data });
 }

@@ -12,8 +12,9 @@ This document tracks the step-by-step implementation of the Spoken English Pract
 - [x] **Step 3: Authentication — Header Login, Google, Complete Profile & Admin Register** *(Completed)*
 - [x] **Step 4: Sentence Library — Inline Practice** *(Completed)*
 - [x] **Step 5: Vocabulary Library — Inline Practice** *(Completed)*
-- [ ] **Step 6: Persistence & Progress Tracking** *(Planned)*
-- [ ] **Step 7: Polish, Responsive QA & Documentation** *(Planned)*
+- [x] **Step 6: Home Overview — Library Totals & Navigation** *(Completed)*
+- [ ] **Step 7: Persistence & Progress Tracking** *(Planned)*
+- [ ] **Step 8: Polish, Responsive QA & Documentation** *(Planned)*
 
 ---
 
@@ -247,7 +248,25 @@ This document tracks the step-by-step implementation of the Spoken English Pract
 
 ---
 
-### Step 6: Persistence & Progress Tracking *(Planned — scope to be confirmed)*
+### Step 6: Home Overview — Library Totals & Navigation *(Completed)*
+**Goal**: Turn `/` from a heading-only placeholder into a landing page that shows how much content exists and routes visitors into each practice area.
+
+- [x] **6.1 Data layer**:
+  - [x] Add unfiltered `countUsers()`, `countPresentations()`, `countSentences()`, and `countVocabulary()` repository helpers, each a single Prisma `count()`.
+  - [x] Add `getHomeSummary()` in `src/server/services/home.service.ts`, which awaits `connection()` and runs all four counts with `Promise.all`, returning the `HomeSummary` type from `src/types/home.ts`. No HTTP hop, no row loading.
+- [x] **6.2 UI**:
+  - [x] `src/app/page.tsx` renders the prerendered `HomeHeader` hero (gradient panel, headline, benefit copy, **Start practicing free** → `/practice`, **Explore the library** → `/vocabulary`) and streams `HomeContent` through `<Suspense>` with a `HomeLoading` skeleton.
+  - [x] `HomeView` shows four `StatCard` totals — Learners, Presentations, Sentences, Vocabulary — in `grid-cols-1 sm:grid-cols-2 xl:grid-cols-4`, then four linked destination cards for Presentation, Sentences, Vocabulary, and Practice with icon tile, description, and an arrow that widens on hover.
+  - [x] Raise the shared `StatCard` mobile typography so counts stay readable below `sm` (`max-sm:p-2.5`→`p-4`, value `max-sm:text-sm`→`text-xl`, subtitle `max-sm:text-[10px]`→`text-[11px]`).
+- [x] **6.3 Verification**:
+  - [x] SQL log confirms four independent `SELECT COUNT(*) … WHERE 1=1` reads — no `findMany`, no in-process counting; the page renders the same values (Learners 2, Presentations 1, Sentences 1, Vocabulary 1) as a direct repository run.
+  - [x] Browser: hero, both sections, and all four destination links (`/presentation`, `/sentences`, `/vocabulary`, `/practice`) are present; gradient compiles (`bg-linear-to-br` → `linear-gradient(to right bottom, …)`); no horizontal overflow at the hidden ~554 px viewport; `overflow-hidden` on the hero contains the decorative blur.
+  - [x] Compiled CSS contains the wide-screen variants (`sm:grid-cols-2`, `xl:grid-cols-4`, `sm:px-10`, `sm:text-4xl`, `xl:text-5xl`), so the desktop layout is wired even though only the 554 px viewport could be measured live.
+  - [x] `npx tsc --noEmit` and `npm run lint` are clean (only the known `SearchInput` warning); `npm run build` passes with `/` listed as `◐` partial prerender — static hero, streamed counts.
+
+---
+
+### Step 7: Persistence & Progress Tracking *(Planned — scope to be confirmed)*
 **Goal**: Persist practice sessions and surface practice history and progress.
 
 - [ ] Define the practice session/attempt Prisma models and add the first migration.
@@ -257,7 +276,7 @@ This document tracks the step-by-step implementation of the Spoken English Pract
 
 ---
 
-### Step 7: Polish, Responsive QA & Documentation *(Planned)*
+### Step 8: Polish, Responsive QA & Documentation *(Planned)*
 **Goal**: Harden the application and keep documentation current.
 
 - [ ] Verify desktop, tablet, and mobile layouts for all routes.

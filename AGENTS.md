@@ -18,7 +18,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - **Styling**: Tailwind CSS v4, `react-icons`, shared UI primitives in `src/components/ui`
 - **Speech & IPA**: Browser `speechSynthesis` for playback; `phonemize` for dialect-aware IPA
 
-The project is at the **foundation + Presentation library + Sentence library + Vocabulary library + Practice workspace + authentication stage**. The app shell, navigation, UI primitives, database wiring, the Presentation library, the read-only presentation practice page, the inline Sentence and Vocabulary practice libraries, the Practice feature, and cookie-based auth (email/password, Google, complete profile, hidden admin registration) are in place. Home remains a placeholder — do not add feature content to it until a feature step explicitly asks for it. No page route is protected; auth drives the header controls and the account API, and presentation, sentence, and vocabulary mutations are admin-only.
+The project is at the **foundation + Presentation library + Sentence library + Vocabulary library + Practice workspace + authentication + home overview stage**. The app shell, navigation, UI primitives, database wiring, the Presentation library, the read-only presentation practice page, the inline Sentence and Vocabulary practice libraries, the Practice feature, the Home landing page with live library totals, and cookie-based auth (email/password, Google, complete profile, update profile, update password, hidden admin registration) are in place. Home is a landing page now: it shows counts and navigation, and must not gain practice forms or editing without a requirement. No page route is protected; auth drives the header controls and the account API, and presentation, sentence, and vocabulary mutations are admin-only.
 
 ---
 
@@ -27,7 +27,7 @@ The project is at the **foundation + Presentation library + Sentence library + V
 ```text
 src/
 ├── app/
-│   ├── page.tsx                 # Home
+│   ├── page.tsx                 # Home landing page (hero + Suspense-streamed totals)
 │   ├── presentation/page.tsx    # Presentation library (Suspense + server read)
 │   ├── presentation/[id]/page.tsx # Presentation practice (server read + read-only workspace)
 │   ├── sentences/page.tsx       # Sentence library (Suspense + server read)
@@ -43,7 +43,7 @@ src/
 ├── components/
 │   ├── features/                # Server-rendered page sections, one folder per page
 │   │   ├── auth/
-│   │   ├── home/
+│   │   ├── home/                # HomeHeader, HomeContent + HomeLoading, HomeView
 │   │   ├── presentation/
 │   │   ├── practice/
 │   │   ├── sentence/
@@ -159,7 +159,13 @@ src/
 - **Sequence field**: in the presentation, sentence, and vocabulary create/edit modals the **Sequence** input is the last field before the footer and spans the full modal width — `Input` already applies `w-full`, so pass no width class. Do not cap it with `max-w-*` or move it above the content fields. Sequence orders the lists but is never displayed in a table; do not add a sequence column or badge back.
 - Shared composites belong in `src/components/shared`; page-specific sections belong in `src/components/features/<area>`; client-only forms/modals belong in `src/features/<domain>`.
 
-### 10. Code Quality & Verification
+### 10. Home Overview
+- **Composition**: `src/app/page.tsx` renders the static `HomeHeader` hero, then wraps `HomeContent` in `<Suspense>` with the `HomeLoading` skeleton, so the route prerenders its shell and streams the numbers. `HomeContent` awaits `connection()` and calls `getHomeSummary()`; `HomeView` is presentational and receives the `HomeSummary` from `src/types/home.ts`.
+- **Read path**: `getHomeSummary()` runs `countUsers()`, `countPresentations()`, `countSentences()`, and `countVocabulary()` in one `Promise.all`. Each is an unfiltered Prisma `count()` — never load rows to count them, and never call an API route over HTTP. There is no `/api/home` route; if a client-side home feature ever needs the totals, add one.
+- **UI**: the hero pairs `bg-linear-to-br` indigo→violet with `overflow-hidden` (Tailwind v4 names gradients `bg-linear-*`, not `bg-gradient-*`) and two CTAs: **Start practicing free** → `/practice`, **Explore the library** → `/vocabulary`. Below it, four `StatCard` totals sit in `grid-cols-1 sm:grid-cols-2 xl:grid-cols-4`, then four link cards cover Presentation, Sentences, Vocabulary, and Practice. Keep the destination list in sync with the sidebar routes and keep every destination a `Link`, not a button.
+- **Home is no longer a placeholder**: it shows real data and navigation only. Do not add practice forms, editing, or auth-dependent content here without a requirement.
+
+### 11. Code Quality & Verification
 - **Strict TypeScript**: Avoid `any`; use Prisma model types from `@/generated/prisma/client`.
 - **Lint**: `npm run lint` must stay at zero errors. The only accepted warning is the deliberate `react-hooks/exhaustive-deps` deviation in `SearchInput.tsx`; keep it documented with a reasoned `eslint-disable` rather than restructuring the effect.
 - **Build**: Run `npx tsc --noEmit` and `npm run build` after structural or schema changes. Keep the build clean.
@@ -167,4 +173,5 @@ src/
 - **Presentation changes**: Verify unauthenticated mutations return `401`, public users get `403`, and admins can create/update/delete through both the API and the modal UI. Confirm every visitor sees the table and **Practice now** link, that `router.refresh()` updates the table, and that the dynamic route renders. Clean up any temporary users and presentations afterward.
 - **Sentence changes**: Verify unauthenticated mutations return `401`, public users get `403`, and admins create/edit/delete through both the API and the modal UI. Confirm every visitor sees the table and the inline **Practice** toggle, that only one row is expanded at a time, that switching rows stops speech, that the sentence's IPA appears automatically beneath it with only accent/speed/Listen controls (no pause, reset, or IPA toggle), that the accent dropdown opens without clipping, and that search matches both English text and Bengali meaning. Clean up temporary users and sentences afterward.
 - **Vocabulary changes**: Verify unauthenticated mutations return `401`, public users get `403`, and admins create/edit/delete through both the API and the modal UI, including blank optional synonym/antonym fields. Confirm every visitor sees the table with word, Bengali meaning, and word IPA, that only one row is expanded at a time, and that the panel shows automatic IPA and a Listen button on the word, example sentence, and each present synonym/antonym item with only accent/speed controls. Verify search hits words, synonyms, and antonyms but not Bengali text; verify the A–Z dropdown filters by initial letter and combines with search. Check no horizontal overflow at 390 px, 768 px, and 1440 px. Clean up temporary users and vocabulary rows afterward.
+- **Home changes**: Confirm each total is a single unfiltered `SELECT COUNT(*)` in the Prisma query log and matches a direct repository run, that `/` stays a partial prerender (`◐`) with the hero in the initial HTML and the skeleton replaced by real values, that all four destination cards link to live routes, and that no horizontal overflow appears at the tested viewport. Wide-screen grids can only be proven from the compiled CSS variants here, so state that rather than claiming a desktop screenshot check.
 - **Do not delete unrelated files** or restructure directories when adding a feature.

@@ -30,16 +30,16 @@ const StatCard: React.FC<StatCardProps> = ({
 }) => {
   return (
     <div
-      className={`border ${borderColor} rounded-xl shadow-xs hover:shadow-md transition-shadow p-5 max-sm:p-2.5 ${bgColor} ${className}`}
+      className={`border ${borderColor} rounded-xl shadow-xs hover:shadow-md transition-shadow p-5 max-sm:p-4 ${bgColor} ${className}`}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-gray-500 truncate max-sm:text-xs">{title}</p>
-          <p className="mt-1 text-2xl font-bold text-slate-900 truncate max-sm:text-sm max-sm:mt-0.5">
+          <p className="mt-1 text-2xl font-bold text-slate-900 truncate max-sm:text-xl">
             {value}
           </p>
           {subtitle && (
-            <p className="mt-1 text-xs text-gray-500 truncate max-sm:text-[10px]">{subtitle}</p>
+            <p className="mt-1 text-xs text-gray-500 truncate max-sm:text-[11px]">{subtitle}</p>
           )}
           {trend && (
             <div className="mt-2 flex items-center gap-1">
