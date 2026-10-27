@@ -5,8 +5,9 @@ export function PracticeHeader() {
         Practice
       </h1>
       <p className="mt-1 text-sm text-slate-500">
-        Read IPA transcriptions sentence by sentence and hear the text in
-        British or American English at your own pace.
+        Practise in short, focused sessions: read for meaning, study the IPA,
+        then speak along with the audio — repeating daily trains your ear,
+        rhythm, and confidence.
       </p>
     </header>
   );

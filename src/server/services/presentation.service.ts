@@ -57,6 +57,13 @@ export async function listPresentations(
   return { ...list, nextSequence };
 }
 
+export async function getPresentationById(
+  id: string,
+): Promise<PresentationItem | null> {
+  const presentation = await findPresentationById(id);
+  return presentation ? toPresentationItem(presentation) : null;
+}
+
 export async function createPresentation(
   input: PresentationInput,
 ): Promise<PresentationItem> {

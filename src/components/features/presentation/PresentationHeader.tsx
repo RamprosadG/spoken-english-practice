@@ -12,11 +12,14 @@ export function PresentationHeader({ actions }: PresentationHeaderProps) {
           Presentation
         </h1>
         <p className="mt-1 text-sm text-gray-500 max-sm:hidden">
-          Browse saved English texts, search by title, and open one to start
-          practicing.
+          Save the talks and scripts you want to master, then rehearse one at a
+          time over several days — revisiting the same material is how speaking
+          becomes automatic.
         </p>
       </div>
-      <div className="flex items-center gap-3 max-sm:w-full">{actions}</div>
+      <div className="flex items-center gap-3 shrink-0 max-sm:w-full">
+        {actions}
+      </div>
     </div>
   );
 }

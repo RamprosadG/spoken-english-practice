@@ -1,14 +1,30 @@
-import { Suspense } from "react";
+import { connection } from "next/server";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { FiArrowLeft } from "react-icons/fi";
+import { PresentationPracticeWorkspace } from "@/features/presentation/PresentationPracticeWorkspace";
+import { getPresentationById } from "@/server/services/presentation.service";
 
 interface PresentationPracticePageProps {
   params: Promise<{ id: string }>;
 }
 
-export default function PresentationPracticePage({
+// Blocking this route keeps the HTTP status honest (404) for unknown ids.
+export const instant = false;
+
+export default async function PresentationPracticePage({
   params,
 }: PresentationPracticePageProps) {
+  // The record is read per request, so this route is never prerendered.
+  await connection();
+
+  const { id } = await params;
+  const presentation = await getPresentationById(id);
+
+  if (!presentation) {
+    notFound();
+  }
+
   return (
     <div className="flex flex-col gap-6 w-full">
       <header className="border-b border-slate-200 pb-5">
@@ -20,40 +36,16 @@ export default function PresentationPracticePage({
           Back to presentations
         </Link>
         <h1 className="mt-3 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl max-sm:text-lg">
-          Presentation practice
+          {presentation.title}
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          The practice workspace for this presentation arrives in the next step.
+          Listen, imitate, repeat: follow the IPA, shadow the speaker&apos;s
+          stress and intonation, and revisit this passage daily until the words
+          flow naturally.
         </p>
       </header>
 
-      <Suspense fallback={<PresentationIdCardFallback />}>
-        <PresentationIdCard params={params} />
-      </Suspense>
-    </div>
-  );
-}
-
-async function PresentationIdCard({
-  params,
-}: PresentationPracticePageProps) {
-  const { id } = await params;
-
-  return (
-    <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-      <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-        Presentation ID
-      </p>
-      <p className="mt-1 break-all font-mono text-sm text-slate-700">{id}</p>
-    </div>
-  );
-}
-
-function PresentationIdCardFallback() {
-  return (
-    <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-      <div className="h-3 w-32 animate-pulse rounded bg-slate-200" />
-      <div className="mt-3 h-4 w-72 max-w-full animate-pulse rounded bg-slate-100" />
+      <PresentationPracticeWorkspace text={presentation.text} />
     </div>
   );
 }

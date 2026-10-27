@@ -23,13 +23,13 @@ This repository contains the **layout-first foundation**, the **Presentation lib
 
 ## 1. Current Scope
 
-The application currently ships the shared application shell and three portal pages:
+The application currently ships the shared application shell and its portal pages:
 
 | Route | Page | Description |
 | :--- | :--- | :--- |
 | `/` | Home | Page heading only |
 | `/presentation` | Presentation | Admin-managed library of saved titles and practice texts |
-| `/presentation/[id]` | Presentation Practice | Dynamic route for one saved presentation; the workspace arrives in the next step |
+| `/presentation/[id]` | Presentation Practice | Read-only practice for one saved presentation: title, scrollable text, IPA, and speech |
 | `/practice` | Practice | Interactive text, IPA, and speech workspace |
 | `/admin-register` | Admin Registration | Hidden form for creating an admin with the private secret key |
 
@@ -154,7 +154,7 @@ src/
 ├── app/
 │   ├── page.tsx                 # Home page
 │   ├── presentation/page.tsx    # Presentation library (Server Component + Suspense)
-│   ├── presentation/[id]/page.tsx # Dynamic practice route scaffold
+│   ├── presentation/[id]/page.tsx # Presentation practice (server read + read-only workspace)
 │   ├── practice/page.tsx        # Practice page
 │   ├── admin-register/page.tsx  # Hidden admin registration page
 │   ├── api/auth/                # register, login, Google login, profile, complete-profile, admin, logout
@@ -172,9 +172,12 @@ src/
 │   └── ui/                      # Reusable primitives (buttons, inputs, tables, ...)
 ├── features/
 │   ├── auth/                    # AuthProvider, auth modals/forms, Google button, fetch helper
-│   ├── presentation/            # Actions, Filters, Section, Table, form modal, fetch helper
+│   ├── presentation/            # Actions, Filters, Section, Table, practice workspace, form modal, fetch helper
 │   └── practice/
-│       └── PracticeWorkspace.tsx # Client island: text, IPA, accent and speech controls
+│       ├── PracticeWorkspace.tsx # Editable text island (localStorage-backed)
+│       ├── useSpeechPractice.ts  # Shared IPA, accent, speed and speech state
+│       ├── SpeechPracticeControls.tsx # Shared accent/speed/IPA and playback controls
+│       └── IpaTranscriptionCard.tsx   # Shared IPA transcription card
 ├── lib/
 │   ├── auth/                    # JWT signing/verification, cookies, bcrypt helpers
 │   ├── validations/             # Zod request schemas
@@ -299,15 +302,15 @@ While the client ID is empty the Google button renders disabled with a notice in
 
 ### Practice route
 
-`/presentation/[id]` is a dynamic route scaffold. It awaits the route params, displays the presentation ID, and links back to the library. The actual practice workspace is intentionally deferred to the next step; the page does not fetch the presentation yet.
+`/presentation/[id]` reads one saved presentation on the server with `getPresentationById()`. It is a blocking route (`instant = false`) so an unknown id returns a real `404` instead of a streamed 200 status. The header shows a back link, the presentation title, and a short subtitle. `PresentationPracticeWorkspace` then displays the saved text in a read-only panel capped at `max-h-96` with vertical scrolling and preserved line breaks; the same accent, speed, IPA, and speech controls as the Practice page sit underneath. The saved text is never edited or persisted from this page.
 
 ---
 
 ## 9. Practice Workspace
 
-`src/features/practice/PracticeWorkspace.tsx` is a client island embedded by the Practice page:
+`src/features/practice/PracticeWorkspace.tsx` is the editable client island embedded by the Practice page. The IPA and speech behavior lives in `useSpeechPractice.ts` and is rendered by `SpeechPracticeControls` and `IpaTranscriptionCard`; `src/features/presentation/PresentationPracticeWorkspace.tsx` reuses all three with the saved presentation text.
 
-- **English text** — a textarea for the text to practice; speech and IPA both follow its current value.
+- **English text** — a textarea for the text to practice; speech and IPA both follow its current value. The presentation page instead shows the saved text in a scrollable read-only panel.
 - **Accent dropdown** — British English (`en-GB`) or American English (`en-US`).
 - **Speed dropdown** — `0.5×` through `1.5×`, applied to the utterance's `rate`. Changing speed during playback stops speech and asks you to press Start again.
 - **Show IPA translation** — computes a dialect-aware IPA transcription. The `phonemize` package is loaded on demand, so its pronunciation data is not part of the initial page bundle.
@@ -318,7 +321,7 @@ While the client ID is empty the Google button renders disabled with a notice in
 
 The workspace uses a responsive card layout: controls and action buttons stack on phones, the control grid becomes two columns on tablets (`sm`) and three on wide screens (`xl`), and nothing overflows horizontally at 390 px, 768 px, or 1440 px.
 
-Speech playback uses `window.speechSynthesis`. Available voices come from the operating system and browser. If no voice matches the selected accent, the app falls back to the browser's default English voice and displays a notice. The practice text is saved to `localStorage` (`spoken-english-practice:text`) as you type and restored on reload; emptying the textarea removes the saved entry. IPA and audio remain session-only, audio never leaves the browser, and nothing is written to the database yet.
+Speech playback uses `window.speechSynthesis`. Available voices come from the operating system and browser. If no voice matches the selected accent, the app falls back to the browser's default English voice and displays a notice. On the Practice page only, the text is saved to `localStorage` (`spoken-english-practice:text`) as you type and restored on reload; emptying the textarea removes the saved entry. IPA and audio remain session-only, audio never leaves the browser, and nothing is written to the database.
 
 ---
 
@@ -348,6 +351,6 @@ The following primitives are available in `src/components/ui` and ready for reus
 | :--- | :--- | :--- |
 | Lint | `npm run lint` | 0 errors, 1 known `react-hooks/exhaustive-deps` warning in `SearchInput` |
 | Types | `npx tsc --noEmit` | Clean |
-| Build | `npm run build` | Clean — `/`, `/practice`, `/admin-register`, and `/_not-found` prerender statically; `/presentation` and `/presentation/[id]` are partial prerenders; API routes are dynamic |
+| Build | `npm run build` | Clean — `/`, `/practice`, `/admin-register`, and `/_not-found` prerender statically; `/presentation` is a partial prerender; `/presentation/[id]` is a blocking dynamic route; API routes are dynamic |
 
 Pages without request data remain fully static. The Presentation page streams its database read through `<Suspense>` and calls `connection()` inside that boundary, so the shell is prerendered while the rows arrive per request. `/api/auth/profile` awaits `connection()` before reading cookies so it is always evaluated per request. The sidebar's `usePathname()` is wrapped in `<Suspense>` with a width-preserving fallback so dynamic routes can prerender their shell.

@@ -7,7 +7,7 @@ This document tracks the step-by-step implementation of the Spoken English Pract
 ## 📊 Overall Progress Summary
 
 - [x] **Step 0: Project Bootstrap, Layout Shell, Routes, Prisma & UI Primitives** *(Completed)*
-- [x] **Step 1: Presentation Library & Practice Route Scaffold** *(Completed)*
+- [x] **Step 1: Presentation Library & Practice Page** *(Completed)*
 - [x] **Step 2: Practice Module — IPA & Speech Workspace** *(Completed)*
 - [x] **Step 3: Authentication — Header Login, Google, Complete Profile & Admin Register** *(Completed)*
 - [ ] **Step 4: Persistence & Progress Tracking** *(Planned)*
@@ -65,8 +65,8 @@ This document tracks the step-by-step implementation of the Spoken English Pract
 
 ---
 
-### Step 1: Presentation Library & Practice Route Scaffold *(Completed)*
-**Goal**: Store saved English presentation texts, expose an admin-managed library, and scaffold the per-presentation route.
+### Step 1: Presentation Library & Practice Page *(Completed)*
+**Goal**: Store saved English presentation texts, expose an admin-managed library, and provide a read-only practice page for each saved presentation.
 
 - [x] **1.1 Data Model & API**:
   - [x] Add the `Presentation` model (`id`, `title`, `text`, `sequence`, `createdAt`, `updatedAt`) mapped to `presentation`, with a sequence index.
@@ -78,7 +78,7 @@ This document tracks the step-by-step implementation of the Spoken English Pract
   - [x] Add `PresentationTable` with sequence, title/text preview, and a **Practice now** link for every row.
   - [x] Show **New presentation** and edit/delete actions only for `role === "admin"`, using the existing `Button`, `DataTable`, and `TableActionButton` primitives.
   - [x] Add the create/edit modal, SweetAlert delete confirmation, and `router.refresh()` after mutations.
-  - [x] Add the `/presentation/[id]` dynamic route scaffold with awaited params, a back link, and a placeholder ID card.
+  - [x] Add the `/presentation/[id]` dynamic route; the practice workspace is completed in 1.5.
 - [x] **1.3 Verification**:
   - [x] API: unauthenticated create `401`; public create/update/delete `403`; admin create `201`, update `200`, delete `200`, missing delete `404`.
   - [x] Browser: signed-out users see the list and practice links without admin controls; admins create, edit, and delete through the modals; public users see no admin controls; **Practice now** opens the dynamic route.
@@ -93,8 +93,15 @@ This document tracks the step-by-step implementation of the Spoken English Pract
   - [x] Cap the table text preview at 100 characters with a `...` suffix and use the reference `FiEdit` action icon.
   - [x] Verify search filters in SQL (title `ILIKE` plus `LIMIT`/`OFFSET`), pagination returns 20 rows per page, 100-character truncation is exact, admin create/edit controls still work, and typecheck/lint/build stay clean.
   - [x] Remove the temporary admin and QA presentations afterward.
+- [x] **1.5 Presentation Practice Page (Completed)**:
+  - [x] Add `getPresentationById()` to the presentation service.
+  - [x] Replace the ID placeholder with a server-rendered page that shows a back link, the presentation title, and a subtitle; call `notFound()` for unknown ids.
+  - [x] Mark the route blocking (`export const instant = false`) so a missing presentation returns a real `404` instead of a streamed `200`.
+  - [x] Add `PresentationPracticeWorkspace` with the saved text in a read-only `max-h-96 overflow-y-auto whitespace-pre-wrap` panel and no editable textarea or `localStorage` writes.
+  - [x] Extract `useSpeechPractice`, `SpeechPracticeControls`, and `IpaTranscriptionCard` so the Practice and presentation pages share IPA and speech behavior.
+  - [x] Verify sentence and full IPA views, accent/speed changes, Start/Pause/Reset, text overflow scrolling, the missing-id `404`, and typecheck/lint/build.
 
-> The practice workspace inside `/presentation/[id]` is intentionally deferred to the next step; the route currently shows only the presentation ID.
+> The practice workspace inside `/presentation/[id]` is now implemented in 1.5; it reuses the IPA and speech components extracted from the Practice module.
 
 ---
 

@@ -18,7 +18,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - **Styling**: Tailwind CSS v4, `react-icons`, shared UI primitives in `src/components/ui`
 - **Speech & IPA**: Browser `speechSynthesis` for playback; `phonemize` for dialect-aware IPA
 
-The project is at the **foundation + Presentation library + Practice workspace + authentication stage**. The app shell, navigation, UI primitives, database wiring, the Presentation library, the Practice feature, and cookie-based auth (email/password, Google, complete profile, hidden admin registration) are in place. Home remains a placeholder — do not add feature content to it until a feature step explicitly asks for it. No page route is protected; auth drives the header controls and the account API, and presentation mutations are admin-only.
+The project is at the **foundation + Presentation library + Practice workspace + authentication stage**. The app shell, navigation, UI primitives, database wiring, the Presentation library, the read-only presentation practice page, the Practice feature, and cookie-based auth (email/password, Google, complete profile, hidden admin registration) are in place. Home remains a placeholder — do not add feature content to it until a feature step explicitly asks for it. No page route is protected; auth drives the header controls and the account API, and presentation mutations are admin-only.
 
 ---
 
@@ -29,7 +29,7 @@ src/
 ├── app/
 │   ├── page.tsx                 # Home
 │   ├── presentation/page.tsx    # Presentation library (Suspense + server read)
-│   ├── presentation/[id]/page.tsx # Dynamic practice route scaffold
+│   ├── presentation/[id]/page.tsx # Presentation practice (server read + read-only workspace)
 │   ├── practice/page.tsx        # Practice
 │   ├── admin-register/page.tsx  # Hidden admin registration (noindex, not in sidebar)
 │   ├── api/auth/                # Auth route handlers (direct service calls)
@@ -46,8 +46,8 @@ src/
 │   └── ui/                      # Generic reusable primitives
 ├── features/                    # Client islands
 │   ├── auth/                    # AuthProvider, auth modals/forms, Google button, fetch helper
-│   ├── presentation/            # Actions, Filters, Section, Table, form modal, fetch helper
-│   └── practice/                # PracticeWorkspace: text, IPA, accent, speech controls
+│   ├── presentation/            # Actions, Filters, Section, Table, practice workspace, form modal, fetch helper
+│   └── practice/                # PracticeWorkspace plus shared useSpeechPractice, controls, and IPA card
 ├── server/
 │   ├── services/                # Business workflows, presentation CRUD, session resolution
 │   ├── repositories/            # Prisma data access; presentation persistence
@@ -69,7 +69,7 @@ src/
 - **Single shell**: All pages render inside `AppLayoutShell`. Do not create per-page sidebars or headers.
 - **Sidebar state**: `AppLayoutShell` owns the mobile drawer state and passes handlers to `Navbar` and `Sidebar`. Keep it that way unless a cross-tree consumer appears.
 - **Header content**: `Navbar` owns the mobile hamburger and the auth area. Signed out it shows **Login** / **Register**; signed in it shows `UserMenu`. Do not add other header content without a requirement.
-- **Routes**: Home is `/`; the other visible pages are `/presentation` and `/practice`. `/presentation/[id]` is the dynamic practice route scaffold. `/admin-register` exists but must stay unlinked from the sidebar. Sidebar active state compares `pathname === href`.
+- **Routes**: Home is `/`; the other visible pages are `/presentation` and `/practice`. `/presentation/[id]` is the read-only practice page for one saved presentation. `/admin-register` exists but must stay unlinked from the sidebar. Sidebar active state compares `pathname === href`.
 - **Dynamic-route shell**: `AppLayoutShell` wraps `Sidebar` in `<Suspense>` with a width-preserving fallback. `usePathname()` must suspend while a dynamic route is prerendered — do not remove that boundary or turn it into a high-level page fallback.
 - **Page content**: Pages render a `components/features/<area>/<Area>Header` component. Keep the established page container (`flex flex-col gap-6 w-full`).
 - **Layout offsets**: The fixed header height lives in `--app-nav-height`; do not hardcode `pt-16` in the shell.
@@ -89,14 +89,14 @@ src/
 - **Server-rendered pages**: Feature pages should be Server Components that call their service directly and stream through `<Suspense>`. The Presentation page is the reference pattern: a static page shell with a fallback, plus an inner async component that awaits `connection()` and calls the service. Keep search, filter, and page state in URL search params — not in client state — so only filter bars, pagination, and modals are client islands.
 - **List vs. KPI queries**: Pair each ledger list endpoint with an unfiltered summary endpoint for stat cards. Push search and filters into the Prisma `where` and paginate with `count` + `skip`/`take`.
 - **Authentication**: Pages remain public. Do not add route guards, redirects, or role checks to pages unless a requirement explicitly asks for them. Presentation create/update/delete are the exception at the service layer, enforced with `requireAdminUser()`. See the Authentication section below.
-- **Request data**: If a page reads `request.url`, route params, or search params, await `connection()` before the read so it does not serve a stale prerendered snapshot. Put the `await connection()` and the data read inside a `<Suspense>` boundary so the route can still prerender its shell. Any route handler or page that reads cookies must do the same; put `await connection()` before the `try` block so framework control-flow errors are not swallowed by `handleApiError`.
+- **Request data**: If a page reads `request.url`, route params, or search params, await `connection()` before the read so it does not serve a stale prerendered snapshot. Put the `await connection()` and the data read inside a `<Suspense>` boundary so the route can still prerender its shell. `/presentation/[id]` is the exception: it sets `export const instant = false` so the page blocks until the record loads and an unknown id can return a real `404`. Any route handler or page that reads cookies must do the same; put `await connection()` before the `try` block so framework control-flow errors are not swallowed by `handleApiError`.
 
 ### 4. Presentation Feature
 - **Data model**: `Presentation` stores `id` (UUID), `title`, `text`, `sequence`, `createdAt`, and `updatedAt`, mapped to the `presentation` table. Sequence is not unique; list order is `sequence` ascending, then `createdAt` ascending.
 - **Read path**: `src/app/presentation/page.tsx` wraps `PresentationContent` in `<Suspense>`. That async component awaits `connection()`, reads the `search` and `page` search params, and calls `listPresentations()` directly. The service awaits `connection()` again and delegates to `findPresentationPage()`, which applies a case-insensitive title `contains`, runs `count` plus `skip`/`take`, and returns `buildPaginationMeta` output. The default page size is `PRESENTATION_PAGE_SIZE` (20). Do not call `resolveSessionUser()` in this Server Component — refresh logic can write cookies.
 - **Write path**: Route handlers in `src/app/api/presentations/` parse with `presentationInputSchema`, call the service, and return `{ success, message, data }`. The service methods call `requireAdminUser()`, which throws `401` when signed out and `403` for non-admins. `GET /api/presentations` stays public and uses `parsePagination(searchParams, PRESENTATION_PAGE_SIZE)`.
 - **UI**: The header combines the title, subtitle, and admin-only **New presentation** action. `PresentationFilters` wraps the debounced `SearchInput`; `PresentationSection` keeps search and page state in the URL via `router.replace`, owns the edit modal and SweetAlert delete, and renders `Pagination` when rows exist. `PresentationTable` shows a 100-character text preview with a `...` suffix, uses `FiEdit` for edit, and gates edit/delete on `role === "admin"`. Successful mutations call `router.refresh()`.
-- **Practice route**: `/presentation/[id]` is a scaffold only. It awaits the `params` promise inside `<Suspense>`, displays the ID, and links back. Do not add the presentation workspace until the next step defines it.
+- **Practice route**: `/presentation/[id]` awaits `connection()` and the `params` promise, calls `getPresentationById()`, and renders `notFound()` when the record is missing. The header shows the back link, the presentation title, and a subtitle. `PresentationPracticeWorkspace` renders the saved text in a read-only container (`max-h-96 overflow-y-auto whitespace-pre-wrap`) followed by the shared speech controls and IPA card. It must not read or write the practice `localStorage` entry and must not offer text editing.
 - **Validation**: Title 1–200 characters, text 1–20,000 characters, sequence an integer from 1 to 100,000. New rows default to `max(sequence) + 1` from `findNextPresentationSequence()`.
 
 ### 5. Authentication
@@ -113,7 +113,8 @@ src/
 - **Environment**: `JWT_ACCESS_TOKEN_SECRET`, `JWT_REFRESH_TOKEN_SECRET`, `HASH_SALT_ROUNDS`, `ADMIN_REGISTER_KEY`, and `NEXT_PUBLIC_GOOGLE_CLIENT_ID`. `.env` stays gitignored; update `.env.example` with placeholders only.
 
 ### 6. Practice Feature (IPA & Speech)
-- **Client island**: `src/features/practice/PracticeWorkspace.tsx` owns text, accent, speed, IPA, and playback state. The Practice page remains a Server Component.
+- **Client islands**: `src/features/practice/PracticeWorkspace.tsx` owns the editable text and renders the shared pieces from `useSpeechPractice.ts`, `SpeechPracticeControls.tsx`, and `IpaTranscriptionCard.tsx`. `src/features/presentation/PresentationPracticeWorkspace.tsx` reuses the same hook and components with the saved presentation text, so IPA and speech behavior stays in one place. The Practice and Presentation pages remain Server Components.
+- **Text changes**: Cancel playback and reset the IPA state through `practice.handleTextEdited()` when the editable text changes. The saved presentation text never changes in the browser, so it does not need that hook.
 - **IPA**: Import `phonemize` dynamically inside the transcription effect so its pronunciation data stays out of the initial bundle. Pass the selected dialect (`en-GB` / `en-US`), debounce text changes, and handle loading and failure states. Produce both a full transcription and sentence pairs so the "Sentence by sentence" / "Full translation" view dropdown can switch without recomputing.
 - **Sentence splitting**: Use `Intl.Segmenter` with `granularity: "sentence"` and treat newlines as hard boundaries. Merge segments that end in a known abbreviation (`Mr.`, `Dr.`, `e.g.`, `Jan.`), a single capital initial, or a list number so they are not shown as separate cards.
 - **Speech**: Use `window.speechSynthesis` and `SpeechSynthesisUtterance`. Set `utterance.rate` from the Speed dropdown, cancel playback when the text, accent, or speed changes, on reset, and on unmount. Guard callbacks with the active utterance ref so a cancelled utterance cannot overwrite newer playback state.

@@ -29,7 +29,7 @@ export function PresentationActions({
       <Button
         icon={<FiPlus className="h-4 w-4" />}
         onClick={() => setIsCreateOpen(true)}
-        className="w-full sm:w-auto max-sm:text-xs max-sm:px-2 max-sm:gap-1.5"
+        className="w-full whitespace-nowrap sm:w-auto max-sm:text-xs max-sm:px-2 max-sm:gap-1.5"
       >
         New presentation
       </Button>
