@@ -85,6 +85,7 @@ src/
 
 ### 2. Prisma & Database
 - **Client location**: The Prisma client is generated into `src/generated/prisma`. Always import the singleton from `@/lib/prisma`.
+- **Build command**: `npm run build` is `prisma generate && next build`. `src/generated/prisma` is gitignored, so any clean checkout or CI host (Vercel included) must generate the client before `next build`; a bare `next build` fails there with `Module not found: Can't resolve '@/generated/prisma/client'`. Keep the generate step in the build script rather than committing the generated output.
 - **Adapter**: Instantiate `PrismaClient` only through `@prisma/adapter-pg` as already wired in `src/lib/prisma.ts`.
 - **Primary & foreign keys**: Use `String @id @default(uuid())`. Do not use integer autoincrement IDs.
 - **Schema changes**: After editing `prisma/schema.prisma`, run `npx prisma generate` and `npx prisma migrate dev --name <name>`.

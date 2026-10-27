@@ -105,6 +105,7 @@ Home is the landing page: a gradient hero with the two primary calls to action, 
    npm run build
    npm run start
    ```
+   `npm run build` runs `prisma generate && next build`. The generated client lives in the gitignored `src/generated/prisma`, so a fresh clone or CI machine (Vercel, GitHub Actions) must generate it as part of the build command — a bare `next build` fails there with `Module not found: Can't resolve '@/generated/prisma/client'`. `prisma generate` needs no database connection, so it works even before `DATABASE_URL` is set.
 
 ---
 
