@@ -46,3 +46,16 @@ model RefreshToken {
   @@index([userId])
   @@map("refresh_tokens")
 }
+
+model Presentation {
+  id        String   @id @default(uuid())
+  title     String
+  text      String
+  sequence  Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sequence])
+  @@map("presentation")
+}

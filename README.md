@@ -2,7 +2,7 @@
 
 A full-stack **Spoken English Practice** application built with **Next.js 16 (App Router & Turbopack)**, **TypeScript**, **Tailwind CSS v4**, **PostgreSQL**, and **Prisma ORM 7** with the `@prisma/adapter-pg` driver.
 
-This repository contains the **layout-first foundation**, the interactive **Practice workspace**, and cookie-based **authentication**: the application shell, navigation, three portal pages, shared UI primitives, database wiring, client-side IPA and speech playback for practice text, and email/password plus Google sign-in. IPA transcription is provided by `phonemize`; voice playback uses the browser Web Speech API; sessions use HS512 JWTs with rotating refresh tokens stored in PostgreSQL.
+This repository contains the **layout-first foundation**, the **Presentation library**, the interactive **Practice workspace**, and cookie-based **authentication**: the application shell, navigation, shared UI primitives, database wiring, an admin-managed collection of saved presentation texts, client-side IPA and speech playback for practice text, and email/password plus Google sign-in. IPA transcription is provided by `phonemize`; voice playback uses the browser Web Speech API; sessions use HS512 JWTs with rotating refresh tokens stored in PostgreSQL.
 
 ---
 
@@ -14,9 +14,10 @@ This repository contains the **layout-first foundation**, the interactive **Prac
 5. [Project Structure](#5-project-structure)
 6. [Layout & Navigation](#6-layout--navigation)
 7. [Authentication](#7-authentication)
-8. [Practice Workspace](#8-practice-workspace)
-9. [Shared UI Primitives](#9-shared-ui-primitives)
-10. [Quality Gates](#10-quality-gates)
+8. [Presentation Library](#8-presentation-library)
+9. [Practice Workspace](#9-practice-workspace)
+10. [Shared UI Primitives](#10-shared-ui-primitives)
+11. [Quality Gates](#11-quality-gates)
 
 ---
 
@@ -27,11 +28,12 @@ The application currently ships the shared application shell and three portal pa
 | Route | Page | Description |
 | :--- | :--- | :--- |
 | `/` | Home | Page heading only |
-| `/presentation` | Presentation | Page heading only |
+| `/presentation` | Presentation | Admin-managed library of saved titles and practice texts |
+| `/presentation/[id]` | Presentation Practice | Dynamic route for one saved presentation; the workspace arrives in the next step |
 | `/practice` | Practice | Interactive text, IPA, and speech workspace |
 | `/admin-register` | Admin Registration | Hidden form for creating an admin with the private secret key |
 
-Home and Presentation intentionally render only their page name inside a bordered page header. Practice contains the first feature screen. The top header shows **Login** and **Register** actions on the right; once signed in, they are replaced by a user menu with the account name, email, complete-profile action when needed, and logout. No page or route is protected — authentication only changes the header controls and exposes the account API.
+Home intentionally renders only its page name inside a bordered page header. Presentation is the first server-rendered data screen. The top header shows **Login** and **Register** actions on the right; once signed in, they are replaced by a user menu with the account name, email, complete-profile action when needed, and logout. Pages remain public — authentication changes the header controls, and only presentation mutations are restricted to admins.
 
 **What is already in place**
 
@@ -41,8 +43,9 @@ Home and Presentation intentionally render only their page name inside a bordere
 - Full-width main content viewport with the established padding rhythm (`p-6 md:p-8`).
 - Shared footer.
 - Tailwind CSS v4 theme, custom scrollbars, and horizontal-overflow guard.
-- Prisma 7 schema with `User` and `RefreshToken` models, PostgreSQL datasource, Prisma client singleton, and a `.env` connection string.
+- Prisma 7 schema with `User`, `RefreshToken`, and `Presentation` models, PostgreSQL datasource, Prisma client singleton, and a `.env` connection string.
 - The reusable `components/ui` primitive library, ready for use by upcoming features.
+- A Presentation library with a server-rendered, searchable, paginated table; admin-only create/update modals and delete confirmation; and a per-row **Practice now** link into the dynamic route.
 - A Practice workspace with English text input, sentence-by-sentence or full IPA transcription, and browser speech playback with accent and speed controls.
 - Email/password registration and login, Google login, complete-profile flow, hidden admin registration, logout, and rotating refresh-token sessions.
 
@@ -77,7 +80,7 @@ Home and Presentation intentionally render only their page name inside a bordere
    npx prisma generate
    ```
 
-4. **Apply the migrations** (creates the `users` and `refresh_tokens` tables):
+4. **Apply the migrations** (creates the `users`, `refresh_tokens`, and `presentation` tables):
    ```bash
    npx prisma migrate dev
    ```
@@ -127,12 +130,13 @@ node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 - **Runtime driver**: `@prisma/adapter-pg` wrapped by the singleton in `src/lib/prisma.ts`
 - **Configuration**: `prisma.config.ts` loads `.env` via `dotenv/config` and supplies the datasource URL
 
-The schema declares the authentication models:
+The schema declares the authentication and presentation models:
 
 - `User` — UUID id, unique email, optional bcrypt password, `admin` / `public` role, `isComplete`, and timestamps. Google-created users start with `isComplete: false` until they set a password.
 - `RefreshToken` — UUID id, unique SHA-256 hash of the refresh JWT, owning user (cascade delete), `used` / `usedAt` for rotation, and `expiresAt`.
+- `Presentation` — UUID id, title, practice text, integer `sequence`, and timestamps. Rows are ordered by `sequence` ascending and then `createdAt` ascending.
 
-The migration in `prisma/migrations/20261026161057_create_user_and_refresh_token_tables` creates both tables, and `20261026173014_remove_user_picture` drops the unused profile-picture column. After any schema change:
+The migrations create the users and refresh tokens (`20261026161057_create_user_and_refresh_token_tables`), remove the unused profile-picture column (`20261026173014_remove_user_picture`), and create the presentation table (`20261026193020_create_presentation_table`). After any schema change:
 
 ```bash
 npx prisma generate
@@ -149,10 +153,12 @@ All entity IDs follow the project convention: `String @id @default(uuid())`.
 src/
 ├── app/
 │   ├── page.tsx                 # Home page
-│   ├── presentation/page.tsx    # Presentation page
+│   ├── presentation/page.tsx    # Presentation library (Server Component + Suspense)
+│   ├── presentation/[id]/page.tsx # Dynamic practice route scaffold
 │   ├── practice/page.tsx        # Practice page
 │   ├── admin-register/page.tsx  # Hidden admin registration page
 │   ├── api/auth/                # register, login, Google login, profile, complete-profile, admin, logout
+│   ├── api/presentations/       # list plus admin-only create/update/delete handlers
 │   ├── layout.tsx               # Root layout — fonts, metadata, providers, AppLayoutShell
 │   ├── globals.css              # Tailwind import, theme variables, scrollbars
 │   └── not-found.tsx            # 404 page
@@ -166,6 +172,7 @@ src/
 │   └── ui/                      # Reusable primitives (buttons, inputs, tables, ...)
 ├── features/
 │   ├── auth/                    # AuthProvider, auth modals/forms, Google button, fetch helper
+│   ├── presentation/            # Actions, Filters, Section, Table, form modal, fetch helper
 │   └── practice/
 │       └── PracticeWorkspace.tsx # Client island: text, IPA, accent and speech controls
 ├── lib/
@@ -175,8 +182,8 @@ src/
 │   ├── prisma.ts                # PrismaClient singleton with @prisma/adapter-pg
 │   └── utils.ts                 # Date, currency and pagination helpers
 ├── server/
-│   ├── repositories/            # Prisma data access for users and refresh tokens
-│   ├── services/                # Auth workflows and session resolution
+│   ├── repositories/            # Prisma data access for users, refresh tokens, and presentations
+│   ├── services/                # Auth, session resolution, and presentation workflows
 │   └── types/                   # Server-side payload and pagination interfaces
 ├── types/                       # Client-facing view-model types
 └── generated/prisma/            # Generated Prisma client (gitignored)
@@ -189,7 +196,7 @@ src/
 The shell is composed in `src/app/layout.tsx` and `src/components/shared/AppLayoutShell.tsx`:
 
 - `AppLayoutShell` is a client component that owns the mobile sidebar open/closed state.
-- `Sidebar` renders the fixed desktop rail plus the mobile drawer, sharing one `navItems` list.
+- `Sidebar` renders the fixed desktop rail plus the mobile drawer, sharing one `navItems` list. It is wrapped in a `<Suspense>` boundary with a width-preserving fallback because `usePathname()` must suspend while a dynamic route is prerendered.
 - `Navbar` is the fixed header. It keeps the mobile hamburger on the left and renders the auth area on the right: a loading placeholder, **Login** / **Register** buttons, or the `UserMenu` account dropdown when signed in. The login, register, and complete-profile modals are mounted alongside it.
 - `main` offsets itself with `pt-[var(--app-nav-height)]` so the fixed header never overlaps content.
 - `Footer` sits at the bottom of the main column.
@@ -200,7 +207,7 @@ Active sidebar items use the established styling: `bg-indigo-50 text-indigo-700 
 
 ## 7. Authentication
 
-Authentication is header-only: **no page or route is protected**. Signed-out visitors can use every screen; signing in adds the account menu and unlocks the account API. The flow intentionally mirrors the project's other applications: short-lived access JWT, rotating refresh token in PostgreSQL, and direct service calls from route handlers.
+Pages are public: **no page route is guarded or redirected**. Signed-out visitors can browse every screen; signing in adds the account menu and unlocks the account API. The only role checks are server-side admin checks on presentation mutations. The session flow uses a short-lived access JWT, a rotating refresh token in PostgreSQL, and direct service calls from route handlers.
 
 ### Session model
 
@@ -252,7 +259,51 @@ While the client ID is empty the Google button renders disabled with a notice in
 
 ---
 
-## 8. Practice Workspace
+## 8. Presentation Library
+
+`src/app/presentation/page.tsx` is a Server Component. It wraps `PresentationContent` in `<Suspense>`; that async component awaits `connection()`, reads the `search` and `page` search params, calls `listPresentations()` directly, and passes the rows, pagination meta, filters, and next sequence to the view. The initial read does not make an HTTP hop.
+
+### Header, search, and table
+
+- The header combines the **Presentation** title, a subtitle, and the admin-only **New presentation** button.
+- A debounced search input filters on the presentation title. Search and page state live in URL search params (`search`, `page`), so the list stays server-rendered.
+- The table shows **sequence**, **title** with a text preview capped at 100 characters (a `...` suffix marks truncated text), and a **Practice now** link to `/presentation/[id]` for every row.
+- Admins additionally see per-row edit/delete icon buttons; the edit action uses the same `FiEdit` icon as the reference student page. Everyone else sees the list and practice links only.
+- The list shows 20 rows per page by default and renders the shared `Pagination` primitive with the total count.
+- Create and edit share `PresentationFormModal`. It validates the fields and calls `POST /api/presentations` or `PATCH /api/presentations/:id`.
+- Delete asks for SweetAlert confirmation and calls `DELETE /api/presentations/:id`.
+- After a successful mutation the client calls `router.refresh()` so the server-rendered table immediately reflects the change.
+
+### Authorization
+
+- Presentation pages remain public. Authorization is enforced in `src/server/services/presentation.service.ts`, not only in the UI.
+- `requireAdminUser()` returns `401` when signed out and `403` for a `public` user. The create, update, and delete service methods all call it.
+- UI gating uses `useAuth()` and `user?.role === "admin"`; hiding the controls is a convenience, not the security boundary.
+- The page does not call `resolveSessionUser()` because that can write refreshed cookies, which is not allowed in a Server Component.
+
+### Data rules and API
+
+- Title: 1–200 characters. Text: 1–20,000 characters. Sequence: integer from 1 to 100,000.
+- Sequence is not unique. Rows are ordered by `sequence` ascending, then `createdAt` ascending.
+- Search runs as a case-insensitive title `contains` inside the Prisma `where`; `count` plus `skip`/`take` paginates the result.
+- The form suggests the next sequence (`max(sequence) + 1`) from a server read, and admins can change it.
+
+| Method | Route | Access | Purpose |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/presentations` | Public | List presentations with `search`, `page`, and `pageSize` (default 20) |
+| `POST` | `/api/presentations` | Admin | Create a presentation |
+| `PATCH` | `/api/presentations/:id` | Admin | Update title, text, and sequence |
+| `DELETE` | `/api/presentations/:id` | Admin | Delete a presentation |
+
+`GET` returns `{ success: true, data: { items, pagination, nextSequence } }`. Mutation handlers validate with `presentationInputSchema` and return the shared `{ success, message, data }` shape.
+
+### Practice route
+
+`/presentation/[id]` is a dynamic route scaffold. It awaits the route params, displays the presentation ID, and links back to the library. The actual practice workspace is intentionally deferred to the next step; the page does not fetch the presentation yet.
+
+---
+
+## 9. Practice Workspace
 
 `src/features/practice/PracticeWorkspace.tsx` is a client island embedded by the Practice page:
 
@@ -271,7 +322,7 @@ Speech playback uses `window.speechSynthesis`. Available voices come from the op
 
 ---
 
-## 9. Shared UI Primitives
+## 10. Shared UI Primitives
 
 The following primitives are available in `src/components/ui` and ready for reuse:
 
@@ -291,12 +342,12 @@ The following primitives are available in `src/components/ui` and ready for reus
 
 ---
 
-## 10. Quality Gates
+## 11. Quality Gates
 
 | Check | Command | Current Result |
 | :--- | :--- | :--- |
 | Lint | `npm run lint` | 0 errors, 1 known `react-hooks/exhaustive-deps` warning in `SearchInput` |
 | Types | `npx tsc --noEmit` | Clean |
-| Build | `npm run build` | Clean — `/`, `/practice`, `/presentation`, `/admin-register`, and `/_not-found` prerendered; `/api/auth/*` built as dynamic routes |
+| Build | `npm run build` | Clean — `/`, `/practice`, `/admin-register`, and `/_not-found` prerender statically; `/presentation` and `/presentation/[id]` are partial prerenders; API routes are dynamic |
 
-The pages currently prerender statically because they do not read request data. When a page starts reading URL search params or per-request data, await `connection()` before the read so it renders as a partial prerender instead of a stale static snapshot. `/api/auth/profile` awaits `connection()` before reading cookies so it is always evaluated per request.
+Pages without request data remain fully static. The Presentation page streams its database read through `<Suspense>` and calls `connection()` inside that boundary, so the shell is prerendered while the rows arrive per request. `/api/auth/profile` awaits `connection()` before reading cookies so it is always evaluated per request. The sidebar's `usePathname()` is wrapped in `<Suspense>` with a width-preserving fallback so dynamic routes can prerender their shell.

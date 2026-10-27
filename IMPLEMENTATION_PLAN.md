@@ -7,7 +7,7 @@ This document tracks the step-by-step implementation of the Spoken English Pract
 ## 📊 Overall Progress Summary
 
 - [x] **Step 0: Project Bootstrap, Layout Shell, Routes, Prisma & UI Primitives** *(Completed)*
-- [ ] **Step 1: Presentation Module** *(Planned)*
+- [x] **Step 1: Presentation Library & Practice Route Scaffold** *(Completed)*
 - [x] **Step 2: Practice Module — IPA & Speech Workspace** *(Completed)*
 - [x] **Step 3: Authentication — Header Login, Google, Complete Profile & Admin Register** *(Completed)*
 - [ ] **Step 4: Persistence & Progress Tracking** *(Planned)*
@@ -65,21 +65,36 @@ This document tracks the step-by-step implementation of the Spoken English Pract
 
 ---
 
-### Step 1: Presentation Module *(Planned — scope to be confirmed)*
-**Goal**: Give the Presentation page its first real content and data flow.
+### Step 1: Presentation Library & Practice Route Scaffold *(Completed)*
+**Goal**: Store saved English presentation texts, expose an admin-managed library, and scaffold the per-presentation route.
 
-- [ ] **1.1 Data Model & API**:
-  - [ ] Define the presentation-related Prisma models (topics, prompts, or presentations) after the product scope is confirmed.
-  - [ ] Create the first migration and a seed script; re-enable the seed command in `prisma.config.ts` and `package.json`.
-  - [ ] Add Zod validation schemas, a repository, and a service for the new domain.
-  - [ ] Add list and summary route handlers following the list/KPI split.
-- [ ] **1.2 UI Layer**:
-  - [ ] Replace the Presentation page placeholder with a server-rendered section that calls the service directly.
-  - [ ] Reuse `DataTable`, `SearchInput`, `Dropdown`, `Pagination`, `StatCard`, and `Badge` from `src/components/ui`.
-  - [ ] Put filters and page state in URL search params; keep only interactive controls as client islands.
-- [ ] **1.3 Verification**:
-  - [ ] Verify filtered and paginated queries execute in SQL, not in memory.
-  - [ ] Run lint, typecheck, and build; verify the route renders correctly in the browser.
+- [x] **1.1 Data Model & API**:
+  - [x] Add the `Presentation` model (`id`, `title`, `text`, `sequence`, `createdAt`, `updatedAt`) mapped to `presentation`, with a sequence index.
+  - [x] Create and apply the `20261026193020_create_presentation_table` migration; regenerate the Prisma client.
+  - [x] Add `PresentationItem`, `presentationInputSchema`, a repository, and a service with `requireAdminUser()`.
+  - [x] Add `POST /api/presentations` and `PATCH` / `DELETE /api/presentations/[id]` handlers with shared response/error shapes.
+- [x] **1.2 UI Layer**:
+  - [x] Replace the Presentation placeholder with a Server Component that streams `listPresentations()` through `<Suspense>`.
+  - [x] Add `PresentationTable` with sequence, title/text preview, and a **Practice now** link for every row.
+  - [x] Show **New presentation** and edit/delete actions only for `role === "admin"`, using the existing `Button`, `DataTable`, and `TableActionButton` primitives.
+  - [x] Add the create/edit modal, SweetAlert delete confirmation, and `router.refresh()` after mutations.
+  - [x] Add the `/presentation/[id]` dynamic route scaffold with awaited params, a back link, and a placeholder ID card.
+- [x] **1.3 Verification**:
+  - [x] API: unauthenticated create `401`; public create/update/delete `403`; admin create `201`, update `200`, delete `200`, missing delete `404`.
+  - [x] Browser: signed-out users see the list and practice links without admin controls; admins create, edit, and delete through the modals; public users see no admin controls; **Practice now** opens the dynamic route.
+  - [x] `/presentation` and `/presentation/[id]` render correctly; `npx tsc --noEmit`, `npm run lint`, and `npm run build` are clean.
+  - [x] Wrap the page read and the shell's `usePathname()` in Suspense boundaries so both routes pass Cache Components prerender validation.
+  - [x] Remove temporary admin/public accounts and test presentations afterward.
+- [x] **1.4 Library Search, Pagination & Header (Completed)**:
+  - [x] Add `GET /api/presentations` with `parsePagination` and a default page size of 20.
+  - [x] Add `findPresentationPage()` with case-insensitive title search, `count` + `skip`/`take`, and `buildPaginationMeta`; add `findNextPresentationSequence()`.
+  - [x] Rebuild the page as `PresentationContent` → `PresentationView` → header/actions/filters/section, keeping search and page state in URL params.
+  - [x] Move **New presentation** into the header with the title and subtitle, add a debounced title search, and render `Pagination`.
+  - [x] Cap the table text preview at 100 characters with a `...` suffix and use the reference `FiEdit` action icon.
+  - [x] Verify search filters in SQL (title `ILIKE` plus `LIMIT`/`OFFSET`), pagination returns 20 rows per page, 100-character truncation is exact, admin create/edit controls still work, and typecheck/lint/build stay clean.
+  - [x] Remove the temporary admin and QA presentations afterward.
+
+> The practice workspace inside `/presentation/[id]` is intentionally deferred to the next step; the route currently shows only the presentation ID.
 
 ---
 

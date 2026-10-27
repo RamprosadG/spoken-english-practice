@@ -295,3 +295,11 @@ export async function requireSessionUser(): Promise<AuthUser> {
   }
   return user;
 }
+
+export async function requireAdminUser(): Promise<AuthUser> {
+  const user = await requireSessionUser();
+  if (user.role !== "admin") {
+    throw new ApiError(403, "You do not have permission to perform this action.");
+  }
+  return user;
+}
