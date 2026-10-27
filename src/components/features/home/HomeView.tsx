@@ -24,25 +24,7 @@ interface DestinationCard {
 
 const destinations: DestinationCard[] = [
   {
-    title: "Presentations",
-    href: "/presentation",
-    description:
-      "Full passages to rehearse aloud, with a read-only practice workspace for every saved text.",
-    action: "Open presentations",
-    icon: HiOutlinePresentationChartBar,
-    tint: "bg-indigo-50 text-indigo-600",
-  },
-  {
-    title: "Sentences",
-    href: "/sentences",
-    description:
-      "Daily-use English lines with Bengali meanings. Expand any row and listen as many times as you need.",
-    action: "Open sentences",
-    icon: HiOutlineChatAlt2,
-    tint: "bg-sky-50 text-sky-600",
-  },
-  {
-    title: "Vocabulary",
+    title: "Important Vocabularies",
     href: "/vocabulary",
     description:
       "Words with meaning, example, synonym, and antonym — each with its own IPA and audio.",
@@ -51,7 +33,25 @@ const destinations: DestinationCard[] = [
     tint: "bg-violet-50 text-violet-600",
   },
   {
-    title: "Practice",
+    title: "Common sentences",
+    href: "/sentences",
+    description:
+      "Daily-use English lines with Bengali meanings. Expand any row and listen as many times as you need.",
+    action: "Open sentences",
+    icon: HiOutlineChatAlt2,
+    tint: "bg-sky-50 text-sky-600",
+  },
+  {
+    title: "Daily Presentations",
+    href: "/presentation",
+    description:
+      "Full passages to rehearse aloud, with a read-only practice workspace for every saved text.",
+    action: "Open presentations",
+    icon: HiOutlinePresentationChartBar,
+    tint: "bg-indigo-50 text-indigo-600",
+  },
+  {
+    title: "Live practice",
     href: "/practice",
     description:
       "Paste your own text, pick an accent and speed, then play it back sentence by sentence.",
@@ -76,15 +76,15 @@ export function HomeView({ summary }: HomeViewProps) {
       iconColor: "text-emerald-600",
     },
     {
-      title: "Presentations",
-      value: summary.presentations,
-      subtitle: "Passages to rehearse",
-      icon: <HiOutlinePresentationChartBar className="h-5 w-5" />,
-      iconBgColor: "bg-indigo-50",
-      iconColor: "text-indigo-600",
+      title: "Important Vocabularies",
+      value: summary.vocabularies,
+      subtitle: "Words with examples",
+      icon: <HiOutlineBookOpen className="h-5 w-5" />,
+      iconBgColor: "bg-violet-50",
+      iconColor: "text-violet-600",
     },
     {
-      title: "Sentences",
+      title: "Common sentences",
       value: summary.sentences,
       subtitle: "Lines with audio",
       icon: <HiOutlineChatAlt2 className="h-5 w-5" />,
@@ -92,12 +92,12 @@ export function HomeView({ summary }: HomeViewProps) {
       iconColor: "text-sky-600",
     },
     {
-      title: "Vocabulary",
-      value: summary.vocabularies,
-      subtitle: "Words with examples",
-      icon: <HiOutlineBookOpen className="h-5 w-5" />,
-      iconBgColor: "bg-violet-50",
-      iconColor: "text-violet-600",
+      title: "Daily Presentations",
+      value: summary.presentations,
+      subtitle: "Passages to rehearse",
+      icon: <HiOutlinePresentationChartBar className="h-5 w-5" />,
+      iconBgColor: "bg-indigo-50",
+      iconColor: "text-indigo-600",
     },
   ];
 

@@ -7,7 +7,7 @@ import DataTable, { type Column } from "@/components/ui/tables/DataTable";
 import { useAuth } from "@/features/auth/AuthProvider";
 import type { PresentationItem } from "@/types/presentation";
 
-const TEXT_PREVIEW_LENGTH = 100;
+const TEXT_PREVIEW_LENGTH = 30;
 
 function truncateText(text: string) {
   return text.length > TEXT_PREVIEW_LENGTH

@@ -9,9 +9,9 @@ export function SentenceHeader({ actions }: SentenceHeaderProps) {
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-200 pb-5">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 max-sm:text-lg">
-          Sentences
+          Common sentences
         </h1>
-        <p className="mt-1 text-sm text-gray-500 max-sm:hidden">
+        <p className="mt-1 text-sm text-gray-500">
           Master one sentence at a time: read the English, check the Bengali
           meaning, study the IPA, and listen until the rhythm feels familiar.
         </p>

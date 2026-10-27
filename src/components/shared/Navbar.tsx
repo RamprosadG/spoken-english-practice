@@ -16,7 +16,7 @@ export function Navbar({ onOpenSidebar }: NavbarProps) {
   return (
     <>
       <header className="fixed top-0 z-30 bg-white shadow-md hover:shadow-lg left-0 right-0 transition-all duration-300">
-        <div className="flex items-center h-[var(--app-nav-height)] lg:pl-64">
+        <div className="flex items-center h-[var(--app-nav-height)] lg:pl-72">
           <div className="flex items-center justify-between w-full px-4 lg:px-6">
             <div className="flex items-center">
               <button

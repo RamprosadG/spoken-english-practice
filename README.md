@@ -30,19 +30,21 @@ The application currently ships the shared application shell and its portal page
 | Route | Page | Description |
 | :--- | :--- | :--- |
 | `/` | Home | Landing page with the library totals and navigation into every practice area |
-| `/presentation` | Presentation | Admin-managed library of saved titles and practice texts |
+| `/presentation` | Daily Presentations | Admin-managed library of saved titles and practice texts |
 | `/presentation/[id]` | Presentation Practice | Read-only practice for one saved presentation: title, scrollable text, IPA, and speech |
-| `/sentences` | Sentences | Admin-managed sentence library with Bengali meanings and inline, single-row practice |
-| `/vocabulary` | Vocabulary | Admin-managed word library with Bengali meanings, example sentences, synonyms, antonyms, automatic IPA, and inline practice |
-| `/practice` | Practice | Interactive text, IPA, and speech workspace |
+| `/sentences` | Common sentences | Admin-managed sentence library with Bengali meanings and inline, single-row practice |
+| `/vocabulary` | Important Vocabularies | Admin-managed word library with Bengali meanings, example sentences, synonyms, antonyms, automatic IPA, and inline practice |
+| `/practice` | Live practice | Interactive text, IPA, and speech workspace |
 | `/admin-register` | Admin Registration | Hidden form for creating an admin with the private secret key |
 
-Home is the landing page: a gradient hero with the two primary calls to action, four live totals (Learners, Presentations, Sentences, Vocabulary), and a card for each destination. The hero prerenders while the totals stream from the database, so the route stays a partial prerender. The top header shows **Login** and **Register** actions on the right; once signed in, they are replaced by a user menu with the account name, email, update profile and update password actions, complete-profile action when needed, and logout. Pages remain public — authentication changes the header controls, and only presentation, sentence, and vocabulary mutations are restricted to admins.
+Every page `<h1>` repeats its sidebar label, so the sidebar, the page heading, and the home cards always say the same thing. Routes keep their original paths.
+
+Home is the landing page: a gradient hero with the two primary calls to action, four live totals (Learners, Important Vocabularies, Common sentences, Daily Presentations), and a card for each destination in the sidebar order — vocabulary, sentences, presentations, practice. The hero prerenders while the totals stream from the database, so the route stays a partial prerender. The top header shows **Login** and **Register** actions on the right; once signed in, they are replaced by a user menu with the account name, email, update profile and update password actions, complete-profile action when needed, and logout. Pages remain public — authentication changes the header controls, and only presentation, sentence, and vocabulary mutations are restricted to admins.
 
 **What is already in place**
 
-- Fixed desktop sidebar (`w-64`) with active-state styling and `react-icons`.
-- Mobile slide-in sidebar drawer with backdrop and close control.
+- Fixed desktop sidebar (`w-72`, wide enough for the longest nav label) with active-state styling and `react-icons`.
+- Mobile slide-in sidebar drawer (`w-64`) with backdrop and close control.
 - Fixed top header shell that reserves its height with `--app-nav-height` and hosts the auth controls.
 - Full-width main content viewport with the established padding rhythm (`p-6 md:p-8`).
 - Shared footer.
@@ -221,7 +223,7 @@ src/
 The shell is composed in `src/app/layout.tsx` and `src/components/shared/AppLayoutShell.tsx`:
 
 - `AppLayoutShell` is a client component that owns the mobile sidebar open/closed state.
-- `Sidebar` renders the fixed desktop rail plus the mobile drawer, sharing one `navItems` list. It is wrapped in a `<Suspense>` boundary with a width-preserving fallback because `usePathname()` must suspend while a dynamic route is prerendered.
+- `Sidebar` renders the fixed desktop rail plus the mobile drawer, sharing one `navItems` list in this order: **Home**, **Important Vocabularies**, **Common sentences**, **Daily Presentations**, **Live practice**. It is wrapped in a `<Suspense>` boundary with a width-preserving fallback because `usePathname()` must suspend while a dynamic route is prerendered.
 - `Navbar` is the fixed header. It keeps the mobile hamburger on the left and renders the auth area on the right: a loading placeholder, **Login** / **Register** buttons, or the `UserMenu` account dropdown when signed in. The login, register, and complete-profile modals are mounted alongside it.
 - `main` offsets itself with `pt-[var(--app-nav-height)]` so the fixed header never overlaps content.
 - `Footer` sits at the bottom of the main column.
@@ -234,7 +236,7 @@ Active sidebar items use the established styling: `bg-indigo-50 text-indigo-700 
 
 - `HomeHeader` is the static gradient hero — pill label, headline, benefit copy, and the **Start practicing free** (`/practice`) and **Explore the library** (`/vocabulary`) actions. `overflow-hidden` keeps its decorative blur from creating horizontal scroll.
 - `HomeContent` awaits `connection()`, calls `getHomeSummary()`, and passes the totals to `HomeView`. `HomeLoading` is the skeleton `<Suspense>` fallback shipped in the initial HTML.
-- `HomeView` renders four `StatCard` totals (Learners, Presentations, Sentences, Vocabulary) and four destination cards linking to `/presentation`, `/sentences`, `/vocabulary`, and `/practice`.
+- `HomeView` renders four `StatCard` totals (Learners, Important Vocabularies, Common sentences, Daily Presentations) and four destination cards in the sidebar order — `/vocabulary`, `/sentences`, `/presentation`, `/practice` — each titled with the same label the sidebar uses.
 - Each total is one unfiltered `COUNT` in PostgreSQL and all four run in parallel; rows are never loaded to be counted. Home is server-rendered only, so there is no `/api/home` route.
 
 ---
@@ -305,7 +307,7 @@ While the client ID is empty the Google button renders disabled with a notice in
 
 - The header combines the **Presentation** title, a subtitle, and the admin-only **New presentation** button.
 - A debounced search input filters on the presentation title. Search and page state live in URL search params (`search`, `page`), so the list stays server-rendered.
-- The table shows **title** with a text preview capped at 100 characters (a `...` suffix marks truncated text), and a **Practice now** link to `/presentation/[id]` for every row. Sequence is stored and used for ordering but is not displayed.
+- The table shows **title** with a text preview capped at 30 characters (a `...` suffix marks truncated text), and a **Practice now** link to `/presentation/[id]` for every row. Sequence is stored and used for ordering but is not displayed.
 - Admins additionally see per-row edit/delete icon buttons; the edit action uses the same `FiEdit` icon as the reference student page. Everyone else sees the list and practice links only.
 - The list shows 20 rows per page by default and renders the shared `Pagination` primitive with the total count.
 - Create and edit share `PresentationFormModal`. Its fields are title, text, and then sequence as the last input. It validates the fields and calls `POST /api/presentations` or `PATCH /api/presentations/:id`.

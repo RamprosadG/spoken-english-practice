@@ -20,10 +20,10 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { name: "Home", href: "/", icon: HiOutlineHome },
-  { name: "Presentation", href: "/presentation", icon: HiOutlinePresentationChartBar },
-  { name: "Sentences", href: "/sentences", icon: HiOutlineChatAlt2 },
-  { name: "Vocabulary", href: "/vocabulary", icon: HiOutlineBookOpen },
-  { name: "Practice", href: "/practice", icon: HiOutlineMicrophone },
+  { name: "Important Vocabularies", href: "/vocabulary", icon: HiOutlineBookOpen },
+  { name: "Common sentences", href: "/sentences", icon: HiOutlineChatAlt2 },
+  { name: "Daily Presentations", href: "/presentation", icon: HiOutlinePresentationChartBar },
+  { name: "Live practice", href: "/practice", icon: HiOutlineMicrophone },
 ];
 
 interface SidebarProps {
@@ -68,8 +68,8 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
   return (
     <>
-      {/* Desktop Sidebar (Fixed left, standard full w-64, no minimize/maximize toggle button) */}
-      <aside className="hidden lg:flex flex-col bg-white border-r pl-6 pr-4 border-gray-200 drop-shadow-xl hover:drop-shadow-2xl fixed top-0 h-screen z-40 left-0 w-64">
+      {/* Desktop Sidebar (Fixed left, w-72 so the long labels fit, no minimize/maximize toggle button) */}
+      <aside className="hidden lg:flex flex-col bg-white border-r pl-6 pr-4 border-gray-200 drop-shadow-xl hover:drop-shadow-2xl fixed top-0 h-screen z-40 left-0 w-72">
         {/* Brand / Title Header */}
         <div className="flex items-center h-16 border-b border-gray-100 shrink-0">
           <Link
