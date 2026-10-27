@@ -32,25 +32,11 @@ export function VocabularyTable({
 
   const columns: Column<VocabularyItem>[] = [
     {
-      key: "sequence",
-      header: "Sequence",
-      headerClassName: "max-sm:hidden",
-      className: "max-sm:hidden",
-      render: (vocabulary) => (
-        <span className="font-semibold text-slate-800">
-          {vocabulary.sequence}
-        </span>
-      ),
-    },
-    {
       key: "word",
       header: "Word",
       className: "whitespace-normal max-sm:px-2",
       render: (vocabulary) => (
         <div className="min-w-[140px] max-w-[260px] whitespace-normal break-words sm:max-w-md">
-          <span className="mb-1 inline-flex h-5 min-w-5 items-center justify-center rounded bg-slate-200 px-1.5 text-[11px] font-semibold text-slate-700 sm:hidden">
-            {vocabulary.sequence}
-          </span>
           <p className="line-clamp-2 font-semibold leading-6 text-slate-900">
             {vocabulary.text}
           </p>

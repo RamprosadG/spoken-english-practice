@@ -18,6 +18,8 @@ import type {
   LoginInput,
   RegisterAdminInput,
   RegisterInput,
+  UpdatePasswordInput,
+  UpdateProfileInput,
 } from "@/lib/validations/auth";
 import {
   createRefreshToken,
@@ -207,6 +209,49 @@ export async function completeProfile(
 
   await startSession(userId);
   return toAuthUser(user);
+}
+
+export async function updateProfile(
+  userId: string,
+  input: UpdateProfileInput,
+): Promise<AuthUser> {
+  const existing = await findUserRecordById(userId);
+  if (!existing) {
+    throw new ApiError(404, "User is not found.");
+  }
+
+  const user = await updateUser(userId, { name: input.name });
+  return toAuthUser(user);
+}
+
+export async function updatePassword(
+  userId: string,
+  input: UpdatePasswordInput,
+): Promise<void> {
+  const existing = await findUserRecordById(userId);
+  if (!existing) {
+    throw new ApiError(404, "User is not found.");
+  }
+
+  if (!existing.password) {
+    throw new ApiError(
+      400,
+      "This account uses Google sign-in and does not have a password to update.",
+    );
+  }
+
+  const isCurrentPasswordValid = await verifyPassword(
+    input.currentPassword,
+    existing.password,
+  );
+  if (!isCurrentPasswordValid) {
+    throw new ApiError(401, "Current password is incorrect.");
+  }
+
+  await updateUser(userId, {
+    password: await hashPassword(input.newPassword),
+  });
+  await startSession(userId);
 }
 
 export async function logoutUser(): Promise<void> {

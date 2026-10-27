@@ -31,25 +31,11 @@ export function SentenceTable({
 
   const columns: Column<SentenceItem>[] = [
     {
-      key: "sequence",
-      header: "Sequence",
-      headerClassName: "max-sm:hidden",
-      className: "max-sm:hidden",
-      render: (sentence) => (
-        <span className="font-semibold text-slate-800">
-          {sentence.sequence}
-        </span>
-      ),
-    },
-    {
       key: "sentence",
       header: "Sentence",
       className: "whitespace-normal max-sm:px-2",
       render: (sentence) => (
         <div className="min-w-[140px] max-w-[260px] whitespace-normal break-words sm:max-w-md">
-          <span className="mb-1 inline-flex h-5 min-w-5 items-center justify-center rounded bg-slate-200 px-1.5 text-[11px] font-semibold text-slate-700 sm:hidden">
-            {sentence.sequence}
-          </span>
           <p className="line-clamp-2 font-medium leading-6 text-slate-900">
             {sentence.text}
           </p>

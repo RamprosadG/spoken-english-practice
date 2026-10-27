@@ -53,7 +53,7 @@ Home intentionally renders only its page name inside a bordered page header. Pre
 - A Sentence library with a searchable, paginated table, admin-only create/edit/delete, and an inline practice panel that expands one row at a time with the English sentence, automatic IPA beneath it, Bengali meaning, per-sentence Listen, and accent/speed controls.
 - A Vocabulary library with a searchable, paginated table, an initial-letter filter, admin-only create/edit/delete, and an inline practice panel showing automatic IPA and Listen for the word, example sentence, and each optional synonym and antonym.
 - A Practice workspace with English text input, sentence-by-sentence or full IPA transcription, and browser speech playback with accent and speed controls.
-- Email/password registration and login, Google login, complete-profile flow, hidden admin registration, logout, and rotating refresh-token sessions.
+- Email/password registration and login, Google login, complete-profile flow, update profile (name) and update password from the user menu, hidden admin registration, logout, and rotating refresh-token sessions.
 
 ---
 
@@ -167,7 +167,7 @@ src/
 │   ├── vocabulary/page.tsx      # Vocabulary library (Server Component + Suspense)
 │   ├── practice/page.tsx        # Practice page
 │   ├── admin-register/page.tsx  # Hidden admin registration page
-│   ├── api/auth/                # register, login, Google login, profile, complete-profile, admin, logout
+│   ├── api/auth/                # register, login, Google login, profile, complete-profile, update-profile, update-password, admin, logout
 │   ├── api/presentations/       # list plus admin-only create/update/delete handlers
 │   ├── api/sentences/           # list plus admin-only create/update/delete handlers
 │   ├── api/vocabulary/          # list plus admin-only create/update/delete handlers
@@ -253,14 +253,18 @@ All handlers return `{ success, message, data }` (or `{ success: false, message 
 | `POST` | `/api/auth/login-google` | Exchange a Google access token for a session via the Google userinfo endpoint |
 | `GET` | `/api/auth/profile` | Return the signed-in user, or `401` when signed out |
 | `PATCH` | `/api/auth/complete-profile` | Set a password for an incomplete account and reissue the session |
+| `PATCH` | `/api/auth/update-profile` | Change the signed-in account's name and return the fresh user |
+| `PATCH` | `/api/auth/update-password` | Verify the current password, store the new one, and reissue the session |
 | `POST` | `/api/auth/register-admin` | Create an admin account; requires the private `ADMIN_REGISTER_KEY` |
 | `POST` | `/api/auth/logout` | Delete the user's refresh tokens and clear both cookies |
 
 ### UI behavior
 
 - `AuthProvider` (`src/features/auth/AuthProvider.tsx`) owns the current user, loading state, and which auth modal is open. It fetches `/api/auth/profile` on mount; a `401` simply leaves the visitor signed out.
-- The header shows **Login** and **Register** buttons when signed out and the `UserMenu` dropdown with the account's initial badge when signed in. The menu displays the account, a *Complete your profile* action for Google accounts without a password, and logout.
+- The header shows **Login** and **Register** buttons when signed out and the `UserMenu` dropdown with the account's initial badge when signed in. The menu displays the account, a *Complete your profile* action for Google accounts without a password, **Update profile**, **Update password**, and logout.
 - Login, register, and complete-profile are modal flows sharing the `Button`, `Input`, and `Modal` primitives. Registering succeeds with a notice and switches to the login modal; it does not sign the user in.
+- **Update profile** opens a modal with a single Name field and patches `/api/auth/update-profile`; the response replaces the cached user, so the header and menu show the new name without a reload. **Update password** opens a modal with Current password, New password, and Confirm password, patches `/api/auth/update-password`, and reissues the session on success. A wrong current password returns `401`, a mismatch returns `400`, and an account that only signs in with Google returns `400` because it has no password to verify. Both modals are owned by `UserMenu`, which mounts the form only while open so each visit starts clean.
+- Every modal footer that has a submit and a cancel action places both buttons side by side at full modal width, with Cancel as the `secondary` variant.
 - Google accounts that have not set a password land on `isComplete: false`, and the user menu prompts them to complete the profile. Completing it stores a bcrypt password, sets `isComplete: true`, and reissues the session.
 - The header badge shows the first letter of the user's name; the app does not use profile pictures.
 
@@ -291,10 +295,10 @@ While the client ID is empty the Google button renders disabled with a notice in
 
 - The header combines the **Presentation** title, a subtitle, and the admin-only **New presentation** button.
 - A debounced search input filters on the presentation title. Search and page state live in URL search params (`search`, `page`), so the list stays server-rendered.
-- The table shows **sequence**, **title** with a text preview capped at 100 characters (a `...` suffix marks truncated text), and a **Practice now** link to `/presentation/[id]` for every row.
+- The table shows **title** with a text preview capped at 100 characters (a `...` suffix marks truncated text), and a **Practice now** link to `/presentation/[id]` for every row. Sequence is stored and used for ordering but is not displayed.
 - Admins additionally see per-row edit/delete icon buttons; the edit action uses the same `FiEdit` icon as the reference student page. Everyone else sees the list and practice links only.
 - The list shows 20 rows per page by default and renders the shared `Pagination` primitive with the total count.
-- Create and edit share `PresentationFormModal`. It validates the fields and calls `POST /api/presentations` or `PATCH /api/presentations/:id`.
+- Create and edit share `PresentationFormModal`. Its fields are title, text, and then sequence as the last input. It validates the fields and calls `POST /api/presentations` or `PATCH /api/presentations/:id`.
 - Delete asks for SweetAlert confirmation and calls `DELETE /api/presentations/:id`.
 - After a successful mutation the client calls `router.refresh()` so the server-rendered table immediately reflects the change.
 
@@ -335,7 +339,7 @@ While the client ID is empty the Google button renders disabled with a notice in
 
 - The header combines the **Sentences** title, a subtitle, and the admin-only **New sentence** button.
 - A debounced search matches both the English sentence and the Bengali meaning. Search and page live in URL search params (`search`, `page`), so the list stays server-rendered.
-- The table shows **sequence**, the English sentence with the Bengali meaning beneath it (capped at two lines), a **Practice** / **Hide** toggle, and admin-only edit/delete actions.
+- The table shows the English sentence with the Bengali meaning beneath it (capped at two lines), a **Practice** / **Hide** toggle, and admin-only edit/delete actions. Sequence is not displayed.
 - The practice toggle carries `aria-expanded` and `aria-controls`. Only one row can be expanded: `SentenceSection` owns a single `expandedId`, so opening another row collapses the current one automatically, and changing the page or search clears it.
 - `DataTable` accepts `expandedRowId` and `renderExpandedRow`; the expanded panel renders in a full-width `colSpan` row directly beneath its sentence.
 - The list shows 20 rows per page by default and renders the shared `Pagination` primitive with the total count.
@@ -383,7 +387,7 @@ Each vocabulary row stores a word, its Bengali meaning, an example sentence with
 - Search is debounced and applies **only** to the word, synonym, and antonym text — it never matches Bengali meanings or sentences.
 - An **A–Z dropdown** filters words by their first letter (`All letters` plus A–Z). The letter is normalized to a single uppercase character on the server, and search and letter filters combine.
 - Search, letter, and page state live in URL search params (`search`, `letter`, `page`), so the list stays server-rendered.
-- The table shows **sequence**, the word with its Bengali meaning beneath it (and a mobile-only IPA line), an **IPA** column for the word (hidden below `sm`), a **Practice** / **Hide** toggle, and admin-only edit/delete actions.
+- The table shows the word with its Bengali meaning beneath it (and a mobile-only IPA line), an **IPA** column for the word (hidden below `sm`), a **Practice** / **Hide** toggle, and admin-only edit/delete actions. Sequence is not displayed.
 - Only one row can be expanded: `VocabularySection` owns a single `expandedId`, so opening another row collapses the current one, and changing the page or filters clears it. `DataTable` renders the panel in a full-width `colSpan` row.
 - Create and edit share `VocabularyFormModal`; required fields are the word, Bengali meaning, example sentence, example sentence meaning, and sequence, while the synonym and antonym groups are optional. Blank optional groups are submitted as `null`. Delete uses SweetAlert confirmation. After a successful mutation the client calls `router.refresh()`.
 
@@ -455,7 +459,7 @@ The following primitives are available in `src/components/ui` and ready for reus
 | `src/components/ui/stats/StatCard.tsx` | `StatCard` |
 | `src/components/ui/tables/DataTable.tsx` | `DataTable`, `Column` |
 
-`DataTable` also supports single-row expansion via optional `expandedRowId` and `renderExpandedRow` props (used by the Sentence and Vocabulary libraries). `Dropdown` portal-renders its menu into `document.body` with fixed, viewport-aware positioning so it is never clipped by table scroll containers.
+`DataTable` also supports single-row expansion via optional `expandedRowId` and `renderExpandedRow` props (used by the Sentence and Vocabulary libraries). `Dropdown` portal-renders its menu into `document.body` with fixed, viewport-aware positioning so it is never clipped by table scroll containers. Modal footers keep their submit and cancel buttons at equal full width inside `flex items-center gap-3`, with Cancel as the `secondary` variant.
 
 ---
 

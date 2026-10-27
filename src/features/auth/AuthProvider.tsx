@@ -22,6 +22,7 @@ interface AuthContextValue {
   openCompleteProfile: () => void;
   closeModal: () => void;
   setAuthenticatedUser: (user: AuthUser) => void;
+  updateAuthenticatedUser: (user: AuthUser) => void;
   logout: () => Promise<void>;
 }
 
@@ -77,6 +78,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setActiveModal(nextUser.isComplete ? null : "complete-profile");
   }, []);
 
+  const updateAuthenticatedUser = useCallback((nextUser: AuthUser) => {
+    setUser(nextUser);
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       await authRequest<null>("/api/auth/logout", { method: "POST" });
@@ -97,6 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       openCompleteProfile,
       closeModal,
       setAuthenticatedUser,
+      updateAuthenticatedUser,
       logout,
     }),
     [
@@ -108,6 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       openCompleteProfile,
       closeModal,
       setAuthenticatedUser,
+      updateAuthenticatedUser,
       logout,
     ],
   );

@@ -134,25 +134,6 @@ export function PresentationFormModal({
           }}
         />
 
-        <Input
-          label="Sequence"
-          type="number"
-          name="sequence"
-          id="presentation-sequence"
-          required
-          min={1}
-          max={100000}
-          error={errors.sequence}
-          value={sequence}
-          onChange={(event) => {
-            setSequence(event.target.value);
-            if (errors.sequence) {
-              setErrors((current) => ({ ...current, sequence: undefined }));
-            }
-            if (apiError) setApiError("");
-          }}
-        />
-
         <div className="flex w-full flex-col gap-1">
           <div className="flex items-center gap-1">
             <label
@@ -191,13 +172,32 @@ export function PresentationFormModal({
           )}
         </div>
 
-        <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
+        <Input
+          label="Sequence"
+          type="number"
+          name="sequence"
+          id="presentation-sequence"
+          required
+          min={1}
+          max={100000}
+          error={errors.sequence}
+          value={sequence}
+          onChange={(event) => {
+            setSequence(event.target.value);
+            if (errors.sequence) {
+              setErrors((current) => ({ ...current, sequence: undefined }));
+            }
+            if (apiError) setApiError("");
+          }}
+        />
+
+        <div className="flex items-center gap-3 pt-2">
           <Button
             type="button"
-            variant="secondary-outline"
+            variant="secondary"
             onClick={handleClose}
             disabled={isSubmitting}
-            className="w-full sm:w-auto"
+            className="w-full"
           >
             Cancel
           </Button>
@@ -205,7 +205,7 @@ export function PresentationFormModal({
             type="submit"
             isLoading={isSubmitting}
             disabled={isSubmitting}
-            className="w-full sm:w-auto"
+            className="w-full"
           >
             {isEditing ? "Save changes" : "Create presentation"}
           </Button>

@@ -35,15 +35,6 @@ export function PresentationTable({
 
   const columns: Column<PresentationItem>[] = [
     {
-      key: "sequence",
-      header: "Sequence",
-      render: (presentation) => (
-        <span className="font-semibold text-slate-800">
-          {presentation.sequence}
-        </span>
-      ),
-    },
-    {
       key: "title",
       header: "Title",
       className: "whitespace-normal",

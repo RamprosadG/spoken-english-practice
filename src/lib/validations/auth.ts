@@ -56,7 +56,24 @@ export const completeProfileSchema = z
   })
   .refine((data) => data.password === data.confirmPassword, passwordConfirmation);
 
+export const updateProfileSchema = z.object({
+  name: nameSchema,
+});
+
+export const updatePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Current password is required."),
+    newPassword: passwordSchema,
+    confirmPassword: z.string().min(1, "Confirm password is required."),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "New password and confirm password do not match.",
+    path: ["confirmPassword"],
+  });
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type RegisterAdminInput = z.infer<typeof registerAdminSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type CompleteProfileInput = z.infer<typeof completeProfileSchema>;
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+export type UpdatePasswordInput = z.infer<typeof updatePasswordSchema>;

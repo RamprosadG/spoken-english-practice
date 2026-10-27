@@ -1,13 +1,25 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { FiChevronDown, FiLogOut, FiUserCheck } from "react-icons/fi";
+import {
+  FiChevronDown,
+  FiEdit,
+  FiKey,
+  FiLogOut,
+  FiUserCheck,
+} from "react-icons/fi";
 import { showSuccessAlert } from "@/components/ui/alerts/Alerts";
+import Modal from "@/components/ui/modals/Modal";
+import { UpdatePasswordForm } from "@/features/auth/UpdatePasswordForm";
+import { UpdateProfileForm } from "@/features/auth/UpdateProfileForm";
 import { useAuth } from "@/features/auth/AuthProvider";
+
+type AccountModal = "profile" | "password" | null;
 
 export function UserMenu() {
   const { user, logout, openCompleteProfile } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [activeModal, setActiveModal] = useState<AccountModal>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -105,6 +117,32 @@ export function UserMenu() {
           <button
             type="button"
             role="menuitem"
+            onClick={() => {
+              setIsOpen(false);
+              setActiveModal("profile");
+            }}
+            className="flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-left text-sm text-slate-700 transition-colors hover:bg-slate-100"
+          >
+            <FiEdit className="h-4 w-4" />
+            Update profile
+          </button>
+
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              setIsOpen(false);
+              setActiveModal("password");
+            }}
+            className="flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-left text-sm text-slate-700 transition-colors hover:bg-slate-100"
+          >
+            <FiKey className="h-4 w-4" />
+            Update password
+          </button>
+
+          <button
+            type="button"
+            role="menuitem"
             onClick={handleLogout}
             disabled={isLoggingOut}
             className="flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-left text-sm text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
@@ -113,6 +151,28 @@ export function UserMenu() {
             {isLoggingOut ? "Logging out..." : "Logout"}
           </button>
         </div>
+      )}
+
+      {activeModal === "profile" && (
+        <Modal
+          isOpen
+          onClose={() => setActiveModal(null)}
+          title="Update Profile"
+          className="max-w-md"
+        >
+          <UpdateProfileForm onClose={() => setActiveModal(null)} />
+        </Modal>
+      )}
+
+      {activeModal === "password" && (
+        <Modal
+          isOpen
+          onClose={() => setActiveModal(null)}
+          title="Update Password"
+          className="max-w-md"
+        >
+          <UpdatePasswordForm onClose={() => setActiveModal(null)} />
+        </Modal>
       )}
     </div>
   );

@@ -184,6 +184,17 @@ This document tracks the step-by-step implementation of the Spoken English Pract
   - [ ] Google login with real credentials remains for the user to test later.
   - [x] Temporary test accounts and refresh tokens removed; the database is back to zero users.
 
+- [x] **3.6 Account Settings — Update Profile & Update Password**:
+  - [x] Add `updateProfileSchema` (name only) and `updatePasswordSchema` (current, new, confirm with a match refinement) to `src/lib/validations/auth.ts`.
+  - [x] Add `updateProfile()` and `updatePassword()` to the auth service; the password flow verifies the current hash, rejects accounts without a password, and reissues the session.
+  - [x] Add `PATCH /api/auth/update-profile` and `PATCH /api/auth/update-password` handlers that await `connection()` and require a session.
+  - [x] Add `UpdateProfileForm` (Name) and `UpdatePasswordForm` (Current / New / Confirm) and open both from `UserMenu`, which holds the modal state and mounts the form only while open.
+  - [x] Add `updateAuthenticatedUser` to `AuthProvider` so a renamed account updates the header and menu without reopening the complete-profile modal.
+  - [x] Normalize every modal footer: Cancel (`secondary`) and submit share the full modal width side by side in the profile, password, presentation, sentence, and vocabulary modals.
+  - [x] API: signed-out `401`, blank name `400`, wrong current password `401`, mismatched confirmation `400`, short new password `400`, account without a password `400`, valid updates `200`, old password fails login and the new one succeeds.
+  - [x] Browser: menu actions open both modals, the name change appears in the header immediately, client-side mismatch is reported before any request, and each footer's two buttons measure 230 px + 230 px + 12 px gap across the 472 px form at the ~554 px viewport with no horizontal overflow.
+  - [x] `npx tsc --noEmit`, `npm run lint`, and `npm run build` stay clean; the temporary QA account was deleted afterward.
+
 ---
 
 ### Step 4: Sentence Library — Inline Practice *(Completed)*

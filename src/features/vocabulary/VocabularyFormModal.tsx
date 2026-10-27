@@ -431,19 +431,18 @@ export function VocabularyFormModal({
           required
           min={1}
           max={100000}
-          className="sm:max-w-[220px]"
           value={form.sequence}
           error={errors.sequence}
           onChange={(event) => setField("sequence", event.target.value)}
         />
 
-        <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
+        <div className="flex items-center gap-3 pt-2">
           <Button
             type="button"
-            variant="secondary-outline"
+            variant="secondary"
             onClick={handleClose}
             disabled={isSubmitting}
-            className="w-full sm:w-auto"
+            className="w-full"
           >
             Cancel
           </Button>
@@ -451,7 +450,7 @@ export function VocabularyFormModal({
             type="submit"
             isLoading={isSubmitting}
             disabled={isSubmitting}
-            className="w-full sm:w-auto"
+            className="w-full"
           >
             {isEditing ? "Save changes" : "Create vocabulary"}
           </Button>
