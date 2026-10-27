@@ -17,6 +17,8 @@ interface DataTableProps<T> {
   onRowClick?: (item: T) => void;
   className?: string;
   rowClassName?: string | ((item: T, index: number) => string);
+  expandedRowId?: string | null;
+  renderExpandedRow?: (item: T, index: number) => React.ReactNode;
 }
 
 function DataTable<T extends { id?: string }>({
@@ -27,6 +29,8 @@ function DataTable<T extends { id?: string }>({
   onRowClick,
   className = "",
   rowClassName = "",
+  expandedRowId = null,
+  renderExpandedRow,
 }: DataTableProps<T>) {
   if (isLoading) {
     return (
@@ -81,32 +85,44 @@ function DataTable<T extends { id?: string }>({
                 typeof rowClassName === "function"
                   ? rowClassName(item, index)
                   : rowClassName;
+              const isExpanded =
+                Boolean(renderExpandedRow) &&
+                expandedRowId !== null &&
+                item.id === expandedRowId;
 
               return (
-                <tr
-                  key={item.id ?? index}
-                  className={`
-                    transition-colors duration-150
-                    ${index % 2 === 0 ? "bg-white" : "bg-slate-100"}
-                    hover:bg-blue-50
-                    ${onRowClick ? "cursor-pointer" : ""}
-                    ${computedRowClassName}
-                  `}
-                  onClick={onRowClick ? () => onRowClick(item) : undefined}
-                >
-                  {columns.map((column) => (
-                    <td
-                      key={column.key}
-                      className={`whitespace-nowrap px-5 py-3.5 text-sm text-slate-700 ${column.className || ""}`}
-                    >
-                      {column.render
-                        ? column.render(item, index)
-                        : ((item as Record<string, unknown>)[
-                            column.key
-                          ] as React.ReactNode)}
-                    </td>
-                  ))}
-                </tr>
+                <React.Fragment key={item.id ?? index}>
+                  <tr
+                    className={`
+                      transition-colors duration-150
+                      ${index % 2 === 0 ? "bg-white" : "bg-slate-100"}
+                      hover:bg-blue-50
+                      ${onRowClick ? "cursor-pointer" : ""}
+                      ${computedRowClassName}
+                    `}
+                    onClick={onRowClick ? () => onRowClick(item) : undefined}
+                  >
+                    {columns.map((column) => (
+                      <td
+                        key={column.key}
+                        className={`whitespace-nowrap px-5 py-3.5 text-sm text-slate-700 ${column.className || ""}`}
+                      >
+                        {column.render
+                          ? column.render(item, index)
+                          : ((item as Record<string, unknown>)[
+                              column.key
+                            ] as React.ReactNode)}
+                      </td>
+                    ))}
+                  </tr>
+                  {isExpanded && renderExpandedRow && (
+                    <tr className="bg-slate-50">
+                      <td colSpan={columns.length} className="p-0">
+                        {renderExpandedRow(item, index)}
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
               );
             })}
           </tbody>

@@ -59,3 +59,39 @@ model Presentation {
   @@index([sequence])
   @@map("presentation")
 }
+
+model Sentence {
+  id        String   @id @default(uuid())
+  text      String
+  meaning   String
+  sequence  Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sequence])
+  @@map("sentence")
+}
+
+model Vocabulary {
+  id                     String   @id @default(uuid())
+  text                   String
+  meaning                String
+  sentence               String
+  sentenceMeaning        String
+  synonymText            String?
+  synonymMeaning         String?
+  synonymSentence        String?
+  synonymSentenceMeaning String?
+  antonymText            String?
+  antonymMeaning         String?
+  antonymSentence        String?
+  antonymSentenceMeaning String?
+  sequence               Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sequence])
+  @@map("vocabulary")
+}

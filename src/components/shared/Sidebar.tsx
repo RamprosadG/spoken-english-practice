@@ -6,6 +6,8 @@ import { FiX } from "react-icons/fi";
 import {
   HiOutlineHome,
   HiOutlinePresentationChartBar,
+  HiOutlineChatAlt2,
+  HiOutlineBookOpen,
   HiOutlineMicrophone,
 } from "react-icons/hi";
 import { IconType } from "react-icons";
@@ -19,6 +21,8 @@ interface NavItem {
 const navItems: NavItem[] = [
   { name: "Home", href: "/", icon: HiOutlineHome },
   { name: "Presentation", href: "/presentation", icon: HiOutlinePresentationChartBar },
+  { name: "Sentences", href: "/sentences", icon: HiOutlineChatAlt2 },
+  { name: "Vocabulary", href: "/vocabulary", icon: HiOutlineBookOpen },
   { name: "Practice", href: "/practice", icon: HiOutlineMicrophone },
 ];
 

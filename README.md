@@ -2,7 +2,7 @@
 
 A full-stack **Spoken English Practice** application built with **Next.js 16 (App Router & Turbopack)**, **TypeScript**, **Tailwind CSS v4**, **PostgreSQL**, and **Prisma ORM 7** with the `@prisma/adapter-pg` driver.
 
-This repository contains the **layout-first foundation**, the **Presentation library**, the interactive **Practice workspace**, and cookie-based **authentication**: the application shell, navigation, shared UI primitives, database wiring, an admin-managed collection of saved presentation texts, client-side IPA and speech playback for practice text, and email/password plus Google sign-in. IPA transcription is provided by `phonemize`; voice playback uses the browser Web Speech API; sessions use HS512 JWTs with rotating refresh tokens stored in PostgreSQL.
+This repository contains the **layout-first foundation**, the **Presentation library**, the inline **Sentence library**, the inline **Vocabulary library**, the interactive **Practice workspace**, and cookie-based **authentication**: the application shell, navigation, shared UI primitives, database wiring, an admin-managed collection of saved presentation texts, a sentence library with Bengali meanings that expands for practice in place, a vocabulary library with Bengali meanings, example sentences, synonyms, antonyms, and automatic IPA, client-side IPA and speech playback, and email/password plus Google sign-in. IPA transcription is provided by `phonemize`; voice playback uses the browser Web Speech API; sessions use HS512 JWTs with rotating refresh tokens stored in PostgreSQL.
 
 ---
 
@@ -15,9 +15,11 @@ This repository contains the **layout-first foundation**, the **Presentation lib
 6. [Layout & Navigation](#6-layout--navigation)
 7. [Authentication](#7-authentication)
 8. [Presentation Library](#8-presentation-library)
-9. [Practice Workspace](#9-practice-workspace)
-10. [Shared UI Primitives](#10-shared-ui-primitives)
-11. [Quality Gates](#11-quality-gates)
+9. [Sentence Library](#9-sentence-library)
+10. [Vocabulary Library](#10-vocabulary-library)
+11. [Practice Workspace](#11-practice-workspace)
+12. [Shared UI Primitives](#12-shared-ui-primitives)
+13. [Quality Gates](#13-quality-gates)
 
 ---
 
@@ -30,10 +32,12 @@ The application currently ships the shared application shell and its portal page
 | `/` | Home | Page heading only |
 | `/presentation` | Presentation | Admin-managed library of saved titles and practice texts |
 | `/presentation/[id]` | Presentation Practice | Read-only practice for one saved presentation: title, scrollable text, IPA, and speech |
+| `/sentences` | Sentences | Admin-managed sentence library with Bengali meanings and inline, single-row practice |
+| `/vocabulary` | Vocabulary | Admin-managed word library with Bengali meanings, example sentences, synonyms, antonyms, automatic IPA, and inline practice |
 | `/practice` | Practice | Interactive text, IPA, and speech workspace |
 | `/admin-register` | Admin Registration | Hidden form for creating an admin with the private secret key |
 
-Home intentionally renders only its page name inside a bordered page header. Presentation is the first server-rendered data screen. The top header shows **Login** and **Register** actions on the right; once signed in, they are replaced by a user menu with the account name, email, complete-profile action when needed, and logout. Pages remain public — authentication changes the header controls, and only presentation mutations are restricted to admins.
+Home intentionally renders only its page name inside a bordered page header. Presentation is the first server-rendered data screen. The top header shows **Login** and **Register** actions on the right; once signed in, they are replaced by a user menu with the account name, email, complete-profile action when needed, and logout. Pages remain public — authentication changes the header controls, and only presentation, sentence, and vocabulary mutations are restricted to admins.
 
 **What is already in place**
 
@@ -43,9 +47,11 @@ Home intentionally renders only its page name inside a bordered page header. Pre
 - Full-width main content viewport with the established padding rhythm (`p-6 md:p-8`).
 - Shared footer.
 - Tailwind CSS v4 theme, custom scrollbars, and horizontal-overflow guard.
-- Prisma 7 schema with `User`, `RefreshToken`, and `Presentation` models, PostgreSQL datasource, Prisma client singleton, and a `.env` connection string.
+- Prisma 7 schema with `User`, `RefreshToken`, `Presentation`, `Sentence`, and `Vocabulary` models, PostgreSQL datasource, Prisma client singleton, and a `.env` connection string.
 - The reusable `components/ui` primitive library, ready for use by upcoming features.
 - A Presentation library with a server-rendered, searchable, paginated table; admin-only create/update modals and delete confirmation; and a per-row **Practice now** link into the dynamic route.
+- A Sentence library with a searchable, paginated table, admin-only create/edit/delete, and an inline practice panel that expands one row at a time with the English sentence, automatic IPA beneath it, Bengali meaning, per-sentence Listen, and accent/speed controls.
+- A Vocabulary library with a searchable, paginated table, an initial-letter filter, admin-only create/edit/delete, and an inline practice panel showing automatic IPA and Listen for the word, example sentence, and each optional synonym and antonym.
 - A Practice workspace with English text input, sentence-by-sentence or full IPA transcription, and browser speech playback with accent and speed controls.
 - Email/password registration and login, Google login, complete-profile flow, hidden admin registration, logout, and rotating refresh-token sessions.
 
@@ -80,7 +86,7 @@ Home intentionally renders only its page name inside a bordered page header. Pre
    npx prisma generate
    ```
 
-4. **Apply the migrations** (creates the `users`, `refresh_tokens`, and `presentation` tables):
+4. **Apply the migrations** (creates the `users`, `refresh_tokens`, `presentation`, `sentence`, and `vocabulary` tables):
    ```bash
    npx prisma migrate dev
    ```
@@ -130,13 +136,15 @@ node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 - **Runtime driver**: `@prisma/adapter-pg` wrapped by the singleton in `src/lib/prisma.ts`
 - **Configuration**: `prisma.config.ts` loads `.env` via `dotenv/config` and supplies the datasource URL
 
-The schema declares the authentication and presentation models:
+The schema declares the authentication, presentation, sentence, and vocabulary models:
 
 - `User` — UUID id, unique email, optional bcrypt password, `admin` / `public` role, `isComplete`, and timestamps. Google-created users start with `isComplete: false` until they set a password.
 - `RefreshToken` — UUID id, unique SHA-256 hash of the refresh JWT, owning user (cascade delete), `used` / `usedAt` for rotation, and `expiresAt`.
 - `Presentation` — UUID id, title, practice text, integer `sequence`, and timestamps. Rows are ordered by `sequence` ascending and then `createdAt` ascending.
+- `Sentence` — UUID id, English `text`, Bengali `meaning`, integer `sequence`, and timestamps, with a `sequence` index. Rows are ordered by `sequence` ascending and then `createdAt` ascending.
+- `Vocabulary` — UUID id, required word `text`, Bengali `meaning`, example `sentence` and `sentenceMeaning`, nullable synonym fields (`synonymText`, `synonymMeaning`, `synonymSentence`, `synonymSentenceMeaning`), nullable antonym fields with the same shape, integer `sequence`, and timestamps, with a `sequence` index. Rows are ordered by `sequence` ascending and then `createdAt` ascending.
 
-The migrations create the users and refresh tokens (`20261026161057_create_user_and_refresh_token_tables`), remove the unused profile-picture column (`20261026173014_remove_user_picture`), and create the presentation table (`20261026193020_create_presentation_table`). After any schema change:
+The migrations create the users and refresh tokens (`20261026161057_create_user_and_refresh_token_tables`), remove the unused profile-picture column (`20261026173014_remove_user_picture`), create the presentation table (`20261026193020_create_presentation_table`), create the sentence table (`20261027052508_create_sentence_table`), and create the vocabulary table (`20261027062356_create_vocabulary_table`). After any schema change:
 
 ```bash
 npx prisma generate
@@ -155,10 +163,14 @@ src/
 │   ├── page.tsx                 # Home page
 │   ├── presentation/page.tsx    # Presentation library (Server Component + Suspense)
 │   ├── presentation/[id]/page.tsx # Presentation practice (server read + read-only workspace)
+│   ├── sentences/page.tsx       # Sentence library (Server Component + Suspense)
+│   ├── vocabulary/page.tsx      # Vocabulary library (Server Component + Suspense)
 │   ├── practice/page.tsx        # Practice page
 │   ├── admin-register/page.tsx  # Hidden admin registration page
 │   ├── api/auth/                # register, login, Google login, profile, complete-profile, admin, logout
 │   ├── api/presentations/       # list plus admin-only create/update/delete handlers
+│   ├── api/sentences/           # list plus admin-only create/update/delete handlers
+│   ├── api/vocabulary/          # list plus admin-only create/update/delete handlers
 │   ├── layout.tsx               # Root layout — fonts, metadata, providers, AppLayoutShell
 │   ├── globals.css              # Tailwind import, theme variables, scrollbars
 │   └── not-found.tsx            # 404 page
@@ -167,17 +179,26 @@ src/
 │   │   ├── auth/
 │   │   ├── home/
 │   │   ├── presentation/
-│   │   └── practice/
+│   │   ├── practice/
+│   │   ├── sentence/
+│   │   └── vocabulary/
 │   ├── shared/                  # AppLayoutShell, Sidebar, Navbar, UserMenu, Footer
 │   └── ui/                      # Reusable primitives (buttons, inputs, tables, ...)
 ├── features/
 │   ├── auth/                    # AuthProvider, auth modals/forms, Google button, fetch helper
 │   ├── presentation/            # Actions, Filters, Section, Table, practice workspace, form modal, fetch helper
+│   ├── sentence/                # Actions, Filters, Section, Table, expandable practice panel, form modal, fetch helper
+│   ├── vocabulary/              # Actions, Filters, Section, Table, expandable practice panel, form modal, fetch helper
 │   └── practice/
 │       ├── PracticeWorkspace.tsx # Editable text island (localStorage-backed)
-│       ├── useSpeechPractice.ts  # Shared IPA, accent, speed and speech state
-│       ├── SpeechPracticeControls.tsx # Shared accent/speed/IPA and playback controls
-│       └── IpaTranscriptionCard.tsx   # Shared IPA transcription card
+│       ├── useSpeechPractice.ts  # Advanced IPA, accent, speed and speech state
+│       ├── SpeechPracticeControls.tsx # Advanced accent/speed/IPA and playback controls
+│       ├── IpaTranscriptionCard.tsx   # Advanced IPA transcription card
+│       ├── useIpaTranscription.ts     # Automatic dialect-aware inline IPA
+│       ├── InlineIpa.tsx              # Renders IPA beneath any English item
+│       ├── useListenSpeech.ts         # Listen-only accent, speed and playback state
+│       ├── ListenControls.tsx         # Accent + speed dropdowns for inline panels
+│       └── PlayTextButton.tsx         # Per-item Listen button
 ├── lib/
 │   ├── auth/                    # JWT signing/verification, cookies, bcrypt helpers
 │   ├── validations/             # Zod request schemas
@@ -185,8 +206,8 @@ src/
 │   ├── prisma.ts                # PrismaClient singleton with @prisma/adapter-pg
 │   └── utils.ts                 # Date, currency and pagination helpers
 ├── server/
-│   ├── repositories/            # Prisma data access for users, refresh tokens, and presentations
-│   ├── services/                # Auth, session resolution, and presentation workflows
+│   ├── repositories/            # Prisma data access for users, refresh tokens, presentations, sentences, and vocabulary
+│   ├── services/                # Auth, session resolution, presentation, sentence, and vocabulary workflows
 │   └── types/                   # Server-side payload and pagination interfaces
 ├── types/                       # Client-facing view-model types
 └── generated/prisma/            # Generated Prisma client (gitignored)
@@ -210,7 +231,7 @@ Active sidebar items use the established styling: `bg-indigo-50 text-indigo-700 
 
 ## 7. Authentication
 
-Pages are public: **no page route is guarded or redirected**. Signed-out visitors can browse every screen; signing in adds the account menu and unlocks the account API. The only role checks are server-side admin checks on presentation mutations. The session flow uses a short-lived access JWT, a rotating refresh token in PostgreSQL, and direct service calls from route handlers.
+Pages are public: **no page route is guarded or redirected**. Signed-out visitors can browse every screen; signing in adds the account menu and unlocks the account API. The only role checks are server-side admin checks on presentation, sentence, and vocabulary mutations. The session flow uses a short-lived access JWT, a rotating refresh token in PostgreSQL, and direct service calls from route handlers.
 
 ### Session model
 
@@ -306,11 +327,102 @@ While the client ID is empty the Google button renders disabled with a notice in
 
 ---
 
-## 9. Practice Workspace
+## 9. Sentence Library
 
-`src/features/practice/PracticeWorkspace.tsx` is the editable client island embedded by the Practice page. The IPA and speech behavior lives in `useSpeechPractice.ts` and is rendered by `SpeechPracticeControls` and `IpaTranscriptionCard`; `src/features/presentation/PresentationPracticeWorkspace.tsx` reuses all three with the saved presentation text.
+`src/app/sentences/page.tsx` mirrors the Presentation composition. It wraps `SentenceContent` in `<Suspense>`; that async component awaits `connection()`, reads the `search` and `page` search params, calls `listSentences()` directly, and passes the rows, pagination meta, filters, and next sequence to the view. Sentences deliberately have **no** detail route — a single sentence takes seconds to practice, so the practice panel expands inside the table instead.
 
-- **English text** — a textarea for the text to practice; speech and IPA both follow its current value. The presentation page instead shows the saved text in a scrollable read-only panel.
+### Header, search, and table
+
+- The header combines the **Sentences** title, a subtitle, and the admin-only **New sentence** button.
+- A debounced search matches both the English sentence and the Bengali meaning. Search and page live in URL search params (`search`, `page`), so the list stays server-rendered.
+- The table shows **sequence**, the English sentence with the Bengali meaning beneath it (capped at two lines), a **Practice** / **Hide** toggle, and admin-only edit/delete actions.
+- The practice toggle carries `aria-expanded` and `aria-controls`. Only one row can be expanded: `SentenceSection` owns a single `expandedId`, so opening another row collapses the current one automatically, and changing the page or search clears it.
+- `DataTable` accepts `expandedRowId` and `renderExpandedRow`; the expanded panel renders in a full-width `colSpan` row directly beneath its sentence.
+- The list shows 20 rows per page by default and renders the shared `Pagination` primitive with the total count.
+- Create and edit share `SentenceFormModal` (English sentence, Bengali meaning, sequence) and call `POST /api/sentences` or `PATCH /api/sentences/:id`. Delete asks for SweetAlert confirmation and calls `DELETE /api/sentences/:id`. After a successful mutation the client calls `router.refresh()`.
+
+### Inline practice panel
+
+`SentencePracticePanel` is deliberately simpler than the Practice workspace. It shows the English sentence with its IPA transcribed automatically beneath it, a per-sentence **Listen** button, the Bengali meaning in a bordered **Meaning (বাংলা)** block rendered with `lang="bn"`, and `ListenControls`, which offers only **Accent** and **Speed**. There is no pause, reset, IPA toggle, or IPA view dropdown — the learner picks an accent and speed, then listens. The panel never reads or writes the Practice page's `localStorage` entry, and switching rows unmounts it, which cancels playback.
+
+Because the panel lives inside a table row, the shared `Dropdown` renders its menu through a portal into `document.body` with fixed, viewport-clamped positioning (flipping above the trigger when there is no room below and closing on Escape or outside click). This keeps the accent and speed menus fully visible instead of being clipped by the table's scroll container.
+
+### Authorization and API
+
+- Sentence pages remain public; authorization is enforced in `src/server/services/sentence.service.ts`, not only in the UI.
+- `requireAdminUser()` returns `401` when signed out and `403` for a `public` user. Create, update, and delete all call it; UI gating with `useAuth()` is a convenience, not the security boundary.
+- The page does not call `resolveSessionUser()` because that can write refreshed cookies, which is not allowed in a Server Component.
+
+### Data rules
+
+- Text: 1–1000 characters (trimmed). Meaning: 1–1000 characters (trimmed). Sequence: integer from 1 to 100,000.
+- Sequence is not unique. Rows are ordered by `sequence` ascending, then `createdAt` ascending.
+- Search runs as a case-insensitive `contains` over `text` **or** `meaning` inside the Prisma `where`; `count` plus `skip`/`take` paginates the result.
+- The form suggests the next sequence (`max(sequence) + 1`) from a server read, and admins can change it.
+
+| Method | Route | Access | Purpose |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/sentences` | Public | List sentences with `search`, `page`, and `pageSize` (default 20) |
+| `POST` | `/api/sentences` | Admin | Create a sentence with text, meaning, and sequence |
+| `PATCH` | `/api/sentences/:id` | Admin | Update text, meaning, and sequence |
+| `DELETE` | `/api/sentences/:id` | Admin | Delete a sentence |
+
+`GET` returns `{ success: true, data: { items, pagination, nextSequence } }`. Mutation handlers validate with `sentenceInputSchema` and return the shared `{ success, message, data }` shape; a missing record returns `404` with "Sentence is not found."
+
+---
+
+## 10. Vocabulary Library
+
+`src/app/vocabulary/page.tsx` follows the same server-rendered composition as Sentences. `VocabularyContent` awaits `connection()`, reads the `search`, `letter`, and `page` search params, calls `listVocabulary()` directly, and passes the rows, pagination meta, filters, and next sequence to the view. Vocabulary has **no** detail route; the practice panel expands inside the table.
+
+Each vocabulary row stores a word, its Bengali meaning, an example sentence with its Bengali meaning, and an optional synonym group and optional antonym group. Every synonym/antonym field is optional, and a group only appears in the practice panel when its word is present.
+
+### Header, filters, and table
+
+- The header combines the **Vocabulary** title, a subtitle, and the admin-only **New word** button.
+- Search is debounced and applies **only** to the word, synonym, and antonym text — it never matches Bengali meanings or sentences.
+- An **A–Z dropdown** filters words by their first letter (`All letters` plus A–Z). The letter is normalized to a single uppercase character on the server, and search and letter filters combine.
+- Search, letter, and page state live in URL search params (`search`, `letter`, `page`), so the list stays server-rendered.
+- The table shows **sequence**, the word with its Bengali meaning beneath it (and a mobile-only IPA line), an **IPA** column for the word (hidden below `sm`), a **Practice** / **Hide** toggle, and admin-only edit/delete actions.
+- Only one row can be expanded: `VocabularySection` owns a single `expandedId`, so opening another row collapses the current one, and changing the page or filters clears it. `DataTable` renders the panel in a full-width `colSpan` row.
+- Create and edit share `VocabularyFormModal`; required fields are the word, Bengali meaning, example sentence, example sentence meaning, and sequence, while the synonym and antonym groups are optional. Blank optional groups are submitted as `null`. Delete uses SweetAlert confirmation. After a successful mutation the client calls `router.refresh()`.
+
+### Inline practice panel
+
+`VocabularyPracticePanel` is listen-only and self-explanatory. The top row shows the word — slightly larger, left-aligned — with `ListenControls` (**Accent** and **Speed** only, right-aligned in one row) on wide screens; on mobile it stacks into three rows: word, accent, speed. There is no pause, reset, IPA toggle, or IPA view dropdown.
+
+Every item is an entry card: the word, example sentence, synonym word, synonym sentence, antonym word, and antonym sentence. Each card appears only when its field exists, and each shows the English text, its IPA transcribed automatically beneath it, a Bengali meaning with `lang="bn"`, and its own **Listen** button. On wide screens the grid places each word beside its corresponding sentence — word next to example sentence, synonym next to synonym sentence, antonym next to antonym sentence — and below that breakpoint the cards stack in reading order. The IPA follows the selected accent and recomputes when the accent changes. Switching rows unmounts the panel, which cancels playback.
+
+### Authorization and API
+
+- Vocabulary pages remain public; authorization is enforced in `src/server/services/vocabulary.service.ts`, not only in the UI.
+- `requireAdminUser()` returns `401` when signed out and `403` for a `public` user. Create, update, and delete all call it; UI gating with `useAuth()` is a convenience, not the security boundary.
+- The page does not call `resolveSessionUser()` because that can write refreshed cookies, which is not allowed in a Server Component.
+
+### Data rules
+
+- Word: 1–100 characters. Bengali meaning: 1–500. Example sentence and its Bengali meaning: 1–1000. Sequence: integer from 1 to 100,000.
+- Optional synonym and antonym fields accept missing or `null` values and are stored as `null` when blank. A synonym or antonym detail without its word is rejected.
+- Sequence is not unique. Rows are ordered by `sequence` ascending, then `createdAt` ascending.
+- Search runs as a case-insensitive `contains` over `text`, `synonymText`, **or** `antonymText` inside the Prisma `where`. The letter filter is a case-insensitive `startsWith` on `text`. `count` plus `skip`/`take` paginates the result.
+- The form suggests the next sequence (`max(sequence) + 1`) from a server read, and admins can change it.
+
+| Method | Route | Access | Purpose |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/vocabulary` | Public | List words with `search`, `letter`, `page`, and `pageSize` (default 20) |
+| `POST` | `/api/vocabulary` | Admin | Create a word with its meanings, examples, optional synonym/antonym, and sequence |
+| `PATCH` | `/api/vocabulary/:id` | Admin | Update any vocabulary field |
+| `DELETE` | `/api/vocabulary/:id` | Admin | Delete a vocabulary row |
+
+`GET` returns `{ success: true, data: { items, pagination, nextSequence } }`. Mutation handlers validate with `vocabularyInputSchema` and return the shared `{ success, message, data }` shape; a missing record returns `404` with "Vocabulary is not found."
+
+---
+
+## 11. Practice Workspace
+
+`src/features/practice/PracticeWorkspace.tsx` is the editable client island embedded by the Practice page. The advanced IPA and speech behavior lives in `useSpeechPractice.ts` and is rendered by `SpeechPracticeControls` and `IpaTranscriptionCard`; `src/features/presentation/PresentationPracticeWorkspace.tsx` reuses all three with saved text. The Sentence and Vocabulary libraries instead use the listen-only `useIpaTranscription`, `InlineIpa`, `useListenSpeech`, `PlayTextButton`, and `ListenControls`, where IPA appears automatically below every item and the learner only chooses accent and speed.
+
+- **English text** — a textarea for the text to practice; speech and IPA both follow its current value. The presentation page instead shows the saved text in a scrollable read-only panel; the Sentence and Vocabulary libraries show saved items inside expanded rows.
 - **Accent dropdown** — British English (`en-GB`) or American English (`en-US`).
 - **Speed dropdown** — `0.5×` through `1.5×`, applied to the utterance's `rate`. Changing speed during playback stops speech and asks you to press Start again.
 - **Show IPA translation** — computes a dialect-aware IPA transcription. The `phonemize` package is loaded on demand, so its pronunciation data is not part of the initial page bundle.
@@ -325,7 +437,7 @@ Speech playback uses `window.speechSynthesis`. Available voices come from the op
 
 ---
 
-## 10. Shared UI Primitives
+## 12. Shared UI Primitives
 
 The following primitives are available in `src/components/ui` and ready for reuse:
 
@@ -343,14 +455,16 @@ The following primitives are available in `src/components/ui` and ready for reus
 | `src/components/ui/stats/StatCard.tsx` | `StatCard` |
 | `src/components/ui/tables/DataTable.tsx` | `DataTable`, `Column` |
 
+`DataTable` also supports single-row expansion via optional `expandedRowId` and `renderExpandedRow` props (used by the Sentence and Vocabulary libraries). `Dropdown` portal-renders its menu into `document.body` with fixed, viewport-aware positioning so it is never clipped by table scroll containers.
+
 ---
 
-## 11. Quality Gates
+## 13. Quality Gates
 
 | Check | Command | Current Result |
 | :--- | :--- | :--- |
 | Lint | `npm run lint` | 0 errors, 1 known `react-hooks/exhaustive-deps` warning in `SearchInput` |
 | Types | `npx tsc --noEmit` | Clean |
-| Build | `npm run build` | Clean — `/`, `/practice`, `/admin-register`, and `/_not-found` prerender statically; `/presentation` is a partial prerender; `/presentation/[id]` is a blocking dynamic route; API routes are dynamic |
+| Build | `npm run build` | Clean — `/`, `/practice`, `/admin-register`, and `/_not-found` prerender statically; `/presentation`, `/sentences`, and `/vocabulary` are partial prerenders; `/presentation/[id]` is a blocking dynamic route; API routes are dynamic |
 
-Pages without request data remain fully static. The Presentation page streams its database read through `<Suspense>` and calls `connection()` inside that boundary, so the shell is prerendered while the rows arrive per request. `/api/auth/profile` awaits `connection()` before reading cookies so it is always evaluated per request. The sidebar's `usePathname()` is wrapped in `<Suspense>` with a width-preserving fallback so dynamic routes can prerender their shell.
+Pages without request data remain fully static. The Presentation, Sentences, and Vocabulary pages stream their database reads through `<Suspense>` and call `connection()` inside that boundary, so the shell is prerendered while the rows arrive per request. `/api/auth/profile` awaits `connection()` before reading cookies so it is always evaluated per request. The sidebar's `usePathname()` is wrapped in `<Suspense>` with a width-preserving fallback so dynamic routes can prerender their shell.

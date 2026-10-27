@@ -10,8 +10,10 @@ This document tracks the step-by-step implementation of the Spoken English Pract
 - [x] **Step 1: Presentation Library & Practice Page** *(Completed)*
 - [x] **Step 2: Practice Module — IPA & Speech Workspace** *(Completed)*
 - [x] **Step 3: Authentication — Header Login, Google, Complete Profile & Admin Register** *(Completed)*
-- [ ] **Step 4: Persistence & Progress Tracking** *(Planned)*
-- [ ] **Step 5: Polish, Responsive QA & Documentation** *(Planned)*
+- [x] **Step 4: Sentence Library — Inline Practice** *(Completed)*
+- [x] **Step 5: Vocabulary Library — Inline Practice** *(Completed)*
+- [ ] **Step 6: Persistence & Progress Tracking** *(Planned)*
+- [ ] **Step 7: Polish, Responsive QA & Documentation** *(Planned)*
 
 ---
 
@@ -140,7 +142,7 @@ This document tracks the step-by-step implementation of the Spoken English Pract
   - [x] `npm run lint`: 0 errors (1 known `SearchInput` warning).
   - [x] `npm run build`: clean.
   - [x] Browser-verified British and American IPA output, accent switching, speed-driven `utterance.rate`, mid-playback speed changes, IPA view switching, Start/Pause/Resume/Reset transitions, text restoration after reload, and the missing-voice notice.
-  - [ ] Database persistence of practice sessions is intentionally deferred to Step 4.
+  - [ ] Database persistence of practice sessions is intentionally deferred to Step 6.
 
 ---
 
@@ -184,7 +186,57 @@ This document tracks the step-by-step implementation of the Spoken English Pract
 
 ---
 
-### Step 4: Persistence & Progress Tracking *(Planned — scope to be confirmed)*
+### Step 4: Sentence Library — Inline Practice *(Completed)*
+**Goal**: Store short English sentences with Bengali meanings and let visitors practice each one inline, without leaving the list.
+
+- [x] **4.1 Data Model & API**:
+  - [x] Add the `Sentence` model (`id`, `text`, `meaning`, `sequence`, `createdAt`, `updatedAt`) mapped to `sentence`, with a `sequence` index.
+  - [x] Create and apply the `20261027052508_create_sentence_table` migration; regenerate the Prisma client.
+  - [x] Add `SentenceItem` types, `sentenceInputSchema` (text/meaning 1–1000, sequence 1–100,000), a repository with search over text **or** meaning, and a service with `requireAdminUser()` and `SENTENCE_PAGE_SIZE = 20`.
+  - [x] Add `GET /api/sentences` (public, paginated) plus admin-only `POST`, `PATCH /api/sentences/[id]`, and `DELETE /api/sentences/[id]`.
+- [x] **4.2 Inline Practice UI**:
+  - [x] Build `/sentences` as a Server Component that streams `listSentences()` through `<Suspense>`, with URL-backed search and page state.
+  - [x] Add `SentenceTable` with sequence, English text, Bengali meaning, and a **Practice** / **Hide** toggle; admin-only **New sentence**, edit, and delete controls.
+  - [x] Extend `DataTable` with `expandedRowId` and `renderExpandedRow`; render the practice panel in a full-width `colSpan` row.
+  - [x] Keep a single `expandedId` in `SentenceSection` so only one row is open at a time, and reset it on page/search change.
+  - [x] Drive `SentencePracticePanel` with the shared `useListenSpeech` and `ListenControls`: IPA appears automatically beneath the sentence, the learner only picks accent and speed, and each sentence has its own **Listen** button. Unmounting the panel cancels speech.
+  - [x] Add `useIpaTranscription` and `InlineIpa` for automatic dialect-aware IPA, and portal-render the shared `Dropdown` menu so accent/speed menus are not clipped inside the expanded row.
+- [x] **4.3 Verification**:
+  - [x] API: unauthenticated mutation `401`; public mutation `403`; admin create `201`, update `200`, delete `200`; missing record `404`; invalid input `400`.
+  - [x] Search matches English text and Bengali meaning; pagination respects `page`/`pageSize`.
+  - [x] Browser: one row expands at a time, switching rows collapses the previous panel and stops speech, and automatic IPA plus accent/speed/Listen work inside the panel with no pause, reset, or IPA toggle.
+  - [x] No horizontal overflow at 390 px, 768 px, and 1440 px; dropdowns render fully visible.
+  - [x] `npx tsc --noEmit`, `npm run lint`, and `npm run build` are clean; temporary QA users and sentences removed.
+
+---
+
+### Step 5: Vocabulary Library — Inline Practice *(Completed)*
+**Goal**: Store words with Bengali meanings, example sentences, optional synonyms and antonyms, and let visitors hear and read every English item inline.
+
+- [x] **5.1 Data Model & API**:
+  - [x] Add the `Vocabulary` model (`id`, `text`, `meaning`, `sentence`, `sentenceMeaning`, nullable synonym and antonym groups, `sequence`, timestamps) mapped to `vocabulary`, with a `sequence` index.
+  - [x] Create and apply the `20261027062356_create_vocabulary_table` migration; regenerate the Prisma client.
+  - [x] Add `VocabularyItem` types, `vocabularyInputSchema` (word 1–100, Bengali meaning 1–500, sentence fields 1–1000, nullable optional groups, sequence 1–100,000), a repository with DB-side search and letter filtering, and a service with `requireAdminUser()` and `VOCABULARY_PAGE_SIZE = 20`.
+  - [x] Add `GET /api/vocabulary` (public, paginated) plus admin-only `POST`, `PATCH /api/vocabulary/[id]`, and `DELETE /api/vocabulary/[id]`.
+  - [x] Make optional fields `.nullish()` so blank synonym/antonym groups submitted as `null` are accepted and stored as `null`.
+- [x] **5.2 Inline Practice UI**:
+  - [x] Build `/vocabulary` as a Server Component that streams `listVocabulary()` through `<Suspense>`, with URL-backed search, letter, and page state.
+  - [x] Add `VocabularyFilters` with debounced search and an A–Z letter dropdown; search covers the word, synonym, and antonym only, and the letter filter matches the word's first letter.
+  - [x] Add `VocabularyTable` with sequence, word, Bengali meaning, word IPA, a **Practice** / **Hide** toggle, and admin-only **New word**, edit, and delete controls.
+  - [x] Keep a single `expandedId` in `VocabularySection` so only one row is open at a time, and render the panel through `DataTable`'s `colSpan` expansion row.
+  - [x] Build `VocabularyPracticePanel` with a top row placing the word left and accent/speed dropdowns right on wide screens (stacking into three rows on mobile), plus a two-column card grid with automatic IPA and a **Listen** button on the word, example sentence, and each present synonym/antonym item, keeping each word and its sentence side by side.
+  - [x] Extract the shared listen-only primitives `useIpaTranscription`, `InlineIpa`, `useListenSpeech`, `ListenControls`, and `PlayTextButton`, and reuse them in the simplified `SentencePracticePanel`.
+  - [x] Add the **Vocabulary** sidebar entry between Sentences and Practice.
+- [x] **5.3 Verification**:
+  - [x] API: unauthenticated mutation `401`; public mutation `403`; admin create `201`, update `200`, delete `200`; missing record `404`; invalid input `400`; a detail without its word `400`.
+  - [x] Filters: letter `B` returns only B-initial words; search matches word, synonym, and antonym but not Bengali text; letter and search combine; pagination respects `page`/`pageSize`; SQL logs confirm `ILIKE` and `LIMIT`/`OFFSET` run in the database.
+  - [x] Browser: table shows word, Bengali meaning, and word IPA; one row expands at a time; the panel shows automatic IPA and a Listen button on every item with only accent/speed controls; the accent dropdown opens fully visible; no horizontal overflow at the hidden ~554 px viewport.
+  - [x] The Sentence panel now shows automatic IPA beneath the sentence with accent/speed/Listen only.
+  - [x] `npx tsc --noEmit` and `npm run lint` are clean (only the known `SearchInput` warning); temporary QA users and vocabulary rows removed.
+
+---
+
+### Step 6: Persistence & Progress Tracking *(Planned — scope to be confirmed)*
 **Goal**: Persist practice sessions and surface practice history and progress.
 
 - [ ] Define the practice session/attempt Prisma models and add the first migration.
@@ -194,7 +246,7 @@ This document tracks the step-by-step implementation of the Spoken English Pract
 
 ---
 
-### Step 5: Polish, Responsive QA & Documentation *(Planned)*
+### Step 7: Polish, Responsive QA & Documentation *(Planned)*
 **Goal**: Harden the application and keep documentation current.
 
 - [ ] Verify desktop, tablet, and mobile layouts for all routes.
