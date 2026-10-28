@@ -1,0 +1,18 @@
+/**
+ * Aiven "Project CA GEN 2" root certificate, duplicated from certs/ca.pem on
+ * purpose: serverless bundles only contain traced files, so a URL pointing at
+ * certs/ca.pem throws ENOENT at connect time. The CLI still needs the file.
+ */
+export const AIVEN_CA_PEM = `-----BEGIN CERTIFICATE-----
+MIIBxDCCAWqgAwIBAgIUXwF4xEMpgz1MNBNubZCJOKtBXiAwCgYIKoZIzj0EAwMw
+QDE+MDwGA1UEAww1MGNlOGQ3MWEtNmVhZS00MmY4LTllYmUtOWQ1ODFmNTg4YWY2
+IFByb2plY3QgQ0EgR0VOIDIwHhcNMjYwODA1MDMyOTIxWhcNMzYwODAyMDMyOTIx
+WjBAMT4wPAYDVQQDDDUwY2U4ZDcxYS02ZWFlLTQyZjgtOWViZS05ZDU4MWY1ODhh
+ZjYgUHJvamVjdCBDQSBHRU4gMjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABPjo
+U9smfxPW/ImuBVfFlAlnQdidaXw6BkLyi1i54Yd5F3tHe8WSIljFQPQu91N9tOON
+vsMjcgFq7rBSBJi+IFOjQjBAMB0GA1UdDgQWBBR2/vOKH0DEVUH42I+Q6lXorrJL
+PTASBgNVHRMBAf8ECDAGAQH/AgEAMAsGA1UdDwQEAwIBBjAKBggqhkjOPQQDAwNI
+ADBFAiEAk5JviPAiMZwzevHkzzfXoIzJzqXmWx1Y+V3vgE5LETkCIGyKxXf5BzE1
+RwIEFLhhJfreBMV1NwIFaB8mxufwt6E5
+-----END CERTIFICATE-----
+`;

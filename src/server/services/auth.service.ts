@@ -13,6 +13,7 @@ import {
   verifyAccessToken,
   verifyRefreshToken,
 } from "@/lib/auth/tokens";
+import { getAdminRegisterKey } from "@/lib/env";
 import type {
   CompleteProfileInput,
   LoginInput,
@@ -92,7 +93,7 @@ export async function registerUser(input: RegisterInput): Promise<AuthUser> {
 export async function registerAdminUser(
   input: RegisterAdminInput,
 ): Promise<AuthUser> {
-  const adminRegisterKey = process.env.ADMIN_REGISTER_KEY;
+  const adminRegisterKey = getAdminRegisterKey();
   if (!adminRegisterKey) {
     throw new ApiError(500, "Admin registration is not configured.");
   }

@@ -1,10 +1,7 @@
 import bcrypt from "bcryptjs";
+import { getHashSaltRounds } from "@/lib/env";
 
-const configuredRounds = Number(process.env.HASH_SALT_ROUNDS);
-const saltRounds =
-  Number.isInteger(configuredRounds) && configuredRounds > 0
-    ? configuredRounds
-    : 10;
+const saltRounds = getHashSaltRounds();
 
 export function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, saltRounds);

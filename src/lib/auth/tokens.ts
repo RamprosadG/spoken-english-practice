@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
+import { isProductionRuntime, requireEnv } from "@/lib/env";
 
 export const ACCESS_TOKEN_COOKIE = "accessToken";
 export const REFRESH_TOKEN_COOKIE = "refreshToken";
@@ -9,7 +10,7 @@ export const REFRESH_TOKEN_TTL_SECONDS = 7 * 24 * 60 * 60;
 export const REFRESH_TOKEN_TTL_MS = REFRESH_TOKEN_TTL_SECONDS * 1000;
 export const REFRESH_TOKEN_GRACE_PERIOD_MS = 30 * 1000;
 
-const isProduction = process.env.NODE_ENV === "production";
+const isProduction = isProductionRuntime();
 
 const authCookieOptions = {
   httpOnly: true,
@@ -19,19 +20,11 @@ const authCookieOptions = {
 };
 
 function getAccessSecret(): string {
-  const secret = process.env.JWT_ACCESS_TOKEN_SECRET;
-  if (!secret) {
-    throw new Error("JWT_ACCESS_TOKEN_SECRET is not configured.");
-  }
-  return secret;
+  return requireEnv("JWT_ACCESS_TOKEN_SECRET");
 }
 
 function getRefreshSecret(): string {
-  const secret = process.env.JWT_REFRESH_TOKEN_SECRET;
-  if (!secret) {
-    throw new Error("JWT_REFRESH_TOKEN_SECRET is not configured.");
-  }
-  return secret;
+  return requireEnv("JWT_REFRESH_TOKEN_SECRET");
 }
 
 function readTokenId(token: string, secret: string): string | null {

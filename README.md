@@ -115,7 +115,7 @@ Create a `.env` file in the project root based on `.env.example`:
 
 | Variable | Description | Example |
 | :--- | :--- | :--- |
-| `DATABASE_URL` | PostgreSQL connection string used by Prisma with `@prisma/adapter-pg` | `postgres://postgres:password@localhost:5432/spoken_english_practice?schema=public` |
+| `DATABASE_URL` | PostgreSQL connection string used by Prisma with `@prisma/adapter-pg`. Any `sslmode` / `sslrootcert` parameters are consumed in code — see [Database Setup](#4-database-setup) | `postgres://postgres:password@localhost:5432/spoken_english_practice?schema=public` |
 | `NODE_ENV` | Application runtime environment | `development` |
 | `JWT_ACCESS_TOKEN_SECRET` | HS512 secret used to sign 30-minute access tokens | 128-character random hex string |
 | `JWT_REFRESH_TOKEN_SECRET` | HS512 secret used to sign 7-day refresh tokens; must differ from the access secret | 128-character random hex string |
@@ -138,6 +138,7 @@ node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 - **Provider**: PostgreSQL
 - **ORM**: Prisma 7 (`prisma-client` generator output to `src/generated/prisma`)
 - **Runtime driver**: `@prisma/adapter-pg` wrapped by the singleton in `src/lib/prisma.ts`
+- **TLS**: hosted providers such as Aiven require their root CA. `src/lib/aiven-ca.ts` embeds it, and `src/lib/prisma.ts` strips `sslmode` and `sslrootcert` from `DATABASE_URL` before handing the string to `pg`. A file path cannot work in production: a serverless bundle only contains traced files, so `sslrootcert=certs/ca.pem` resolves against the function's working directory and throws `ENOENT: no such file or directory, open 'certs/ca.pem'` on the first query. `certs/ca.pem` stays committed for the Prisma CLI, which only understands the path form.
 - **Configuration**: `prisma.config.ts` loads `.env` via `dotenv/config` and supplies the datasource URL
 
 The schema declares the authentication, presentation, sentence, and vocabulary models:
