@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import Image from "next/image";
 import { Sidebar } from "@/components/shared/Sidebar";
 import { Navbar } from "@/components/shared/Navbar";
 import Footer from "@/components/shared/Footer";
@@ -37,9 +38,13 @@ function SidebarFallback() {
       aria-hidden="true"
     >
       <div className="flex items-center h-16 border-b border-gray-100 shrink-0">
-        <div className="h-8 w-8 rounded-lg bg-indigo-600 text-white font-bold text-sm flex items-center justify-center mr-3 shadow-xs">
-          SE
-        </div>
+        <Image
+          src="/spoken-english.jpg"
+          alt=""
+          width={32}
+          height={32}
+          className="h-8 w-8 rounded-lg object-cover mr-3 shadow-xs"
+        />
         <h1 className="text-lg font-bold text-slate-900 text-nowrap tracking-tight">
           Spoken English
         </h1>

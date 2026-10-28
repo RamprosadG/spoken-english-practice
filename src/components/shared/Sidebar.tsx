@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { FiX } from "react-icons/fi";
 import {
@@ -76,9 +77,13 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             href="/"
             className="flex items-center hover:opacity-80 transition-opacity"
           >
-            <div className="h-8 w-8 rounded-lg bg-indigo-600 text-white font-bold text-sm flex items-center justify-center mr-3 relative shadow-xs">
-              SE
-            </div>
+            <Image
+              src="/spoken-english.jpg"
+              alt=""
+              width={32}
+              height={32}
+              className="h-8 w-8 rounded-lg object-cover mr-3 shadow-xs"
+            />
             <h1 className="text-lg font-bold text-slate-900 text-nowrap tracking-tight">
               Spoken English
             </h1>
@@ -108,9 +113,13 @@ export function Sidebar({ open, onClose }: SidebarProps) {
       >
         <div className="flex items-center justify-between h-16 border-b border-gray-100 shrink-0">
           <Link href="/" className="flex items-center" onClick={onClose}>
-            <div className="h-8 w-8 rounded-lg bg-indigo-600 text-white font-bold text-sm flex items-center justify-center mr-3 relative shadow-xs">
-              SE
-            </div>
+            <Image
+              src="/spoken-english.jpg"
+              alt=""
+              width={32}
+              height={32}
+              className="h-8 w-8 rounded-lg object-cover mr-3 shadow-xs"
+            />
             <h1 className="text-lg font-bold text-slate-900">Spoken English</h1>
           </Link>
           <button

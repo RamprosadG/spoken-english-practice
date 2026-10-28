@@ -18,6 +18,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Spoken English Practice",
   description: "Practice spoken English with guided presentations and speaking exercises.",
+  icons: {
+    icon: [{ url: "/spoken-english.jpg", type: "image/jpeg" }],
+  },
 };
 
 export default function RootLayout({

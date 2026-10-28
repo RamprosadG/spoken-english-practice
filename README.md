@@ -44,6 +44,7 @@ Home is the landing page: a gradient hero with the two primary calls to action, 
 **What is already in place**
 
 - Fixed desktop sidebar (`w-72`, wide enough for the longest nav label) with active-state styling and `react-icons`.
+- Both sidebars lead with the logo in `public/spoken-english.jpg` beside the title, and the same file is the browser-tab icon via `metadata.icons`.
 - Mobile slide-in sidebar drawer (`w-64`) with backdrop and close control.
 - Fixed top header shell that reserves its height with `--app-nav-height` and hosts the auth controls.
 - Full-width main content viewport with the established padding rhythm (`p-6 md:p-8`).
