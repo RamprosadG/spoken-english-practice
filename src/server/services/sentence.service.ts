@@ -1,5 +1,5 @@
 import { connection } from "next/server";
-import { ApiError } from "@/lib/api-error";
+import { ApiError, uniqueViolationError } from "@/lib/api-error";
 import type { SentenceInput } from "@/lib/validations/sentence";
 import {
   createSentence as createSentenceRecord,
@@ -60,8 +60,15 @@ export async function createSentence(
 ): Promise<SentenceItem> {
   await requireAdminUser();
 
-  const sentence = await createSentenceRecord(input);
-  return toSentenceItem(sentence);
+  try {
+    const sentence = await createSentenceRecord(input);
+    return toSentenceItem(sentence);
+  } catch (error) {
+    throw uniqueViolationError(
+      error,
+      "A sentence with this text already exists.",
+    );
+  }
 }
 
 export async function updateSentence(
@@ -75,8 +82,15 @@ export async function updateSentence(
     throw new ApiError(404, "Sentence is not found.");
   }
 
-  const sentence = await updateSentenceRecord(id, input);
-  return toSentenceItem(sentence);
+  try {
+    const sentence = await updateSentenceRecord(id, input);
+    return toSentenceItem(sentence);
+  } catch (error) {
+    throw uniqueViolationError(
+      error,
+      "A sentence with this text already exists.",
+    );
+  }
 }
 
 export async function deleteSentence(id: string): Promise<void> {

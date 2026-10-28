@@ -29,7 +29,6 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index(email)
   @@map("users")
 }
 
@@ -49,33 +48,33 @@ model RefreshToken {
 
 model Presentation {
   id        String   @id @default(uuid())
-  title     String
+  title     String   @unique
   text      String
   sequence  Int
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([sequence])
+  @@index([sequence, createdAt])
   @@map("presentation")
 }
 
 model Sentence {
   id        String   @id @default(uuid())
-  text      String
+  text      String   @unique
   meaning   String
   sequence  Int
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([sequence])
+  @@index([sequence, createdAt])
   @@map("sentence")
 }
 
 model Vocabulary {
   id                     String   @id @default(uuid())
-  text                   String
+  text                   String   @unique
   meaning                String
   sentence               String
   sentenceMeaning        String
@@ -92,6 +91,6 @@ model Vocabulary {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([sequence])
+  @@index([sequence, createdAt])
   @@map("vocabulary")
 }

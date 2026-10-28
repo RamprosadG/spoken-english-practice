@@ -1,5 +1,5 @@
 import { connection } from "next/server";
-import { ApiError } from "@/lib/api-error";
+import { ApiError, uniqueViolationError } from "@/lib/api-error";
 import type { PresentationInput } from "@/lib/validations/presentation";
 import {
   createPresentation as createPresentationRecord,
@@ -69,8 +69,15 @@ export async function createPresentation(
 ): Promise<PresentationItem> {
   await requireAdminUser();
 
-  const presentation = await createPresentationRecord(input);
-  return toPresentationItem(presentation);
+  try {
+    const presentation = await createPresentationRecord(input);
+    return toPresentationItem(presentation);
+  } catch (error) {
+    throw uniqueViolationError(
+      error,
+      "A presentation with this title already exists.",
+    );
+  }
 }
 
 export async function updatePresentation(
@@ -84,8 +91,15 @@ export async function updatePresentation(
     throw new ApiError(404, "Presentation is not found.");
   }
 
-  const presentation = await updatePresentationRecord(id, input);
-  return toPresentationItem(presentation);
+  try {
+    const presentation = await updatePresentationRecord(id, input);
+    return toPresentationItem(presentation);
+  } catch (error) {
+    throw uniqueViolationError(
+      error,
+      "A presentation with this title already exists.",
+    );
+  }
 }
 
 export async function deletePresentation(id: string): Promise<void> {

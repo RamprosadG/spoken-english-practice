@@ -145,11 +145,13 @@ The schema declares the authentication, presentation, sentence, and vocabulary m
 
 - `User` — UUID id, unique email, optional bcrypt password, `admin` / `public` role, `isComplete`, and timestamps. Google-created users start with `isComplete: false` until they set a password.
 - `RefreshToken` — UUID id, unique SHA-256 hash of the refresh JWT, owning user (cascade delete), `used` / `usedAt` for rotation, and `expiresAt`.
-- `Presentation` — UUID id, title, practice text, integer `sequence`, and timestamps. Rows are ordered by `sequence` ascending and then `createdAt` ascending.
-- `Sentence` — UUID id, English `text`, Bengali `meaning`, integer `sequence`, and timestamps, with a `sequence` index. Rows are ordered by `sequence` ascending and then `createdAt` ascending.
-- `Vocabulary` — UUID id, required word `text`, Bengali `meaning`, example `sentence` and `sentenceMeaning`, nullable synonym fields (`synonymText`, `synonymMeaning`, `synonymSentence`, `synonymSentenceMeaning`), nullable antonym fields with the same shape, integer `sequence`, and timestamps, with a `sequence` index. Rows are ordered by `sequence` ascending and then `createdAt` ascending.
+- `Presentation` — UUID id, unique title, practice text, integer `sequence`, and timestamps. The list index is the composite `(sequence, createdAt)`, so rows ordered by `sequence` ascending and then `createdAt` ascending are served without a sort.
+- `Sentence` — UUID id, unique English `text`, Bengali `meaning`, integer `sequence`, and timestamps, indexed on `(sequence, createdAt)`. Rows are ordered by `sequence` ascending and then `createdAt` ascending.
+- `Vocabulary` — UUID id, required and unique word `text`, Bengali `meaning`, example `sentence` and `sentenceMeaning`, nullable synonym fields (`synonymText`, `synonymMeaning`, `synonymSentence`, `synonymSentenceMeaning`), nullable antonym fields with the same shape, integer `sequence`, and timestamps, indexed on `(sequence, createdAt)`. Rows are ordered by `sequence` ascending and then `createdAt` ascending.
 
-The migrations create the users and refresh tokens (`20261026161057_create_user_and_refresh_token_tables`), remove the unused profile-picture column (`20261026173014_remove_user_picture`), create the presentation table (`20261026193020_create_presentation_table`), create the sentence table (`20261027052508_create_sentence_table`), and create the vocabulary table (`20261027062356_create_vocabulary_table`). After any schema change:
+Uniqueness is exact-match: `text` and `title` are compared verbatim, so a case or whitespace variant is a separate row. Each create and update maps a Prisma `P2002` to a `409` with a learner-facing message, which the form modal renders inline.
+
+The migrations create the users and refresh tokens (`20261026161057_create_user_and_refresh_token_tables`), remove the unused profile-picture column (`20261026173014_remove_user_picture`), create the presentation table (`20261026193020_create_presentation_table`), create the sentence table (`20261027052508_create_sentence_table`), create the vocabulary table (`20261027062356_create_vocabulary_table`), and add the unique keys plus the composite list indexes while dropping the redundant single-column ones (`20261028103000_add_unique_keys_and_list_indexes`). After any schema change:
 
 ```bash
 npx prisma generate
@@ -325,8 +327,9 @@ While the client ID is empty the Google button renders disabled with a notice in
 
 ### Data rules and API
 
-- Title: 1–200 characters. Text: 1–20,000 characters. Sequence: integer from 1 to 100,000.
-- Sequence is not unique. Rows are ordered by `sequence` ascending, then `createdAt` ascending.
+- Title: 1–200 characters and unique. Text: 1–20,000 characters. Sequence: integer from 1 to 100,000.
+- Sequence is not unique. Rows are ordered by `sequence` ascending, then `createdAt` ascending, which the composite index serves without a sort.
+- Saving a title another row already owns returns `409` with "A presentation with this title already exists."; editing a row while keeping its own title succeeds.
 - Search runs as a case-insensitive title `contains` inside the Prisma `where`; `count` plus `skip`/`take` paginates the result.
 - The form suggests the next sequence (`max(sequence) + 1`) from a server read, and admins can change it.
 
@@ -373,8 +376,9 @@ Because the panel lives inside a table row, the shared `Dropdown` renders its me
 
 ### Data rules
 
-- Text: 1–1000 characters (trimmed). Meaning: 1–1000 characters (trimmed). Sequence: integer from 1 to 100,000.
-- Sequence is not unique. Rows are ordered by `sequence` ascending, then `createdAt` ascending.
+- Text: 1–1000 characters (trimmed) and unique. Meaning: 1–1000 characters (trimmed). Sequence: integer from 1 to 100,000.
+- Sequence is not unique. Rows are ordered by `sequence` ascending, then `createdAt` ascending, which the composite index serves without a sort.
+- Saving a text another row already owns returns `409` with "A sentence with this text already exists."; editing a row while keeping its own text succeeds.
 - Search runs as a case-insensitive `contains` over `text` **or** `meaning` inside the Prisma `where`; `count` plus `skip`/`take` paginates the result.
 - The form suggests the next sequence (`max(sequence) + 1`) from a server read, and admins can change it.
 
@@ -419,10 +423,11 @@ Every item is an entry card: the word, example sentence, synonym word, synonym s
 
 ### Data rules
 
-- Word: 1–100 characters. Bengali meaning: 1–500. Example sentence and its Bengali meaning: 1–1000. Sequence: integer from 1 to 100,000.
+- Word: 1–100 characters and unique. Bengali meaning: 1–500. Example sentence and its Bengali meaning: 1–1000. Sequence: integer from 1 to 100,000.
 - Optional synonym and antonym fields accept missing or `null` values and are stored as `null` when blank. A synonym or antonym detail without its word is rejected.
-- Sequence is not unique. Rows are ordered by `sequence` ascending, then `createdAt` ascending.
+- Sequence is not unique. Rows are ordered by `sequence` ascending, then `createdAt` ascending, which the composite index serves without a sort.
 - Search runs as a case-insensitive `contains` over `text`, `synonymText`, **or** `antonymText` inside the Prisma `where`. The letter filter is a case-insensitive `startsWith` on `text`. `count` plus `skip`/`take` paginates the result.
+- Saving a word another row already owns returns `409` with "This vocabulary word is already saved."; editing a row while keeping its own word succeeds.
 - The form suggests the next sequence (`max(sequence) + 1`) from a server read, and admins can change it.
 
 | Method | Route | Access | Purpose |

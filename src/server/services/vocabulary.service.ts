@@ -1,5 +1,5 @@
 import { connection } from "next/server";
-import { ApiError } from "@/lib/api-error";
+import { ApiError, uniqueViolationError } from "@/lib/api-error";
 import type { VocabularyInput } from "@/lib/validations/vocabulary";
 import {
   createVocabulary as createVocabularyRecord,
@@ -83,8 +83,15 @@ export async function createVocabulary(
 ): Promise<VocabularyItem> {
   await requireAdminUser();
 
-  const vocabulary = await createVocabularyRecord(input);
-  return toVocabularyItem(vocabulary);
+  try {
+    const vocabulary = await createVocabularyRecord(input);
+    return toVocabularyItem(vocabulary);
+  } catch (error) {
+    throw uniqueViolationError(
+      error,
+      "This vocabulary word is already saved.",
+    );
+  }
 }
 
 export async function updateVocabulary(
@@ -98,8 +105,15 @@ export async function updateVocabulary(
     throw new ApiError(404, "Vocabulary is not found.");
   }
 
-  const vocabulary = await updateVocabularyRecord(id, input);
-  return toVocabularyItem(vocabulary);
+  try {
+    const vocabulary = await updateVocabularyRecord(id, input);
+    return toVocabularyItem(vocabulary);
+  } catch (error) {
+    throw uniqueViolationError(
+      error,
+      "This vocabulary word is already saved.",
+    );
+  }
 }
 
 export async function deleteVocabulary(id: string): Promise<void> {
