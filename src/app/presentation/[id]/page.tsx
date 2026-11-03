@@ -2,8 +2,9 @@ import { connection } from "next/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FiArrowLeft } from "react-icons/fi";
+import { PresentationPracticeNav } from "@/components/features/presentation/PresentationPracticeNav";
 import { PresentationPracticeWorkspace } from "@/features/presentation/PresentationPracticeWorkspace";
-import { getPresentationById } from "@/server/services/presentation.service";
+import { getPresentationWithNavigation } from "@/server/services/presentation.service";
 
 interface PresentationPracticePageProps {
   params: Promise<{ id: string }>;
@@ -19,23 +20,29 @@ export default async function PresentationPracticePage({
   await connection();
 
   const { id } = await params;
-  const presentation = await getPresentationById(id);
+  const navigation = await getPresentationWithNavigation(id);
 
-  if (!presentation) {
+  if (!navigation) {
     notFound();
   }
 
+  const { presentation, previousId, nextId } = navigation;
+
   return (
     <div className="flex flex-col gap-6 w-full">
-      <header className="border-b border-slate-200 pb-5">
+      <div className="flex flex-col gap-3">
         <Link
           href="/presentation"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 transition-colors hover:text-indigo-700"
+          className="inline-flex items-center gap-1.5 self-start text-sm font-medium text-indigo-600 transition-colors hover:text-indigo-700"
         >
           <FiArrowLeft className="h-4 w-4" />
           Back to presentations
         </Link>
-        <h1 className="mt-3 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl max-sm:text-lg">
+        <PresentationPracticeNav previousId={previousId} nextId={nextId} />
+      </div>
+
+      <header className="border-b border-slate-200 pb-5">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl max-sm:text-lg">
           {presentation.title}
         </h1>
         <p className="mt-1 text-sm text-slate-500">
@@ -45,7 +52,10 @@ export default async function PresentationPracticePage({
         </p>
       </header>
 
-      <PresentationPracticeWorkspace text={presentation.text} />
+      <PresentationPracticeWorkspace
+        title={presentation.title}
+        text={presentation.text}
+      />
     </div>
   );
 }

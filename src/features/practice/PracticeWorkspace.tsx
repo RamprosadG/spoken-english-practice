@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useSyncExternalStore } from "react";
+import { CopyTextButton } from "@/features/practice/CopyTextButton";
 import { IpaTranscriptionCard } from "@/features/practice/IpaTranscriptionCard";
 import { SpeechPracticeControls } from "@/features/practice/SpeechPracticeControls";
 import { useSpeechPractice } from "@/features/practice/useSpeechPractice";
@@ -55,14 +56,18 @@ export function PracticeWorkspace() {
   return (
     <section className="flex w-full flex-col gap-6">
       <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-100 px-5 py-4 sm:px-6">
-          <h2 className="text-base font-semibold text-slate-900">
-            Practice text
-          </h2>
-          <p className="mt-0.5 text-sm text-slate-500">
-            Type or paste English text, then read its IPA or listen to it in your
-            chosen accent.
-          </p>
+        <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-6">
+          <div>
+            <h2 className="text-base font-semibold text-slate-900">
+              Practice text
+            </h2>
+            <p className="mt-0.5 text-sm text-slate-500">
+              Type or paste English text, then read its IPA or listen to it in
+              your chosen accent.
+            </p>
+          </div>
+
+          <CopyTextButton text={text} subject="practice text" />
         </div>
 
         <div className="p-5 sm:p-6">

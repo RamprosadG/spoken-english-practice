@@ -1,6 +1,7 @@
 "use client";
 
 import { FiPause, FiPlay, FiRotateCcw } from "react-icons/fi";
+import { RiLoopRightLine } from "react-icons/ri";
 import Button from "@/components/ui/buttons/Button";
 import Dropdown from "@/components/ui/dropdowns/Dropdown";
 import {
@@ -20,19 +21,19 @@ export function SpeechPracticeControls({
     accent,
     speed,
     showIpa,
+    repeat,
     speechStatus,
     speechError,
     playbackNotice,
     isSpeaking,
-    isPaused,
     speechLabel,
     statusDotClass,
     hasText,
     handleAccentChange,
     handleSpeedChange,
     handleShowIpaChange,
-    handleStart,
-    handlePause,
+    handleRepeatChange,
+    handleStartPause,
     handleReset,
   } = practice;
 
@@ -79,35 +80,42 @@ export function SpeechPracticeControls({
 
       <div className="mt-5 border-t border-slate-100 pt-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
+          <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:items-center">
             <Button
               type="button"
-              onClick={handleStart}
-              disabled={!hasText}
-              icon={<FiPlay className="h-4 w-4" />}
-              className="w-full sm:w-auto"
-            >
-              {isPaused ? "Resume" : "Start"}
-            </Button>
-            <Button
-              type="button"
-              variant="white"
-              onClick={handlePause}
-              disabled={!isSpeaking}
-              icon={<FiPause className="h-4 w-4" />}
-              className="w-full sm:w-auto"
-            >
-              Pause
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
+              variant="secondary"
               onClick={handleReset}
               disabled={speechStatus === "idle"}
               icon={<FiRotateCcw className="h-4 w-4" />}
               className="w-full sm:w-auto"
             >
               Reset
+            </Button>
+            <Button
+              type="button"
+              onClick={handleStartPause}
+              disabled={!hasText}
+              icon={
+                isSpeaking ? (
+                  <FiPause className="h-4 w-4" />
+                ) : (
+                  <FiPlay className="h-4 w-4" />
+                )
+              }
+              className="w-full sm:w-auto"
+            >
+              {isSpeaking ? "Pause" : "Start"}
+            </Button>
+            <Button
+              type="button"
+              variant={repeat ? "secondary" : "white"}
+              onClick={() => handleRepeatChange(!repeat)}
+              aria-pressed={repeat}
+              aria-label="Repeat"
+              title="Repeat"
+              className="h-9 w-full border-slate-400 sm:w-auto"
+            >
+              <RiLoopRightLine className="h-4 w-4" />
             </Button>
           </div>
 

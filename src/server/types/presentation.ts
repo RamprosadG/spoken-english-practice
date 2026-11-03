@@ -23,3 +23,8 @@ export interface PresentationListResult {
 export interface PresentationPageResult extends PresentationListResult {
   nextSequence: number;
 }
+
+export interface PresentationNeighbors {
+  previousId: string | null;
+  nextId: string | null;
+}

@@ -11,6 +11,7 @@ export type IpaStatus = "idle" | "loading" | "ready" | "error";
 export interface IpaPair {
   source: string;
   ipa: string;
+  isTitle?: boolean;
 }
 
 const ALWAYS_JOIN_ABBREVIATIONS = new Set([
@@ -123,7 +124,7 @@ function findAccentVoice(
   );
 }
 
-export function useSpeechPractice(text: string) {
+export function useSpeechPractice(text: string, title = "") {
   const [accent, setAccent] = useState<Accent>("en-GB");
   const [speed, setSpeed] = useState<Speed>("1");
   const [showIpa, setShowIpa] = useState(false);
@@ -135,9 +136,26 @@ export function useSpeechPractice(text: string) {
   const [speechStatus, setSpeechStatus] = useState<SpeechStatus>("idle");
   const [speechError, setSpeechError] = useState<string | null>(null);
   const [playbackNotice, setPlaybackNotice] = useState<string | null>(null);
+  const [playingSentenceIndex, setPlayingSentenceIndex] = useState<
+    number | null
+  >(null);
+  const [repeat, setRepeat] = useState(false);
 
   const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
   const activeUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  // A running utterance keeps the callbacks from the render that started it, so
+  // the loop reads the checkbox through a ref and honours a mid-playback change.
+  const repeatRef = useRef(repeat);
+
+  // A saved title is read aloud and transcribed ahead of the body, so Start,
+  // the IPA card and the empty-text guard all see one block of text.
+  const titleText = title.trim();
+  const bodyText = text.trim();
+  const speakableText = titleText ? `${titleText}\n${bodyText}` : bodyText;
+
+  useEffect(() => {
+    repeatRef.current = repeat;
+  }, [repeat]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) {
@@ -162,9 +180,7 @@ export function useSpeechPractice(text: string) {
 
     let cancelled = false;
     const timer = setTimeout(async () => {
-      const trimmed = text.trim();
-
-      if (!trimmed) {
+      if (!speakableText) {
         if (cancelled) return;
         setIpa("");
         setIpaPairs([]);
@@ -180,10 +196,20 @@ export function useSpeechPractice(text: string) {
 
       try {
         const { phonemize } = await import("phonemize");
-        const transcription = phonemize(trimmed, accent);
-        const sentenceTranscriptions = splitIntoSentences(trimmed).map(
-          (sentence) => ({ source: sentence, ipa: phonemize(sentence, accent) })
-        );
+        const transcription = phonemize(speakableText, accent);
+        // Split title and body separately so a title is never merged into the
+        // first body sentence, then flag it for the IPA card.
+        const sentenceTranscriptions: IpaPair[] = [
+          ...splitIntoSentences(titleText).map((sentence) => ({
+            source: sentence,
+            ipa: phonemize(sentence, accent),
+            isTitle: true,
+          })),
+          ...splitIntoSentences(bodyText).map((sentence) => ({
+            source: sentence,
+            ipa: phonemize(sentence, accent),
+          })),
+        ];
 
         if (!cancelled) {
           setIpa(transcription);
@@ -206,7 +232,7 @@ export function useSpeechPractice(text: string) {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [text, accent, showIpa]);
+  }, [titleText, bodyText, speakableText, accent, showIpa]);
 
   const stopSpeech = () => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) {
@@ -216,7 +242,68 @@ export function useSpeechPractice(text: string) {
     activeUtteranceRef.current = null;
     window.speechSynthesis.cancel();
     setSpeechStatus("idle");
+    setPlayingSentenceIndex(null);
     setSpeechError(null);
+  };
+
+  /** Speaks the whole text (index `null`) or one IPA sentence card. */
+  const speakText = (value: string, sentenceIndex: number | null) => {
+    const synthesis = window.speechSynthesis;
+
+    // Drop the reference first so the cancelled utterance cannot clear the
+    // state this call is about to set.
+    activeUtteranceRef.current = null;
+    synthesis.cancel();
+    setSpeechError(null);
+    setPlaybackNotice(null);
+
+    const utterance = new SpeechSynthesisUtterance(value);
+    utterance.lang = accent;
+    utterance.rate = Number(speed);
+
+    const voice = findAccentVoice(voicesRef.current, accent);
+    if (voice) {
+      utterance.voice = voice;
+    } else {
+      setPlaybackNotice(
+        `No ${ACCENT_LABELS[accent]} voice was found; your browser will use its default English voice.`
+      );
+    }
+
+    utterance.onend = () => {
+      if (activeUtteranceRef.current !== utterance) return;
+
+      // Repeat loops the whole-text playback only; a sentence card stays a
+      // one-shot listen. Restarting here instead of in a timer keeps the guard
+      // above authoritative: Reset and any new utterance null the ref first.
+      if (repeatRef.current && sentenceIndex === null) {
+        speakText(value, null);
+        return;
+      }
+
+      activeUtteranceRef.current = null;
+      setPlayingSentenceIndex(null);
+      setSpeechStatus("idle");
+    };
+
+    utterance.onerror = (event) => {
+      if (activeUtteranceRef.current !== utterance) return;
+
+      activeUtteranceRef.current = null;
+      setPlayingSentenceIndex(null);
+      setSpeechStatus("idle");
+
+      if (event.error !== "interrupted" && event.error !== "canceled") {
+        setSpeechError(
+          "The browser could not play this text. Please try again."
+        );
+      }
+    };
+
+    activeUtteranceRef.current = utterance;
+    setPlayingSentenceIndex(sentenceIndex);
+    setSpeechStatus("speaking");
+    synthesis.speak(utterance);
   };
 
   const handleTextEdited = () => {
@@ -269,7 +356,7 @@ export function useSpeechPractice(text: string) {
   };
 
   const handleStart = () => {
-    if (!text.trim()) {
+    if (!speakableText) {
       setSpeechError("Enter some English text first.");
       return;
     }
@@ -279,55 +366,30 @@ export function useSpeechPractice(text: string) {
       return;
     }
 
-    const synthesis = window.speechSynthesis;
-    setSpeechError(null);
-
     if (speechStatus === "paused") {
-      synthesis.resume();
+      window.speechSynthesis.resume();
       setSpeechStatus("speaking");
       return;
     }
 
-    activeUtteranceRef.current = null;
-    synthesis.cancel();
-    setPlaybackNotice(null);
+    speakText(speakableText, null);
+  };
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = accent;
-    utterance.rate = Number(speed);
+  const handlePlaySentence = (index: number) => {
+    const sentence = ipaPairs[index]?.source;
+    if (!sentence) return;
 
-    const voice = findAccentVoice(voicesRef.current, accent);
-    if (voice) {
-      utterance.voice = voice;
-    } else {
-      setPlaybackNotice(
-        `No ${ACCENT_LABELS[accent]} voice was found; your browser will use its default English voice.`
-      );
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      setSpeechError("Speech playback is not supported in this browser.");
+      return;
     }
 
-    utterance.onend = () => {
-      if (activeUtteranceRef.current === utterance) {
-        activeUtteranceRef.current = null;
-        setSpeechStatus("idle");
-      }
-    };
+    if (playingSentenceIndex === index) {
+      stopSpeech();
+      return;
+    }
 
-    utterance.onerror = (event) => {
-      if (activeUtteranceRef.current !== utterance) return;
-
-      activeUtteranceRef.current = null;
-      setSpeechStatus("idle");
-
-      if (event.error !== "interrupted" && event.error !== "canceled") {
-        setSpeechError(
-          "The browser could not play this text. Please try again."
-        );
-      }
-    };
-
-    activeUtteranceRef.current = utterance;
-    synthesis.speak(utterance);
-    setSpeechStatus("speaking");
+    speakText(sentence, index);
   };
 
   const handlePause = () => {
@@ -339,6 +401,23 @@ export function useSpeechPractice(text: string) {
       window.speechSynthesis.pause();
       setSpeechStatus("paused");
     }
+  };
+
+  /**
+   * One control for both directions: it pauses a running utterance and starts
+   * or resumes from the pause point otherwise, so playback never jumps back.
+   */
+  const handleStartPause = () => {
+    if (speechStatus === "speaking") {
+      handlePause();
+      return;
+    }
+
+    handleStart();
+  };
+
+  const handleRepeatChange = (checked: boolean) => {
+    setRepeat(checked);
   };
 
   const handleReset = () => {
@@ -368,6 +447,7 @@ export function useSpeechPractice(text: string) {
     accent,
     speed,
     showIpa,
+    repeat,
     ipaMode,
     ipa,
     ipaPairs,
@@ -376,20 +456,21 @@ export function useSpeechPractice(text: string) {
     speechStatus,
     speechError,
     playbackNotice,
+    playingSentenceIndex,
     isSpeaking,
-    isPaused,
     speechLabel,
     statusDotClass,
     accentLabel,
     ipaModeLabel,
-    hasText: text.trim().length > 0,
+    hasText: speakableText.length > 0,
     handleTextEdited,
     handleAccentChange,
     handleSpeedChange,
     handleShowIpaChange,
+    handleRepeatChange,
     handleIpaModeChange: (value: string) => setIpaMode(value as IpaMode),
-    handleStart,
-    handlePause,
+    handlePlaySentence,
+    handleStartPause,
     handleReset,
   };
 }

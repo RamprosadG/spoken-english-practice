@@ -1,6 +1,8 @@
 "use client";
 
+import Badge from "@/components/ui/badges/Badge";
 import Dropdown from "@/components/ui/dropdowns/Dropdown";
+import { PlayTextButton } from "@/features/practice/PlayTextButton";
 import {
   IPA_MODE_OPTIONS,
   type SpeechPractice,
@@ -19,8 +21,12 @@ export function IpaTranscriptionCard({ practice }: IpaTranscriptionCardProps) {
     ipaError,
     accentLabel,
     ipaModeLabel,
+    playingSentenceIndex,
     handleIpaModeChange,
+    handlePlaySentence,
   } = practice;
+
+  const titlePairCount = ipaPairs.filter((pair) => pair.isTitle).length;
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -75,14 +81,37 @@ export function IpaTranscriptionCard({ practice }: IpaTranscriptionCardProps) {
               {ipaPairs.map((pair, index) => (
                 <div
                   key={`${index}-${pair.source.slice(0, 24)}`}
-                  className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3"
+                  className="flex items-start justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3"
                 >
-                  <p className="text-sm font-medium leading-6 text-slate-900">
-                    {pair.source}
-                  </p>
-                  <p className="mt-1.5 break-words font-mono text-[15px] leading-7 text-indigo-700">
-                    {pair.ipa}
-                  </p>
+                  <div className="min-w-0">
+                    {pair.isTitle && (
+                      <p className="mb-1.5">
+                        <Badge variant="info" size="sm">
+                          Title
+                        </Badge>
+                      </p>
+                    )}
+                    <p
+                      className={`text-sm leading-6 text-slate-900 ${
+                        pair.isTitle ? "font-semibold" : "font-medium"
+                      }`}
+                    >
+                      {pair.source}
+                    </p>
+                    <p className="mt-1.5 break-words font-mono text-[15px] leading-7 text-indigo-700">
+                      {pair.ipa}
+                    </p>
+                  </div>
+
+                  <PlayTextButton
+                    isPlaying={playingSentenceIndex === index}
+                    onClick={() => handlePlaySentence(index)}
+                    ariaLabel={
+                      pair.isTitle
+                        ? "Listen to the title"
+                        : `Listen to sentence ${index - titlePairCount + 1}`
+                    }
+                  />
                 </div>
               ))}
             </div>

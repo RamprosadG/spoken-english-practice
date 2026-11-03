@@ -4,6 +4,7 @@ import { DEFAULT_PAGE_SIZE, buildPaginationMeta } from "@/lib/utils";
 import type {
   PresentationFilterParams,
   PresentationListResult,
+  PresentationNeighbors,
   PresentationRow,
 } from "@/server/types/presentation";
 
@@ -11,6 +12,11 @@ interface PresentationWriteData {
   title: string;
   text: string;
   sequence: number;
+}
+
+interface PresentationCursor {
+  sequence: number;
+  createdAt: Date;
 }
 
 /**
@@ -61,6 +67,42 @@ export async function findNextPresentationSequence(): Promise<number> {
 
 export function findPresentationById(id: string) {
   return prisma.presentation.findUnique({ where: { id } });
+}
+
+/**
+ * Neighbours are the closest rows on each side of this cursor in the list
+ * order (sequence, then createdAt), so the walk matches the library table.
+ */
+export async function findPresentationNeighbors(
+  cursor: PresentationCursor
+): Promise<PresentationNeighbors> {
+  const [previous, next] = await Promise.all([
+    prisma.presentation.findFirst({
+      where: {
+        OR: [
+          { sequence: { lt: cursor.sequence } },
+          { sequence: cursor.sequence, createdAt: { lt: cursor.createdAt } },
+        ],
+      },
+      orderBy: [{ sequence: "desc" }, { createdAt: "desc" }],
+      select: { id: true },
+    }),
+    prisma.presentation.findFirst({
+      where: {
+        OR: [
+          { sequence: { gt: cursor.sequence } },
+          { sequence: cursor.sequence, createdAt: { gt: cursor.createdAt } },
+        ],
+      },
+      orderBy: [{ sequence: "asc" }, { createdAt: "asc" }],
+      select: { id: true },
+    }),
+  ]);
+
+  return {
+    previousId: previous?.id ?? null,
+    nextId: next?.id ?? null,
+  };
 }
 
 export function countPresentations() {

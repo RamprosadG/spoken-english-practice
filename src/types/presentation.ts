@@ -14,6 +14,12 @@ export interface PresentationFilters {
   page: number;
 }
 
+export interface PresentationNavigation {
+  presentation: PresentationItem;
+  previousId: string | null;
+  nextId: string | null;
+}
+
 export interface PresentationListData {
   presentations: PresentationItem[];
   pagination: PaginationMeta | null;

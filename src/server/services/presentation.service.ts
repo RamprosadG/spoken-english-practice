@@ -6,6 +6,7 @@ import {
   deletePresentation as deletePresentationRecord,
   findNextPresentationSequence,
   findPresentationById,
+  findPresentationNeighbors,
   findPresentationPage,
   updatePresentation as updatePresentationRecord,
 } from "@/server/repositories/presentation.repository";
@@ -14,7 +15,10 @@ import type {
   PresentationFilterParams,
   PresentationPageResult,
 } from "@/server/types/presentation";
-import type { PresentationItem } from "@/types/presentation";
+import type {
+  PresentationItem,
+  PresentationNavigation,
+} from "@/types/presentation";
 
 export const PRESENTATION_PAGE_SIZE = 20;
 
@@ -57,11 +61,27 @@ export async function listPresentations(
   return { ...list, nextSequence };
 }
 
-export async function getPresentationById(
+export async function getPresentationWithNavigation(
   id: string,
-): Promise<PresentationItem | null> {
+): Promise<PresentationNavigation | null> {
+  // Neighbours move with every saved row, so never prerender this.
+  await connection();
+
   const presentation = await findPresentationById(id);
-  return presentation ? toPresentationItem(presentation) : null;
+  if (!presentation) {
+    return null;
+  }
+
+  const neighbors = await findPresentationNeighbors({
+    sequence: presentation.sequence,
+    createdAt: presentation.createdAt,
+  });
+
+  return {
+    presentation: toPresentationItem(presentation),
+    previousId: neighbors.previousId,
+    nextId: neighbors.nextId,
+  };
 }
 
 export async function createPresentation(

@@ -451,9 +451,9 @@ Every item is an entry card: the word, example sentence, synonym word, synonym s
 - **Speed dropdown** — `0.5×` through `1.5×`, applied to the utterance's `rate`. Changing speed during playback stops speech and asks you to press Start again.
 - **Show IPA translation** — computes a dialect-aware IPA transcription. The `phonemize` package is loaded on demand, so its pronunciation data is not part of the initial page bundle.
 - **IPA view dropdown** — switches between *Sentence by sentence*, where each sentence is paired with its own IPA line in a separated card, and *Full translation*, a single continuous transcription block. Sentences are found with `Intl.Segmenter`, with abbreviation handling for forms such as `Mr.`, `Dr.`, and `Jan.`, so manual line breaks are not required.
-- **Start / Resume** — starts speech in the selected accent and speed, or resumes a paused utterance.
-- **Pause** — pauses the active utterance; Start changes to Resume while paused.
-- **Reset** — cancels playback, clears the pause state, and returns the status to ready.
+- **Reset** — a `secondary` button that cancels playback and returns the row to its initial state, so the next Start speaks from the beginning. Disabled while nothing is playing or paused.
+- **Start / Pause** — one button that flips with playback. While idle or paused it reads **Start** with a play icon and either starts the text in the selected accent and speed or resumes a paused utterance from where it stopped; while speaking it reads **Pause** with a pause icon and pauses without rewinding.
+- **Repeat** — the loop icon button after Start/Pause. It has no text of its own (the `RiLoopRightLine` icon, a **Repeat** tooltip and `aria-pressed` carry it) and toggles like a checkmark: white with a visible border while off, the dark `secondary` background while on. When on, the whole text starts again from the beginning the moment an utterance ends on its own, so a presentation plays on a loop; a single sentence card still stops after its sentence, and Reset still stops the loop.
 
 The workspace uses a responsive card layout: controls and action buttons stack on phones, the control grid becomes two columns on tablets (`sm`) and three on wide screens (`xl`), and nothing overflows horizontally at 390 px, 768 px, or 1440 px.
 
