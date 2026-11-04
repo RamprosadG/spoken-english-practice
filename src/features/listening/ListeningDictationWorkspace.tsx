@@ -9,6 +9,7 @@ import { useListenSpeech } from "@/features/practice/useListenSpeech";
 import {
   checkDictation,
   splitWords,
+  type DictationCheck,
 } from "@/features/listening/listeningDictation";
 import type { ListeningItem } from "@/types/listening";
 
@@ -31,21 +32,12 @@ export function ListeningDictationWorkspace({
   const speech = useListenSpeech();
 
   const words = useMemo(() => splitWords(item.text), [item.text]);
-  const [answers, setAnswers] = useState<string[]>(() => words.map(() => ""));
-  // null means "not checked yet", so a stale colour can never outlive an edit.
-  const [slots, setSlots] = useState<(boolean | null)[]>(() =>
-    words.map(() => null),
-  );
-  const [completed, setCompleted] = useState(false);
+  const [answer, setAnswer] = useState("");
+  const [check, setCheck] = useState<DictationCheck | null>(null);
 
   const hasNext = itemNumber < totalItems;
-  const wrongIndexes = slots.reduce<number[]>(
-    (indexes, correct, index) => {
-      if (correct === false) indexes.push(index);
-      return indexes;
-    },
-    [],
-  );
+  const completed = check?.isComplete === true;
+  const isBlank = answer.trim().length === 0;
 
   useEffect(() => {
     if (!completed || !hasNext) {
@@ -61,26 +53,18 @@ export function ListeningDictationWorkspace({
 
   const handleCheck = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
-    const result = checkDictation(words, answers);
-    setSlots(result.slots);
-    setCompleted(result.isComplete);
+    setCheck(checkDictation(words, splitWords(answer)));
   };
 
-  const handleWordChange = (index: number, value: string) => {
-    setAnswers((previous) =>
-      previous.map((word, position) => (position === index ? value : word)),
-    );
-    setSlots((previous) =>
-      previous.map((state, position) => (position === index ? null : state)),
-    );
-    setCompleted(false);
+  const handleAnswerChange = (value: string) => {
+    setAnswer(value);
+    // A stale verdict must not outlive the edit it described.
+    setCheck(null);
   };
 
   const handleClear = () => {
-    setAnswers(words.map(() => ""));
-    setSlots(words.map(() => null));
-    setCompleted(false);
+    setAnswer("");
+    setCheck(null);
   };
 
   return (
@@ -93,7 +77,7 @@ export function ListeningDictationWorkspace({
             </h2>
             <p className="mt-0.5 text-sm text-slate-500">
               Sentence {itemNumber} of {totalItems}. The text stays hidden until
-              every word you type matches what you heard.
+              what you type matches what you heard.
             </p>
           </div>
         </div>
@@ -106,9 +90,9 @@ export function ListeningDictationWorkspace({
                   How to practice
                 </p>
                 <p className="mt-1 text-sm leading-6 text-slate-700">
-                  Play the audio as many times as you need, then write one word
-                  in each box. A wrong box gets a hint for that word alone, never
-                  the whole sentence.
+                  Play the audio as many times as you need, then write the whole
+                  sentence below. A wrong answer is pointed out word by word, so
+                  only the words you missed are revealed.
                 </p>
               </div>
             </div>
@@ -136,43 +120,33 @@ export function ListeningDictationWorkspace({
             Type what you heard
           </h2>
           <p className="mt-0.5 text-sm text-slate-500">
-            {words.length} {words.length === 1 ? "word" : "words"} in this
-            sentence.
+            This sentence has {words.length}{" "}
+            {words.length === 1 ? "word" : "words"}.
           </p>
         </div>
 
         <div className="p-5 sm:p-6">
-          <ul className="flex flex-wrap items-center gap-2.5">
-            {words.map((word, index) => (
-              <li key={index} className="flex items-center gap-1.5">
-                <span className="text-[11px] font-medium tabular-nums text-slate-400">
-                  {index + 1}
-                </span>
-                <input
-                  type="text"
-                  value={answers[index] ?? ""}
-                  onChange={(event) =>
-                    handleWordChange(index, event.target.value)
-                  }
-                  aria-label={`Word ${index + 1} of ${words.length}`}
-                  autoComplete="off"
-                  autoCapitalize="off"
-                  autoCorrect="off"
-                  spellCheck={false}
-                  style={{ width: `${Math.max(4, word.length + 1)}ch` }}
-                  className={`rounded-lg border px-2.5 py-1.5 text-sm shadow-xs outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 ${
-                    slots[index] === true
-                      ? "border-emerald-500 bg-emerald-50 text-emerald-800"
-                      : slots[index] === false
-                        ? "border-red-500 bg-red-50 text-red-800"
-                        : "border-gray-300 bg-white text-slate-900"
-                  }`}
-                />
-              </li>
-            ))}
-          </ul>
+          <textarea
+            id="listening-dictation-answer"
+            rows={3}
+            value={answer}
+            onChange={(event) => handleAnswerChange(event.target.value)}
+            aria-label="Type the sentence you heard"
+            aria-invalid={check && !completed ? true : undefined}
+            placeholder="Write the sentence you hear…"
+            spellCheck={false}
+            autoCapitalize="off"
+            autoCorrect="off"
+            className={`w-full resize-y rounded-lg border bg-white px-3.5 py-2.5 text-base leading-8 shadow-xs outline-none transition-all duration-200 placeholder:text-gray-400 hover:border-indigo-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 ${
+              completed
+                ? "border-emerald-500 text-emerald-800"
+                : check
+                  ? "border-red-500 text-slate-900"
+                  : "border-gray-300 text-slate-900"
+            }`}
+          />
 
-          {wrongIndexes.length > 0 && (
+          {check && !completed && (
             <div
               role="status"
               aria-live="polite"
@@ -181,14 +155,31 @@ export function ListeningDictationWorkspace({
               <p className="text-[11px] font-semibold uppercase tracking-wider text-amber-700">
                 Fix these words
               </p>
-              <ul className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-amber-800">
-                {wrongIndexes.map((index) => (
-                  <li key={index}>
-                    Word {index + 1}:{" "}
-                    <span className="font-semibold">{words[index]}</span>
-                  </li>
-                ))}
-              </ul>
+              {check.typedCount !== words.length && (
+                <p className="mt-1 text-sm text-amber-800">
+                  This sentence has {words.length}{" "}
+                  {words.length === 1 ? "word" : "words"}, you wrote{" "}
+                  {check.typedCount}.
+                </p>
+              )}
+              {check.wrongIndexes.length > 0 && (
+                <ul className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-amber-800">
+                  {check.wrongIndexes.map((index) => (
+                    <li key={index}>
+                      Word {index + 1}:{" "}
+                      <span className="font-semibold">{words[index]}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {check.extraWords.length > 0 && (
+                <p className="mt-1 text-sm text-amber-800">
+                  Extra words after the sentence:{" "}
+                  <span className="font-semibold">
+                    {check.extraWords.join(" ")}
+                  </span>
+                </p>
+              )}
             </div>
           )}
 
@@ -217,7 +208,7 @@ export function ListeningDictationWorkspace({
               type="submit"
               variant="primary"
               className="w-full sm:w-auto"
-              disabled={completed}
+              disabled={isBlank || completed}
             >
               Check answer
             </Button>
@@ -226,6 +217,7 @@ export function ListeningDictationWorkspace({
               variant="secondary"
               onClick={handleClear}
               className="w-full sm:w-auto"
+              disabled={isBlank && !check}
             >
               Clear all
             </Button>
