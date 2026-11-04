@@ -50,7 +50,18 @@ function buildDatabasePoolOptions(rawUrl: string) {
   };
 }
 
-const adapter = new PrismaPg(buildDatabasePoolOptions(getDatabaseUrl()));
+// The Aiven instance caps `max_connections` at 20 and every page opens several
+// reads through `Promise.all`, so the driver default of 10 connections per pool
+// lets one Home render take half the server and Postgres answers the rest with
+// "sorry, too many clients already". A small cap makes extra reads queue here
+// instead, and idle sockets are dropped quickly so a dev-server restart cannot
+// keep holding slots.
+const adapter = new PrismaPg({
+  ...buildDatabasePoolOptions(getDatabaseUrl()),
+  max: 4,
+  idleTimeoutMillis: 5_000,
+  connectionTimeoutMillis: 10_000,
+});
 
 export const prisma =
   globalForPrisma.prisma ??
