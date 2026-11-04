@@ -3,19 +3,27 @@
 import Dropdown from "@/components/ui/dropdowns/Dropdown";
 import SearchInput from "@/components/ui/inputs/SearchInput";
 import { useAuth } from "@/features/auth/AuthProvider";
+import { buildCategoryFilterOptions } from "@/lib/categories";
 import { PUBLICATION_FILTER_OPTIONS } from "@/lib/publishing";
+import type { CategoryOption } from "@/types/category";
 
 interface SentenceFiltersProps {
   search: string;
+  category: string;
   status: string;
+  categories: CategoryOption[];
   onSearchChange: (value: string) => void;
+  onCategoryChange: (value: string) => void;
   onStatusChange: (value: string) => void;
 }
 
 export function SentenceFilters({
   search,
+  category,
   status,
+  categories,
   onSearchChange,
+  onCategoryChange,
   onStatusChange,
 }: SentenceFiltersProps) {
   const { user } = useAuth();
@@ -27,6 +35,14 @@ export function SentenceFilters({
           value={search}
           onDebouncedChange={onSearchChange}
           placeholder="Search sentences or meanings..."
+        />
+      </div>
+      <div className="w-full md:w-40 shrink-0">
+        <Dropdown
+          options={buildCategoryFilterOptions(categories)}
+          value={category}
+          onChange={onCategoryChange}
+          hideOptionalText
         />
       </div>
       {user?.role === "admin" && (

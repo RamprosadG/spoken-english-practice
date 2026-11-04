@@ -11,9 +11,27 @@ import type {
 interface SentenceWriteData {
   text: string;
   meaning: string;
+  categoryId: string;
   sequence: number;
   isPublished: boolean;
 }
+
+/** Every read that reaches the browser carries the category name with it. */
+const SENTENCE_SELECT = {
+  id: true,
+  text: true,
+  meaning: true,
+  sequence: true,
+  isPublished: true,
+  categoryId: true,
+  createdAt: true,
+  updatedAt: true,
+  category: { select: { name: true } },
+} as const;
+
+export type SentenceSelected = Prisma.SentenceGetPayload<{
+  select: typeof SENTENCE_SELECT;
+}>;
 
 /**
  * Search and pagination run in PostgreSQL; only the requested page of rows is
@@ -34,6 +52,10 @@ export async function findSentencePage(
     ];
   }
 
+  if (filters.categoryId) {
+    where.categoryId = filters.categoryId;
+  }
+
   const pageSize = filters.pageSize > 0 ? filters.pageSize : DEFAULT_PAGE_SIZE;
   const total = await prisma.sentence.count({ where });
   const pagination = buildPaginationMeta(filters.page, pageSize, total);
@@ -42,6 +64,7 @@ export async function findSentencePage(
   const sentences = await prisma.sentence.findMany({
     where,
     orderBy: [{ sequence: "asc" }, { createdAt: "asc" }],
+    select: SENTENCE_SELECT,
     skip,
     take: pageSize,
   });
@@ -52,6 +75,8 @@ export async function findSentencePage(
     meaning: sentence.meaning,
     sequence: sentence.sequence,
     isPublished: sentence.isPublished,
+    categoryId: sentence.categoryId,
+    categoryName: sentence.category.name,
     createdAt: sentence.createdAt.toISOString(),
     updatedAt: sentence.updatedAt.toISOString(),
   }));
@@ -69,7 +94,10 @@ export async function findNextSentenceSequence(): Promise<number> {
 }
 
 export function findSentenceById(id: string) {
-  return prisma.sentence.findUnique({ where: { id } });
+  return prisma.sentence.findUnique({
+    where: { id },
+    select: SENTENCE_SELECT,
+  });
 }
 
 export function countSentences() {
@@ -77,11 +105,15 @@ export function countSentences() {
 }
 
 export function createSentence(data: SentenceWriteData) {
-  return prisma.sentence.create({ data });
+  return prisma.sentence.create({ data, select: SENTENCE_SELECT });
 }
 
 export function updateSentence(id: string, data: SentenceWriteData) {
-  return prisma.sentence.update({ where: { id }, data });
+  return prisma.sentence.update({
+    where: { id },
+    data,
+    select: SENTENCE_SELECT,
+  });
 }
 
 export function deleteSentence(id: string) {

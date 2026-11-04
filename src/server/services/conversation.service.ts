@@ -12,6 +12,11 @@ import {
   type ConversationWithLines,
 } from "@/server/repositories/conversation.repository";
 import { canViewUnpublishedContent, requireAdminUser } from "@/server/services/auth.service";
+import {
+  getCategoryOptions,
+  getManagedCategories,
+  requireCategory,
+} from "@/server/services/category.service";
 import type {
   ConversationFilterParams,
   ConversationPageResult,
@@ -50,6 +55,8 @@ function toConversationItem(conversation: ConversationWithLines): ConversationIt
     description: conversation.description,
     sequence: conversation.sequence,
     isPublished: conversation.isPublished,
+    categoryId: conversation.categoryId,
+    categoryName: conversation.category.name,
     createdAt: conversation.createdAt.toISOString(),
     updatedAt: conversation.updatedAt.toISOString(),
   };
@@ -73,16 +80,22 @@ export async function listConversations(
   // Drafts are an admin-only view, and the gate runs inside the SQL query.
   const canViewUnpublished = await canViewUnpublishedContent();
 
-  const [list, nextSequence] = await Promise.all([
+  const [list, nextSequence, categories, categoryRows] = await Promise.all([
     findConversationPage({
       ...query,
       canViewUnpublished,
       search: query.search?.trim() || undefined,
+      categoryId: query.categoryId?.trim() || undefined,
     }),
     findNextConversationSequence(),
+    getCategoryOptions("conversation"),
+    // Usage counts cover drafts, so only an admin is given the management rows.
+    canViewUnpublished
+      ? getManagedCategories("conversation")
+      : Promise.resolve([]),
   ]);
 
-  return { ...list, nextSequence };
+  return { ...list, nextSequence, categories, categoryRows };
 }
 
 export async function getConversationDetail(
@@ -138,6 +151,7 @@ export async function createConversation(
   input: ConversationInput,
 ): Promise<ConversationDetailItem> {
   await requireAdminUser();
+  await requireCategory("conversation", input.categoryId);
 
   try {
     const conversation = await createConversationRecord({
@@ -145,6 +159,7 @@ export async function createConversation(
       speaker1: input.speaker1,
       speaker2: input.speaker2,
       description: input.description,
+      categoryId: input.categoryId,
       sequence: input.sequence,
       isPublished: input.isPublished,
       lines: input.lines,
@@ -164,6 +179,7 @@ export async function updateConversation(
   input: ConversationInput,
 ): Promise<ConversationDetailItem> {
   await requireAdminUser();
+  await requireCategory("conversation", input.categoryId);
 
   const existing = await findConversationById(id);
   if (!existing) {
@@ -176,6 +192,7 @@ export async function updateConversation(
       speaker1: input.speaker1,
       speaker2: input.speaker2,
       description: input.description,
+      categoryId: input.categoryId,
       sequence: input.sequence,
       isPublished: input.isPublished,
       lines: input.lines,

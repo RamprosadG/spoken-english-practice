@@ -26,7 +26,6 @@ enum PartsOfSpeech {
   interjection
 }
 
-
 model User {
   id         String   @id @default(uuid())
   name       String
@@ -57,6 +56,20 @@ model RefreshToken {
   @@map("refresh_tokens")
 }
 
+model PresentationCategory {
+  id       String @id @default(uuid())
+  name     String @unique
+  sequence Int
+
+  presentations Presentation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sequence, createdAt])
+  @@map("presentation_category")
+}
+
 model Presentation {
   id          String  @id @default(uuid())
   title       String  @unique
@@ -64,11 +77,29 @@ model Presentation {
   sequence    Int
   isPublished Boolean @default(true)
 
+  categoryId String
+  category   PresentationCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([sequence, createdAt])
+  @@index([categoryId, sequence, createdAt])
   @@map("presentation")
+}
+
+model SentenceCategory {
+  id       String @id @default(uuid())
+  name     String @unique
+  sequence Int
+
+  sentences Sentence[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sequence, createdAt])
+  @@map("sentence_category")
 }
 
 model Sentence {
@@ -78,21 +109,42 @@ model Sentence {
   sequence    Int
   isPublished Boolean @default(true)
 
+  categoryId String
+  category   SentenceCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([sequence, createdAt])
+  @@index([categoryId, sequence, createdAt])
   @@map("sentence")
 }
 
+model ConversationCategory {
+  id       String @id @default(uuid())
+  name     String @unique
+  sequence Int
+
+  conversations Conversation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sequence, createdAt])
+  @@map("conversation_category")
+}
+
 model Conversation {
-  id          String   @id @default(uuid())
-  title       String   @unique
+  id          String  @id @default(uuid())
+  title       String  @unique
   speaker1    String
   speaker2    String
   description String
   sequence    Int
-  isPublished Boolean  @default(true)
+  isPublished Boolean @default(true)
+
+  categoryId String
+  category   ConversationCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
 
   lines ConversationLine[]
 
@@ -100,6 +152,7 @@ model Conversation {
   updatedAt DateTime @updatedAt
 
   @@index([sequence, createdAt])
+  @@index([categoryId, sequence, createdAt])
   @@map("conversation")
 }
 
@@ -115,6 +168,53 @@ model ConversationLine {
 
   @@index([conversationId, sequence])
   @@map("conversation_line")
+}
+
+model ListeningCategory {
+  id       String @id @default(uuid())
+  name     String @unique
+  sequence Int
+
+  listenings Listening[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sequence, createdAt])
+  @@map("listening_category")
+}
+
+model Listening {
+  id          String  @id @default(uuid())
+  title       String  @unique
+  sequence    Int
+  isPublished Boolean @default(true)
+
+  categoryId String
+  category   ListeningCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  items ListeningItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sequence, createdAt])
+  @@index([categoryId, sequence, createdAt])
+  @@map("listening")
+}
+
+model ListeningItem {
+  id          String    @id @default(uuid())
+  listeningId String
+  listening   Listening @relation(fields: [listeningId], references: [id], onDelete: Cascade)
+  text        String
+  sequence    Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([listeningId, sequence])
+  @@map("listening_item")
 }
 
 model Vocabulary {

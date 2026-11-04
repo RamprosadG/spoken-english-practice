@@ -12,12 +12,19 @@ export function SentenceView({ data, isLoading = false }: SentenceViewProps) {
   return (
     <>
       <SentenceHeader
-        actions={<SentenceActions nextSequence={data.nextSequence} />}
+        actions={
+          <SentenceActions
+            nextSequence={data.nextSequence}
+            categories={data.categories}
+            categoryRows={data.categoryRows}
+          />
+        }
       />
       <SentenceSection
         sentences={data.sentences}
         pagination={data.pagination}
         filters={data.filters}
+        categories={data.categories}
         isLoading={isLoading}
       />
     </>

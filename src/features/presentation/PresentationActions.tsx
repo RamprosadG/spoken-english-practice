@@ -6,14 +6,20 @@ import { FiPlus } from "react-icons/fi";
 import { showSuccessAlert } from "@/components/ui/alerts/Alerts";
 import Button from "@/components/ui/buttons/Button";
 import { useAuth } from "@/features/auth/AuthProvider";
+import { CategoryManageButton } from "@/features/category/CategoryManageButton";
+import type { CategoryOption, CategoryRow } from "@/types/category";
 import { PresentationFormModal } from "./PresentationFormModal";
 
 interface PresentationActionsProps {
   nextSequence: number;
+  categories: CategoryOption[];
+  categoryRows: CategoryRow[];
 }
 
 export function PresentationActions({
   nextSequence,
+  categories,
+  categoryRows,
 }: PresentationActionsProps) {
   const router = useRouter();
   const { user } = useAuth();
@@ -34,9 +40,12 @@ export function PresentationActions({
         New presentation
       </Button>
 
+      <CategoryManageButton kind="presentation" categories={categoryRows} />
+
       {isCreateOpen && (
         <PresentationFormModal
           presentation={null}
+          categories={categories}
           defaultSequence={nextSequence}
           onClose={() => setIsCreateOpen(false)}
           onSaved={(message) => {

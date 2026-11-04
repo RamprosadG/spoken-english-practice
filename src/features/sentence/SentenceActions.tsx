@@ -6,13 +6,21 @@ import { FiPlus } from "react-icons/fi";
 import { showSuccessAlert } from "@/components/ui/alerts/Alerts";
 import Button from "@/components/ui/buttons/Button";
 import { useAuth } from "@/features/auth/AuthProvider";
+import { CategoryManageButton } from "@/features/category/CategoryManageButton";
+import type { CategoryOption, CategoryRow } from "@/types/category";
 import { SentenceFormModal } from "./SentenceFormModal";
 
 interface SentenceActionsProps {
   nextSequence: number;
+  categories: CategoryOption[];
+  categoryRows: CategoryRow[];
 }
 
-export function SentenceActions({ nextSequence }: SentenceActionsProps) {
+export function SentenceActions({
+  nextSequence,
+  categories,
+  categoryRows,
+}: SentenceActionsProps) {
   const router = useRouter();
   const { user } = useAuth();
   const [, startRefresh] = useTransition();
@@ -32,9 +40,12 @@ export function SentenceActions({ nextSequence }: SentenceActionsProps) {
         New sentence
       </Button>
 
+      <CategoryManageButton kind="sentence" categories={categoryRows} />
+
       {isCreateOpen && (
         <SentenceFormModal
           sentence={null}
+          categories={categories}
           defaultSequence={nextSequence}
           onClose={() => setIsCreateOpen(false)}
           onSaved={(message) => {

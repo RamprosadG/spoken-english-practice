@@ -46,6 +46,9 @@ export function SentenceTable({
                 Draft
               </Badge>
             )}
+            <Badge variant="neutral" size="sm">
+              {sentence.categoryName}
+            </Badge>
           </div>
           <p
             lang="bn"

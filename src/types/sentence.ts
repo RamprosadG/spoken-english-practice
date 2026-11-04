@@ -1,4 +1,5 @@
 import type { PaginationMeta } from "@/server/types/pagination";
+import type { CategoryOption, CategoryRow } from "@/server/types/category";
 
 export interface SentenceItem {
   id: string;
@@ -6,12 +7,15 @@ export interface SentenceItem {
   meaning: string;
   sequence: number;
   isPublished: boolean;
+  categoryId: string;
+  categoryName: string;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface SentenceFilters {
   search: string;
+  category: string;
   status: string;
   page: number;
 }
@@ -21,4 +25,6 @@ export interface SentenceListData {
   pagination: PaginationMeta | null;
   filters: SentenceFilters;
   nextSequence: number;
+  categories: CategoryOption[];
+  categoryRows: CategoryRow[];
 }

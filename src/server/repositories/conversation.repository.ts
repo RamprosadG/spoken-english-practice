@@ -14,6 +14,7 @@ interface ConversationWriteData {
   speaker1: string;
   speaker2: string;
   description: string;
+  categoryId: string;
   sequence: number;
   isPublished: boolean;
   lines: string[];
@@ -24,10 +25,6 @@ interface ConversationCursor {
   createdAt: Date;
 }
 
-export type ConversationWithLines = Prisma.ConversationGetPayload<{
-  include: { lines: true };
-}>;
-
 const lineOrder: Prisma.ConversationLineOrderByWithRelationInput[] = [
   { sequence: "asc" },
   { createdAt: "asc" },
@@ -35,7 +32,27 @@ const lineOrder: Prisma.ConversationLineOrderByWithRelationInput[] = [
 
 const conversationInclude = {
   lines: { orderBy: lineOrder },
+  category: { select: { name: true } },
 } satisfies Prisma.ConversationInclude;
+
+export type ConversationWithLines = Prisma.ConversationGetPayload<{
+  include: typeof conversationInclude;
+}>;
+
+/** The library table needs the category name but never the child lines. */
+const CONVERSATION_LIST_SELECT = {
+  id: true,
+  title: true,
+  speaker1: true,
+  speaker2: true,
+  description: true,
+  sequence: true,
+  isPublished: true,
+  categoryId: true,
+  createdAt: true,
+  updatedAt: true,
+  category: { select: { name: true } },
+} as const;
 
 /** Array position becomes the stored turn sequence, one-based. */
 function toLineRows(lines: string[]) {
@@ -62,6 +79,10 @@ export async function findConversationPage(
     ];
   }
 
+  if (filters.categoryId) {
+    where.categoryId = filters.categoryId;
+  }
+
   const pageSize = filters.pageSize > 0 ? filters.pageSize : DEFAULT_PAGE_SIZE;
   const total = await prisma.conversation.count({ where });
   const pagination = buildPaginationMeta(filters.page, pageSize, total);
@@ -70,6 +91,7 @@ export async function findConversationPage(
   const conversations = await prisma.conversation.findMany({
     where,
     orderBy: [{ sequence: "asc" }, { createdAt: "asc" }],
+    select: CONVERSATION_LIST_SELECT,
     skip,
     take: pageSize,
   });
@@ -82,6 +104,8 @@ export async function findConversationPage(
     description: conversation.description,
     sequence: conversation.sequence,
     isPublished: conversation.isPublished,
+    categoryId: conversation.categoryId,
+    categoryName: conversation.category.name,
     createdAt: conversation.createdAt.toISOString(),
     updatedAt: conversation.updatedAt.toISOString(),
   }));
@@ -153,6 +177,7 @@ export function createConversation(data: ConversationWriteData) {
         speaker1: data.speaker1,
         speaker2: data.speaker2,
         description: data.description,
+        categoryId: data.categoryId,
         sequence: data.sequence,
         isPublished: data.isPublished,
         lines: { create: toLineRows(data.lines) },
@@ -179,6 +204,7 @@ export function updateConversation(id: string, data: ConversationWriteData) {
         speaker1: data.speaker1,
         speaker2: data.speaker2,
         description: data.description,
+        categoryId: data.categoryId,
         sequence: data.sequence,
         isPublished: data.isPublished,
         lines: {

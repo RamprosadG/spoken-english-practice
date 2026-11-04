@@ -7,11 +7,13 @@ import Button from "@/components/ui/buttons/Button";
 import Dropdown from "@/components/ui/dropdowns/Dropdown";
 import Input from "@/components/ui/inputs/Input";
 import Modal from "@/components/ui/modals/Modal";
+import { buildCategoryFormOptions } from "@/lib/categories";
 import {
   PUBLICATION_FORM_OPTIONS,
   isPublishedFromStatus,
   publicationStatusValue,
 } from "@/lib/publishing";
+import type { CategoryOption } from "@/types/category";
 import type { ConversationDetailItem } from "@/types/conversation";
 import {
   ConversationLineSorter,
@@ -22,6 +24,7 @@ import { conversationRequest } from "./conversation-client";
 
 interface ConversationFormModalProps {
   conversation: ConversationDetailItem | null;
+  categories: CategoryOption[];
   defaultSequence: number;
   onClose: () => void;
   onSaved: (message: string) => void;
@@ -32,6 +35,7 @@ interface FormErrors {
   description?: string;
   speaker1?: string;
   speaker2?: string;
+  category?: string;
   sequence?: string;
 }
 
@@ -53,6 +57,7 @@ function buildInitialLines(
 
 export function ConversationFormModal({
   conversation,
+  categories,
   defaultSequence,
   onClose,
   onSaved,
@@ -62,6 +67,9 @@ export function ConversationFormModal({
   const [description, setDescription] = useState(conversation?.description ?? "");
   const [speaker1, setSpeaker1] = useState(conversation?.speaker1 ?? "");
   const [speaker2, setSpeaker2] = useState(conversation?.speaker2 ?? "");
+  const [categoryId, setCategoryId] = useState(
+    conversation?.categoryId ?? categories[0]?.id ?? "",
+  );
   const [sequence, setSequence] = useState(
     String(conversation?.sequence ?? defaultSequence),
   );
@@ -91,6 +99,7 @@ export function ConversationFormModal({
     if (!description.trim()) nextErrors.description = "Description is required.";
     if (!speaker1.trim()) nextErrors.speaker1 = "Speaker 1 name is required.";
     if (!speaker2.trim()) nextErrors.speaker2 = "Speaker 2 name is required.";
+    if (!categoryId) nextErrors.category = "Choose a category.";
 
     lines.forEach((line, index) => {
       if (!line.text.trim()) {
@@ -128,6 +137,7 @@ export function ConversationFormModal({
           description: description.trim(),
           speaker1: speaker1.trim(),
           speaker2: speaker2.trim(),
+          categoryId,
           sequence: Number(sequence),
           isPublished: isPublishedFromStatus(status),
           lines: lines.map((line) => line.text.trim()),
@@ -272,6 +282,23 @@ export function ConversationFormModal({
           speaker2={speaker2}
           errors={lineErrors}
           onChange={updateLines}
+        />
+
+        <Dropdown
+          label="Category"
+          id="conversation-category"
+          name="categoryId"
+          options={buildCategoryFormOptions(categories)}
+          value={categoryId}
+          error={errors.category}
+          onChange={(value) => {
+            setCategoryId(value);
+            if (errors.category) {
+              setErrors((current) => ({ ...current, category: undefined }));
+            }
+            if (apiError) setApiError("");
+          }}
+          required
         />
 
         <Dropdown

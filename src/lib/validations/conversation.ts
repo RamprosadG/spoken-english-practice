@@ -34,6 +34,7 @@ export const conversationInputSchema = z.object({
     .trim()
     .min(1, "Description is required.")
     .max(500, "Description cannot exceed 500 characters."),
+  categoryId: z.string().trim().min(1, "Category is required."),
   sequence: z.coerce
     .number()
     .int("Sequence must be a whole number.")

@@ -9,8 +9,14 @@ import {
   findPresentationNeighbors,
   findPresentationPage,
   updatePresentation as updatePresentationRecord,
+  type PresentationSelected,
 } from "@/server/repositories/presentation.repository";
 import { requireAdminUser, canViewUnpublishedContent } from "@/server/services/auth.service";
+import {
+  getCategoryOptions,
+  getManagedCategories,
+  requireCategory,
+} from "@/server/services/category.service";
 import type {
   PresentationFilterParams,
   PresentationPageResult,
@@ -22,18 +28,8 @@ import type {
 
 export const PRESENTATION_PAGE_SIZE = 20;
 
-interface PresentationRecord {
-  id: string;
-  title: string;
-  text: string;
-  sequence: number;
-  isPublished: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
 function toPresentationItem(
-  presentation: PresentationRecord,
+  presentation: PresentationSelected,
 ): PresentationItem {
   return {
     id: presentation.id,
@@ -41,6 +37,8 @@ function toPresentationItem(
     text: presentation.text,
     sequence: presentation.sequence,
     isPublished: presentation.isPublished,
+    categoryId: presentation.categoryId,
+    categoryName: presentation.category.name,
     createdAt: presentation.createdAt.toISOString(),
     updatedAt: presentation.updatedAt.toISOString(),
   };
@@ -55,16 +53,22 @@ export async function listPresentations(
   // Drafts are an admin-only view, and the gate runs inside the SQL query.
   const canViewUnpublished = await canViewUnpublishedContent();
 
-  const [list, nextSequence] = await Promise.all([
+  const [list, nextSequence, categories, categoryRows] = await Promise.all([
     findPresentationPage({
       ...query,
       canViewUnpublished,
       search: query.search?.trim() || undefined,
+      categoryId: query.categoryId?.trim() || undefined,
     }),
     findNextPresentationSequence(),
+    getCategoryOptions("presentation"),
+    // Usage counts cover drafts, so only an admin is given the management rows.
+    canViewUnpublished
+      ? getManagedCategories("presentation")
+      : Promise.resolve([]),
   ]);
 
-  return { ...list, nextSequence };
+  return { ...list, nextSequence, categories, categoryRows };
 }
 
 export async function getPresentationWithNavigation(
@@ -103,6 +107,7 @@ export async function createPresentation(
   input: PresentationInput,
 ): Promise<PresentationItem> {
   await requireAdminUser();
+  await requireCategory("presentation", input.categoryId);
 
   try {
     const presentation = await createPresentationRecord(input);
@@ -120,6 +125,7 @@ export async function updatePresentation(
   input: PresentationInput,
 ): Promise<PresentationItem> {
   await requireAdminUser();
+  await requireCategory("presentation", input.categoryId);
 
   const existing = await findPresentationById(id);
   if (!existing) {

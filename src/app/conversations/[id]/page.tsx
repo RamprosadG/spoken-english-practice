@@ -2,6 +2,7 @@ import { connection } from "next/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FiArrowLeft } from "react-icons/fi";
+import Badge from "@/components/ui/badges/Badge";
 import { ConversationPracticeNav } from "@/components/features/conversation/ConversationPracticeNav";
 import { ConversationPracticeWorkspace } from "@/features/conversation/ConversationPracticeWorkspace";
 import { getConversationWithNavigation } from "@/server/services/conversation.service";
@@ -42,9 +43,14 @@ export default async function ConversationPracticePage({
       </div>
 
       <header className="border-b border-slate-200 pb-5">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl max-sm:text-lg">
-          {conversation.title}
-        </h1>
+        <div className="flex flex-wrap items-center gap-2">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl max-sm:text-lg">
+            {conversation.title}
+          </h1>
+          <Badge variant="neutral" size="sm">
+            {conversation.categoryName}
+          </Badge>
+        </div>
         <p className="mt-1 text-sm text-slate-500">{conversation.description}</p>
       </header>
 

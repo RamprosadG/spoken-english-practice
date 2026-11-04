@@ -7,16 +7,19 @@ import Button from "@/components/ui/buttons/Button";
 import Dropdown from "@/components/ui/dropdowns/Dropdown";
 import Input from "@/components/ui/inputs/Input";
 import Modal from "@/components/ui/modals/Modal";
+import { buildCategoryFormOptions } from "@/lib/categories";
 import {
   PUBLICATION_FORM_OPTIONS,
   isPublishedFromStatus,
   publicationStatusValue,
 } from "@/lib/publishing";
+import type { CategoryOption } from "@/types/category";
 import type { SentenceItem } from "@/types/sentence";
 import { sentenceRequest } from "./sentence-client";
 
 interface SentenceFormModalProps {
   sentence: SentenceItem | null;
+  categories: CategoryOption[];
   defaultSequence: number;
   onClose: () => void;
   onSaved: (message: string) => void;
@@ -25,11 +28,13 @@ interface SentenceFormModalProps {
 interface FormErrors {
   text?: string;
   meaning?: string;
+  category?: string;
   sequence?: string;
 }
 
 export function SentenceFormModal({
   sentence,
+  categories,
   defaultSequence,
   onClose,
   onSaved,
@@ -37,6 +42,9 @@ export function SentenceFormModal({
   const isEditing = Boolean(sentence);
   const [text, setText] = useState(sentence?.text ?? "");
   const [meaning, setMeaning] = useState(sentence?.meaning ?? "");
+  const [categoryId, setCategoryId] = useState(
+    sentence?.categoryId ?? categories[0]?.id ?? "",
+  );
   const [sequence, setSequence] = useState(
     String(sentence?.sequence ?? defaultSequence),
   );
@@ -56,6 +64,10 @@ export function SentenceFormModal({
 
     if (!meaning.trim()) {
       nextErrors.meaning = "Meaning is required.";
+    }
+
+    if (!categoryId) {
+      nextErrors.category = "Choose a category.";
     }
 
     const parsedSequence = Number(sequence);
@@ -84,6 +96,7 @@ export function SentenceFormModal({
         body: JSON.stringify({
           text: text.trim(),
           meaning: meaning.trim(),
+          categoryId,
           sequence: Number(sequence),
           isPublished: isPublishedFromStatus(status),
         }),
@@ -201,6 +214,23 @@ export function SentenceFormModal({
             </span>
           )}
         </div>
+
+        <Dropdown
+          label="Category"
+          id="sentence-category"
+          name="categoryId"
+          options={buildCategoryFormOptions(categories)}
+          value={categoryId}
+          error={errors.category}
+          onChange={(value) => {
+            setCategoryId(value);
+            if (errors.category) {
+              setErrors((current) => ({ ...current, category: undefined }));
+            }
+            if (apiError) setApiError("");
+          }}
+          required
+        />
 
         <Dropdown
           label="Status"

@@ -11,6 +11,7 @@ import type {
   ConversationFilters as ConversationFiltersState,
   ConversationItem,
 } from "@/types/conversation";
+import type { CategoryOption } from "@/types/category";
 import { ConversationFilters } from "./ConversationFilters";
 import { ConversationFormModal } from "./ConversationFormModal";
 import { ConversationTable } from "./ConversationTable";
@@ -20,6 +21,7 @@ interface ConversationSectionProps {
   conversations: ConversationItem[];
   pagination: PaginationMeta | null;
   filters: ConversationFiltersState;
+  categories: CategoryOption[];
   isLoading?: boolean;
 }
 
@@ -27,6 +29,7 @@ export function ConversationSection({
   conversations,
   pagination,
   filters,
+  categories,
   isLoading = false,
 }: ConversationSectionProps) {
   const router = useRouter();
@@ -46,6 +49,7 @@ export function ConversationSection({
     const next = { ...filters, ...changes };
     const params = new URLSearchParams();
     if (next.search.trim()) params.set("search", next.search.trim());
+    if (next.category) params.set("category", next.category);
     if (next.status) params.set("status", next.status);
     if (next.page > 1) params.set("page", String(next.page));
 
@@ -118,8 +122,11 @@ export function ConversationSection({
     <>
       <ConversationFilters
         search={filters.search}
+        category={filters.category}
         status={filters.status}
+        categories={categories}
         onSearchChange={(value) => navigate({ search: value, page: 1 })}
+        onCategoryChange={(value) => navigate({ category: value, page: 1 })}
         onStatusChange={(value) => navigate({ status: value, page: 1 })}
       />
 
@@ -145,6 +152,7 @@ export function ConversationSection({
       {editingConversation && (
         <ConversationFormModal
           conversation={editingConversation}
+          categories={categories}
           defaultSequence={editingConversation.sequence}
           onClose={() => setEditingConversation(null)}
           onSaved={(message) => {

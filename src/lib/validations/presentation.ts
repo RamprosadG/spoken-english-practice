@@ -7,6 +7,7 @@ export const presentationInputSchema = z.object({
     .trim()
     .min(1, "Title is required.")
     .max(200, "Title cannot exceed 200 characters."),
+  categoryId: z.string().trim().min(1, "Category is required."),
   text: z
     .string()
     .trim()

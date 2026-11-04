@@ -10,6 +10,7 @@ import type {
   SentenceFilters as SentenceFiltersState,
   SentenceItem,
 } from "@/types/sentence";
+import type { CategoryOption } from "@/types/category";
 import { SentenceFilters } from "./SentenceFilters";
 import { SentenceFormModal } from "./SentenceFormModal";
 import { SentenceTable } from "./SentenceTable";
@@ -19,6 +20,7 @@ interface SentenceSectionProps {
   sentences: SentenceItem[];
   pagination: PaginationMeta | null;
   filters: SentenceFiltersState;
+  categories: CategoryOption[];
   isLoading?: boolean;
 }
 
@@ -26,6 +28,7 @@ export function SentenceSection({
   sentences,
   pagination,
   filters,
+  categories,
   isLoading = false,
 }: SentenceSectionProps) {
   const router = useRouter();
@@ -43,6 +46,7 @@ export function SentenceSection({
     const next = { ...filters, ...changes };
     const params = new URLSearchParams();
     if (next.search.trim()) params.set("search", next.search.trim());
+    if (next.category) params.set("category", next.category);
     if (next.status) params.set("status", next.status);
     if (next.page > 1) params.set("page", String(next.page));
 
@@ -103,8 +107,11 @@ export function SentenceSection({
     <>
       <SentenceFilters
         search={filters.search}
+        category={filters.category}
         status={filters.status}
+        categories={categories}
         onSearchChange={(value) => navigate({ search: value, page: 1 })}
+        onCategoryChange={(value) => navigate({ category: value, page: 1 })}
         onStatusChange={(value) => navigate({ status: value, page: 1 })}
       />
 
@@ -131,6 +138,7 @@ export function SentenceSection({
       {editingSentence && (
         <SentenceFormModal
           sentence={editingSentence}
+          categories={categories}
           defaultSequence={editingSentence.sequence}
           onClose={() => setEditingSentence(null)}
           onSaved={(message) => {

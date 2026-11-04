@@ -15,12 +15,19 @@ export function PresentationView({
   return (
     <>
       <PresentationHeader
-        actions={<PresentationActions nextSequence={data.nextSequence} />}
+        actions={
+          <PresentationActions
+            nextSequence={data.nextSequence}
+            categories={data.categories}
+            categoryRows={data.categoryRows}
+          />
+        }
       />
       <PresentationSection
         presentations={data.presentations}
         pagination={data.pagination}
         filters={data.filters}
+        categories={data.categories}
         isLoading={isLoading}
       />
     </>

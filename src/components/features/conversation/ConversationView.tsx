@@ -15,12 +15,19 @@ export function ConversationView({
   return (
     <>
       <ConversationHeader
-        actions={<ConversationActions nextSequence={data.nextSequence} />}
+        actions={
+          <ConversationActions
+            nextSequence={data.nextSequence}
+            categories={data.categories}
+            categoryRows={data.categoryRows}
+          />
+        }
       />
       <ConversationSection
         conversations={data.conversations}
         pagination={data.pagination}
         filters={data.filters}
+        categories={data.categories}
         isLoading={isLoading}
       />
     </>

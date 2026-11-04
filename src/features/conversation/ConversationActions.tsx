@@ -6,14 +6,20 @@ import { FiPlus } from "react-icons/fi";
 import { showSuccessAlert } from "@/components/ui/alerts/Alerts";
 import Button from "@/components/ui/buttons/Button";
 import { useAuth } from "@/features/auth/AuthProvider";
+import { CategoryManageButton } from "@/features/category/CategoryManageButton";
+import type { CategoryOption, CategoryRow } from "@/types/category";
 import { ConversationFormModal } from "./ConversationFormModal";
 
 interface ConversationActionsProps {
   nextSequence: number;
+  categories: CategoryOption[];
+  categoryRows: CategoryRow[];
 }
 
 export function ConversationActions({
   nextSequence,
+  categories,
+  categoryRows,
 }: ConversationActionsProps) {
   const router = useRouter();
   const { user } = useAuth();
@@ -34,9 +40,12 @@ export function ConversationActions({
         New conversation
       </Button>
 
+      <CategoryManageButton kind="conversation" categories={categoryRows} />
+
       {isCreateOpen && (
         <ConversationFormModal
           conversation={null}
+          categories={categories}
           defaultSequence={nextSequence}
           onClose={() => setIsCreateOpen(false)}
           onSaved={(message) => {

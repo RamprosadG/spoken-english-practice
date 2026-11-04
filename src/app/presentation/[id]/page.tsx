@@ -2,6 +2,7 @@ import { connection } from "next/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FiArrowLeft } from "react-icons/fi";
+import Badge from "@/components/ui/badges/Badge";
 import { PresentationPracticeNav } from "@/components/features/presentation/PresentationPracticeNav";
 import { PresentationPracticeWorkspace } from "@/features/presentation/PresentationPracticeWorkspace";
 import { getPresentationWithNavigation } from "@/server/services/presentation.service";
@@ -42,9 +43,14 @@ export default async function PresentationPracticePage({
       </div>
 
       <header className="border-b border-slate-200 pb-5">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl max-sm:text-lg">
-          {presentation.title}
-        </h1>
+        <div className="flex flex-wrap items-center gap-2">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl max-sm:text-lg">
+            {presentation.title}
+          </h1>
+          <Badge variant="neutral" size="sm">
+            {presentation.categoryName}
+          </Badge>
+        </div>
         <p className="mt-1 text-sm text-slate-500">
           Listen, imitate, repeat: follow the IPA, shadow the speaker&apos;s
           stress and intonation, and revisit this passage daily until the words

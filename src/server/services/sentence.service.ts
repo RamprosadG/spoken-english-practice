@@ -8,8 +8,14 @@ import {
   findSentenceById,
   findSentencePage,
   updateSentence as updateSentenceRecord,
+  type SentenceSelected,
 } from "@/server/repositories/sentence.repository";
 import { canViewUnpublishedContent, requireAdminUser } from "@/server/services/auth.service";
+import {
+  getCategoryOptions,
+  getManagedCategories,
+  requireCategory,
+} from "@/server/services/category.service";
 import type {
   SentenceFilterParams,
   SentencePageResult,
@@ -18,23 +24,15 @@ import type { SentenceItem } from "@/types/sentence";
 
 export const SENTENCE_PAGE_SIZE = 20;
 
-interface SentenceRecord {
-  id: string;
-  text: string;
-  meaning: string;
-  sequence: number;
-  isPublished: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-function toSentenceItem(sentence: SentenceRecord): SentenceItem {
+function toSentenceItem(sentence: SentenceSelected): SentenceItem {
   return {
     id: sentence.id,
     text: sentence.text,
     meaning: sentence.meaning,
     sequence: sentence.sequence,
     isPublished: sentence.isPublished,
+    categoryId: sentence.categoryId,
+    categoryName: sentence.category.name,
     createdAt: sentence.createdAt.toISOString(),
     updatedAt: sentence.updatedAt.toISOString(),
   };
@@ -49,22 +47,29 @@ export async function listSentences(
   // Drafts are an admin-only view, and the gate runs inside the SQL query.
   const canViewUnpublished = await canViewUnpublishedContent();
 
-  const [list, nextSequence] = await Promise.all([
+  const [list, nextSequence, categories, categoryRows] = await Promise.all([
     findSentencePage({
       ...query,
       canViewUnpublished,
       search: query.search?.trim() || undefined,
+      categoryId: query.categoryId?.trim() || undefined,
     }),
     findNextSentenceSequence(),
+    getCategoryOptions("sentence"),
+    // Usage counts cover drafts, so only an admin is given the management rows.
+    canViewUnpublished
+      ? getManagedCategories("sentence")
+      : Promise.resolve([]),
   ]);
 
-  return { ...list, nextSequence };
+  return { ...list, nextSequence, categories, categoryRows };
 }
 
 export async function createSentence(
   input: SentenceInput,
 ): Promise<SentenceItem> {
   await requireAdminUser();
+  await requireCategory("sentence", input.categoryId);
 
   try {
     const sentence = await createSentenceRecord(input);
@@ -82,6 +87,7 @@ export async function updateSentence(
   input: SentenceInput,
 ): Promise<SentenceItem> {
   await requireAdminUser();
+  await requireCategory("sentence", input.categoryId);
 
   const existing = await findSentenceById(id);
   if (!existing) {

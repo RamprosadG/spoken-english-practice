@@ -12,6 +12,7 @@ import type {
 interface PresentationWriteData {
   title: string;
   text: string;
+  categoryId: string;
   sequence: number;
   isPublished: boolean;
 }
@@ -21,9 +22,26 @@ interface PresentationCursor {
   createdAt: Date;
 }
 
+/** Every read that reaches the browser carries the category name with it. */
+const PRESENTATION_SELECT = {
+  id: true,
+  title: true,
+  text: true,
+  sequence: true,
+  isPublished: true,
+  categoryId: true,
+  createdAt: true,
+  updatedAt: true,
+  category: { select: { name: true } },
+} as const;
+
+export type PresentationSelected = Prisma.PresentationGetPayload<{
+  select: typeof PRESENTATION_SELECT;
+}>;
+
 /**
- * Title search and pagination run in PostgreSQL; only the requested page of
- * rows is fetched.
+ * Title search, category filter and pagination run in PostgreSQL; only the
+ * requested page of rows is fetched.
  */
 export async function findPresentationPage(
   filters: PresentationFilterParams
@@ -36,6 +54,10 @@ export async function findPresentationPage(
     where.title = { contains: filters.search, mode: "insensitive" };
   }
 
+  if (filters.categoryId) {
+    where.categoryId = filters.categoryId;
+  }
+
   const pageSize = filters.pageSize > 0 ? filters.pageSize : DEFAULT_PAGE_SIZE;
   const total = await prisma.presentation.count({ where });
   const pagination = buildPaginationMeta(filters.page, pageSize, total);
@@ -44,6 +66,7 @@ export async function findPresentationPage(
   const presentations = await prisma.presentation.findMany({
     where,
     orderBy: [{ sequence: "asc" }, { createdAt: "asc" }],
+    select: PRESENTATION_SELECT,
     skip,
     take: pageSize,
   });
@@ -54,6 +77,8 @@ export async function findPresentationPage(
     text: presentation.text,
     sequence: presentation.sequence,
     isPublished: presentation.isPublished,
+    categoryId: presentation.categoryId,
+    categoryName: presentation.category.name,
     createdAt: presentation.createdAt.toISOString(),
     updatedAt: presentation.updatedAt.toISOString(),
   }));
@@ -71,7 +96,10 @@ export async function findNextPresentationSequence(): Promise<number> {
 }
 
 export function findPresentationById(id: string) {
-  return prisma.presentation.findUnique({ where: { id } });
+  return prisma.presentation.findUnique({
+    where: { id },
+    select: PRESENTATION_SELECT,
+  });
 }
 
 /**
@@ -119,11 +147,15 @@ export function countPresentations() {
 }
 
 export function createPresentation(data: PresentationWriteData) {
-  return prisma.presentation.create({ data });
+  return prisma.presentation.create({ data, select: PRESENTATION_SELECT });
 }
 
 export function updatePresentation(id: string, data: PresentationWriteData) {
-  return prisma.presentation.update({ where: { id }, data });
+  return prisma.presentation.update({
+    where: { id },
+    data,
+    select: PRESENTATION_SELECT,
+  });
 }
 
 export function deletePresentation(id: string) {

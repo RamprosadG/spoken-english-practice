@@ -11,6 +11,7 @@ import {
   HiOutlineBookOpen,
   HiOutlineMicrophone,
   HiOutlineUserGroup,
+  HiOutlineVolumeUp,
 } from "react-icons/hi";
 import { IconType } from "react-icons";
 
@@ -26,6 +27,7 @@ const navItems: NavItem[] = [
   { name: "Common sentences", href: "/sentences", icon: HiOutlineChatAlt2 },
   { name: "Regular conversation", href: "/conversations", icon: HiOutlineUserGroup },
   { name: "Daily Presentations", href: "/presentation", icon: HiOutlinePresentationChartBar },
+  { name: "Listening practice", href: "/listenings", icon: HiOutlineVolumeUp },
   { name: "Live practice", href: "/practice", icon: HiOutlineMicrophone },
 ];
 

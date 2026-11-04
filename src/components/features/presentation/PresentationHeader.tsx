@@ -17,7 +17,7 @@ export function PresentationHeader({ actions }: PresentationHeaderProps) {
           becomes automatic.
         </p>
       </div>
-      <div className="flex items-center gap-3 shrink-0 max-sm:w-full">
+      <div className="flex flex-wrap items-center gap-3 shrink-0 max-sm:w-full">
         {actions}
       </div>
     </div>

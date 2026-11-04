@@ -10,6 +10,7 @@ import type {
   PresentationFilters as PresentationFiltersState,
   PresentationItem,
 } from "@/types/presentation";
+import type { CategoryOption } from "@/types/category";
 import { PresentationFilters } from "./PresentationFilters";
 import { PresentationFormModal } from "./PresentationFormModal";
 import { PresentationTable } from "./PresentationTable";
@@ -19,6 +20,7 @@ interface PresentationSectionProps {
   presentations: PresentationItem[];
   pagination: PaginationMeta | null;
   filters: PresentationFiltersState;
+  categories: CategoryOption[];
   isLoading?: boolean;
 }
 
@@ -26,6 +28,7 @@ export function PresentationSection({
   presentations,
   pagination,
   filters,
+  categories,
   isLoading = false,
 }: PresentationSectionProps) {
   const router = useRouter();
@@ -44,6 +47,7 @@ export function PresentationSection({
     const next = { ...filters, ...changes };
     const params = new URLSearchParams();
     if (next.search.trim()) params.set("search", next.search.trim());
+    if (next.category) params.set("category", next.category);
     if (next.status) params.set("status", next.status);
     if (next.page > 1) params.set("page", String(next.page));
 
@@ -94,8 +98,11 @@ export function PresentationSection({
     <>
       <PresentationFilters
         search={filters.search}
+        category={filters.category}
         status={filters.status}
+        categories={categories}
         onSearchChange={(value) => navigate({ search: value, page: 1 })}
+        onCategoryChange={(value) => navigate({ category: value, page: 1 })}
         onStatusChange={(value) => navigate({ status: value, page: 1 })}
       />
 
@@ -120,6 +127,7 @@ export function PresentationSection({
       {editingPresentation && (
         <PresentationFormModal
           presentation={editingPresentation}
+          categories={categories}
           defaultSequence={editingPresentation.sequence}
           onClose={() => setEditingPresentation(null)}
           onSaved={(message) => {

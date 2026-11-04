@@ -7,16 +7,19 @@ import Button from "@/components/ui/buttons/Button";
 import Dropdown from "@/components/ui/dropdowns/Dropdown";
 import Input from "@/components/ui/inputs/Input";
 import Modal from "@/components/ui/modals/Modal";
+import { buildCategoryFormOptions } from "@/lib/categories";
 import {
   PUBLICATION_FORM_OPTIONS,
   isPublishedFromStatus,
   publicationStatusValue,
 } from "@/lib/publishing";
+import type { CategoryOption } from "@/types/category";
 import type { PresentationItem } from "@/types/presentation";
 import { presentationRequest } from "./presentation-client";
 
 interface PresentationFormModalProps {
   presentation: PresentationItem | null;
+  categories: CategoryOption[];
   defaultSequence: number;
   onClose: () => void;
   onSaved: (message: string) => void;
@@ -25,11 +28,13 @@ interface PresentationFormModalProps {
 interface FormErrors {
   title?: string;
   text?: string;
+  category?: string;
   sequence?: string;
 }
 
 export function PresentationFormModal({
   presentation,
+  categories,
   defaultSequence,
   onClose,
   onSaved,
@@ -37,6 +42,9 @@ export function PresentationFormModal({
   const isEditing = Boolean(presentation);
   const [title, setTitle] = useState(presentation?.title ?? "");
   const [text, setText] = useState(presentation?.text ?? "");
+  const [categoryId, setCategoryId] = useState(
+    presentation?.categoryId ?? categories[0]?.id ?? "",
+  );
   const [sequence, setSequence] = useState(
     String(presentation?.sequence ?? defaultSequence),
   );
@@ -56,6 +64,10 @@ export function PresentationFormModal({
 
     if (!text.trim()) {
       nextErrors.text = "Text is required.";
+    }
+
+    if (!categoryId) {
+      nextErrors.category = "Choose a category.";
     }
 
     const parsedSequence = Number(sequence);
@@ -84,6 +96,7 @@ export function PresentationFormModal({
         body: JSON.stringify({
           title: title.trim(),
           text: text.trim(),
+          categoryId,
           sequence: Number(sequence),
           isPublished: isPublishedFromStatus(status),
         }),
@@ -181,6 +194,23 @@ export function PresentationFormModal({
             </span>
           )}
         </div>
+
+        <Dropdown
+          label="Category"
+          id="presentation-category"
+          name="categoryId"
+          options={buildCategoryFormOptions(categories)}
+          value={categoryId}
+          error={errors.category}
+          onChange={(value) => {
+            setCategoryId(value);
+            if (errors.category) {
+              setErrors((current) => ({ ...current, category: undefined }));
+            }
+            if (apiError) setApiError("");
+          }}
+          required
+        />
 
         <Dropdown
           label="Status"

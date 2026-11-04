@@ -1,4 +1,5 @@
 import type { PaginationMeta } from "@/server/types/pagination";
+import type { CategoryOption, CategoryRow } from "@/server/types/category";
 
 export interface PresentationItem {
   id: string;
@@ -6,12 +7,15 @@ export interface PresentationItem {
   text: string;
   sequence: number;
   isPublished: boolean;
+  categoryId: string;
+  categoryName: string;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface PresentationFilters {
   search: string;
+  category: string;
   status: string;
   page: number;
 }
@@ -27,4 +31,6 @@ export interface PresentationListData {
   pagination: PaginationMeta | null;
   filters: PresentationFilters;
   nextSequence: number;
+  categories: CategoryOption[];
+  categoryRows: CategoryRow[];
 }

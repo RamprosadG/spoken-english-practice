@@ -7,6 +7,7 @@ export const sentenceInputSchema = z.object({
     .trim()
     .min(1, "Sentence text is required.")
     .max(1000, "Sentence text cannot exceed 1,000 characters."),
+  categoryId: z.string().trim().min(1, "Category is required."),
   meaning: z
     .string()
     .trim()
