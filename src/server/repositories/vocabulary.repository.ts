@@ -1,6 +1,8 @@
 import prisma from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
+import { publicationWhere } from "@/lib/publishing";
 import { DEFAULT_PAGE_SIZE, buildPaginationMeta } from "@/lib/utils";
+import type { VocabularyPartsOfSpeech } from "@/types/vocabulary";
 import type {
   VocabularyFilterParams,
   VocabularyListResult,
@@ -21,17 +23,22 @@ interface VocabularyWriteData {
   antonymSentence: string | null;
   antonymSentenceMeaning: string | null;
   sequence: number;
+  isPublished: boolean;
+  partsOfSpeech: VocabularyPartsOfSpeech;
 }
 
 /**
  * Search, the A-Z letter filter and pagination all run in PostgreSQL. The
  * search covers the word, synonym and antonym only; the letter filter applies
- * to the vocabulary word itself.
+ * to the vocabulary word itself. Unpublished rows never leave the database for
+ * a learner.
  */
 export async function findVocabularyPage(
   filters: VocabularyFilterParams
 ): Promise<VocabularyListResult> {
-  const where: Prisma.VocabularyWhereInput = {};
+  const where: Prisma.VocabularyWhereInput = {
+    ...publicationWhere(filters),
+  };
 
   if (filters.letter) {
     where.text = { startsWith: filters.letter, mode: "insensitive" };
@@ -72,6 +79,8 @@ export async function findVocabularyPage(
     antonymSentence: vocabulary.antonymSentence,
     antonymSentenceMeaning: vocabulary.antonymSentenceMeaning,
     sequence: vocabulary.sequence,
+    isPublished: vocabulary.isPublished,
+    partsOfSpeech: vocabulary.partsOfSpeech,
     createdAt: vocabulary.createdAt.toISOString(),
     updatedAt: vocabulary.updatedAt.toISOString(),
   }));

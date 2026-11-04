@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isPublishedInputSchema } from "@/lib/validations/publishing";
 
 export const CONVERSATION_LINE_MAX_LENGTH = 1000;
 export const CONVERSATION_MAX_LINES = 60;
@@ -38,6 +39,7 @@ export const conversationInputSchema = z.object({
     .int("Sequence must be a whole number.")
     .min(1, "Sequence must be at least 1.")
     .max(100000, "Sequence cannot exceed 100,000."),
+  isPublished: isPublishedInputSchema,
   // The array order is the turn order, so ids never travel to the server.
   lines: z
     .array(lineText)

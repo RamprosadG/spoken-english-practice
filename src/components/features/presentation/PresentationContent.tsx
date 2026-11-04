@@ -1,4 +1,5 @@
 import { connection } from "next/server";
+import { parsePublicationStatus } from "@/lib/publishing";
 import {
   PRESENTATION_PAGE_SIZE,
   listPresentations,
@@ -12,7 +13,7 @@ import { PresentationView } from "./PresentationView";
 const emptyData: PresentationListData = {
   presentations: [],
   pagination: null,
-  filters: { search: "", page: 1 },
+  filters: { search: "", status: "", page: 1 },
   nextSequence: 1,
 };
 
@@ -24,9 +25,11 @@ function readFilters(
   query: Record<string, string | string[] | undefined>,
 ): PresentationFilters {
   const rawPage = Number(Array.isArray(query.page) ? query.page[0] : query.page);
+  const rawStatus = Array.isArray(query.status) ? query.status[0] : query.status;
 
   return {
     search: typeof query.search === "string" ? query.search : "",
+    status: typeof rawStatus === "string" ? rawStatus : "",
     page: Number.isFinite(rawPage) && rawPage > 0 ? Math.floor(rawPage) : 1,
   };
 }
@@ -46,6 +49,7 @@ export async function PresentationContent({
 
   const list = await listPresentations({
     search: filters.search || undefined,
+    status: parsePublicationStatus(filters.status),
     page: filters.page,
     pageSize: PRESENTATION_PAGE_SIZE,
   });

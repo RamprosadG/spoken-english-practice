@@ -1,4 +1,5 @@
 import { connection } from "next/server";
+import { parsePublicationStatus } from "@/lib/publishing";
 import {
   VOCABULARY_PAGE_SIZE,
   listVocabulary,
@@ -12,7 +13,7 @@ import { VocabularyView } from "./VocabularyView";
 const emptyData: VocabularyListData = {
   vocabularies: [],
   pagination: null,
-  filters: { search: "", letter: "", page: 1 },
+  filters: { search: "", letter: "", status: "", page: 1 },
   nextSequence: 1,
 };
 
@@ -25,6 +26,7 @@ function readFilters(
 ): VocabularyFilters {
   const rawPage = Number(Array.isArray(query.page) ? query.page[0] : query.page);
   const rawLetter = Array.isArray(query.letter) ? query.letter[0] : query.letter;
+  const rawStatus = Array.isArray(query.status) ? query.status[0] : query.status;
   const letter =
     typeof rawLetter === "string" && /^[a-z]$/i.test(rawLetter)
       ? rawLetter.toUpperCase()
@@ -33,6 +35,7 @@ function readFilters(
   return {
     search: typeof query.search === "string" ? query.search : "",
     letter,
+    status: typeof rawStatus === "string" ? rawStatus : "",
     page: Number.isFinite(rawPage) && rawPage > 0 ? Math.floor(rawPage) : 1,
   };
 }
@@ -53,6 +56,7 @@ export async function VocabularyContent({
   const list = await listVocabulary({
     search: filters.search || undefined,
     letter: filters.letter || undefined,
+    status: parsePublicationStatus(filters.status),
     page: filters.page,
     pageSize: VOCABULARY_PAGE_SIZE,
   });

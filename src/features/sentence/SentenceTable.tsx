@@ -1,6 +1,7 @@
 "use client";
 
 import { FiChevronUp, FiEdit, FiPlayCircle, FiTrash2 } from "react-icons/fi";
+import Badge from "@/components/ui/badges/Badge";
 import { TableActionButton } from "@/components/ui/buttons/TableActionButton";
 import DataTable, { type Column } from "@/components/ui/tables/DataTable";
 import { useAuth } from "@/features/auth/AuthProvider";
@@ -36,9 +37,16 @@ export function SentenceTable({
       className: "whitespace-normal max-sm:px-2",
       render: (sentence) => (
         <div className="min-w-[140px] max-w-[260px] whitespace-normal break-words sm:max-w-md">
-          <p className="line-clamp-2 font-medium leading-6 text-slate-900">
-            {sentence.text}
-          </p>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <p className="line-clamp-2 font-medium leading-6 text-slate-900">
+              {sentence.text}
+            </p>
+            {canManage && !sentence.isPublished && (
+              <Badge variant="warning" size="sm">
+                Draft
+              </Badge>
+            )}
+          </div>
           <p
             lang="bn"
             className="mt-1 line-clamp-2 text-sm leading-6 text-slate-600"

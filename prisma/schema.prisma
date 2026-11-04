@@ -15,6 +15,17 @@ enum UserRole {
   public
 }
 
+enum PartsOfSpeech {
+  noun
+  verb
+  adjective
+  adverb
+  pronoun
+  preposition
+  conjunction
+  interjection
+}
+
 
 model User {
   id         String   @id @default(uuid())
@@ -47,10 +58,11 @@ model RefreshToken {
 }
 
 model Presentation {
-  id        String   @id @default(uuid())
-  title     String   @unique
-  text      String
-  sequence  Int
+  id          String  @id @default(uuid())
+  title       String  @unique
+  text        String
+  sequence    Int
+  isPublished Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -60,10 +72,11 @@ model Presentation {
 }
 
 model Sentence {
-  id        String   @id @default(uuid())
-  text      String   @unique
-  meaning   String
-  sequence  Int
+  id          String  @id @default(uuid())
+  text        String  @unique
+  meaning     String
+  sequence    Int
+  isPublished Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -79,6 +92,7 @@ model Conversation {
   speaker2    String
   description String
   sequence    Int
+  isPublished Boolean  @default(true)
 
   lines ConversationLine[]
 
@@ -104,8 +118,8 @@ model ConversationLine {
 }
 
 model Vocabulary {
-  id                     String   @id @default(uuid())
-  text                   String   @unique
+  id                     String        @id @default(uuid())
+  text                   String        @unique
   meaning                String
   sentence               String
   sentenceMeaning        String
@@ -118,6 +132,8 @@ model Vocabulary {
   antonymSentence        String?
   antonymSentenceMeaning String?
   sequence               Int
+  isPublished            Boolean       @default(true)
+  partsOfSpeech          PartsOfSpeech @default(noun)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isPublishedInputSchema } from "@/lib/validations/publishing";
 
 export const presentationInputSchema = z.object({
   title: z
@@ -16,6 +17,7 @@ export const presentationInputSchema = z.object({
     .int("Sequence must be a whole number.")
     .min(1, "Sequence must be at least 1.")
     .max(100000, "Sequence cannot exceed 100,000."),
+  isPublished: isPublishedInputSchema,
 });
 
 export type PresentationInput = z.infer<typeof presentationInputSchema>;

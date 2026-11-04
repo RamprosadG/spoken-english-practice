@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FiEdit, FiPlayCircle, FiTrash2 } from "react-icons/fi";
+import Badge from "@/components/ui/badges/Badge";
 import { TableActionButton } from "@/components/ui/buttons/TableActionButton";
 import DataTable, { type Column } from "@/components/ui/tables/DataTable";
 import { useAuth } from "@/features/auth/AuthProvider";
@@ -40,7 +41,14 @@ export function PresentationTable({
       className: "whitespace-normal",
       render: (presentation) => (
         <div className="max-w-[240px] whitespace-normal break-words sm:max-w-md">
-          <p className="font-semibold text-slate-900">{presentation.title}</p>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <p className="font-semibold text-slate-900">{presentation.title}</p>
+            {canManage && !presentation.isPublished && (
+              <Badge variant="warning" size="sm">
+                Draft
+              </Badge>
+            )}
+          </div>
           <p className="mt-1 text-xs text-slate-500">
             {truncateText(presentation.text)}
           </p>

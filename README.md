@@ -42,7 +42,7 @@ The application currently ships the shared application shell and its portal page
 
 Every page `<h1>` repeats its sidebar label, so the sidebar and the page heading always say the same thing; Home lists four of those destinations. Routes keep their original paths.
 
-Home is the landing page: a gradient hero with the two primary calls to action, four live totals (Learners, Important Vocabularies, Common sentences, Daily Presentations), and a card for each destination — vocabulary, sentences, presentations, practice. The hero prerenders while the totals stream from the database, so the route stays a partial prerender. **Regular conversation** is in the sidebar but deliberately not on Home yet: no conversation total and no conversation card. The top header shows **Login** and **Register** actions on the right; once signed in, they are replaced by a user menu with the account name, email, update profile and update password actions, complete-profile action when needed, and logout. Pages remain public — authentication changes the header controls, and only presentation, sentence, vocabulary, and conversation mutations are restricted to admins.
+Home is the landing page: a gradient hero with the two primary calls to action, four live totals (Learners, Important Vocabularies, Common sentences, Daily Presentations), and a card for each destination — vocabulary, sentences, presentations, practice. The hero prerenders while the totals stream from the database, so the route stays a partial prerender. Those totals stay unfiltered `COUNT`s of everything saved — drafts included — because Home is deliberately left alone; only the four library lists and their practice routes apply the published/draft rule. **Regular conversation** is in the sidebar but deliberately not on Home yet: no conversation total and no conversation card. The top header shows **Login** and **Register** actions on the right; once signed in, they are replaced by a user menu with the account name, email, update profile and update password actions, complete-profile action when needed, and logout. Pages remain public — authentication changes the header controls, and only presentation, sentence, vocabulary, and conversation mutations are restricted to admins.
 
 **What is already in place**
 
@@ -54,6 +54,7 @@ Home is the landing page: a gradient hero with the two primary calls to action, 
 - Shared footer.
 - Tailwind CSS v4 theme, custom scrollbars, and horizontal-overflow guard.
 - Prisma 7 schema with `User`, `RefreshToken`, `Presentation`, `Sentence`, `Vocabulary`, `Conversation`, and `ConversationLine` models, PostgreSQL datasource, Prisma client singleton, and a `.env` connection string.
+- Published/draft visibility on all four libraries: an admin sees every row and can filter or switch a row between **Published** and **Draft** from its modal, while a signed-in public user and a signed-out visitor only ever see published rows. Vocabulary rows additionally store a `partsOfSpeech` enum value (noun by default) that admins set from the word modal.
 - The reusable `components/ui` primitive library, ready for use by upcoming features.
 - A Home landing page with a gradient hero, four live totals (learners, presentations, sentences, vocabulary), and cards that link into every practice area.
 - A Presentation library with a server-rendered, searchable, paginated table; admin-only create/update modals and delete confirmation; and a per-row **Practice now** link into the dynamic route.
@@ -150,15 +151,23 @@ The schema declares the authentication, presentation, sentence, vocabulary, and 
 
 - `User` — UUID id, unique email, optional bcrypt password, `admin` / `public` role, `isComplete`, and timestamps. Google-created users start with `isComplete: false` until they set a password.
 - `RefreshToken` — UUID id, unique SHA-256 hash of the refresh JWT, owning user (cascade delete), `used` / `usedAt` for rotation, and `expiresAt`.
-- `Presentation` — UUID id, unique title, practice text, integer `sequence`, and timestamps. The list index is the composite `(sequence, createdAt)`, so rows ordered by `sequence` ascending and then `createdAt` ascending are served without a sort.
-- `Sentence` — UUID id, unique English `text`, Bengali `meaning`, integer `sequence`, and timestamps, indexed on `(sequence, createdAt)`. Rows are ordered by `sequence` ascending and then `createdAt` ascending.
-- `Vocabulary` — UUID id, required and unique word `text`, Bengali `meaning`, example `sentence` and `sentenceMeaning`, nullable synonym fields (`synonymText`, `synonymMeaning`, `synonymSentence`, `synonymSentenceMeaning`), nullable antonym fields with the same shape, integer `sequence`, and timestamps, indexed on `(sequence, createdAt)`. Rows are ordered by `sequence` ascending and then `createdAt` ascending.
-- `Conversation` — UUID id, unique `title` (what the conversation is about), `speaker1` and `speaker2` (the two display names), `description`, integer `sequence`, and timestamps, indexed on `(sequence, createdAt)`.
+- `Presentation` — UUID id, unique title, practice text, integer `sequence`, `isPublished`, and timestamps. The list index is the composite `(sequence, createdAt)`, so rows ordered by `sequence` ascending and then `createdAt` ascending are served without a sort.
+- `Sentence` — UUID id, unique English `text`, Bengali `meaning`, integer `sequence`, `isPublished`, and timestamps, indexed on `(sequence, createdAt)`. Rows are ordered by `sequence` ascending and then `createdAt` ascending.
+- `Vocabulary` — UUID id, required and unique word `text`, Bengali `meaning`, example `sentence` and `sentenceMeaning`, nullable synonym fields (`synonymText`, `synonymMeaning`, `synonymSentence`, `synonymSentenceMeaning`), nullable antonym fields with the same shape, integer `sequence`, `isPublished`, a `partsOfSpeech` value from the `PartsOfSpeech` enum, and timestamps, indexed on `(sequence, createdAt)`. Rows are ordered by `sequence` ascending and then `createdAt` ascending.
+- `Conversation` — UUID id, unique `title` (what the conversation is about), `speaker1` and `speaker2` (the two display names), `description`, integer `sequence`, `isPublished`, and timestamps, indexed on `(sequence, createdAt)`.
 - `ConversationLine` — UUID id, `conversationId` (relation with `onDelete: Cascade`), turn `text`, integer `sequence`, and timestamps, indexed on `(conversationId, sequence)`. The line's speaker is **derived**, not stored: `sequence % 2 === 1` is speaker 1, otherwise speaker 2, so the turns always alternate.
 
 Uniqueness is exact-match: `text` and `title` are compared verbatim, so a case or whitespace variant is a separate row. Each create and update maps a Prisma `P2002` to a `409` with a learner-facing message, which the form modal renders inline.
 
-The migrations create the users and refresh tokens (`20261026161057_create_user_and_refresh_token_tables`), remove the unused profile-picture column (`20261026173014_remove_user_picture`), create the presentation table (`20261026193020_create_presentation_table`), create the sentence table (`20261027052508_create_sentence_table`), create the vocabulary table (`20261027062356_create_vocabulary_table`), and add the unique keys plus the composite list indexes while dropping the redundant single-column ones (`20261028103000_add_unique_keys_and_list_indexes`), and create the conversation and conversation_line tables with their cascade relation and indexes (`20261103205610_add_conversation_library`). After any schema change:
+### Publishing and part of speech
+
+Every library row carries `isPublished Boolean @default(true)`. An admin sees and edits both states; a signed-in public user and a signed-out visitor see published rows only — in the tables, in the detail and practice routes, and in the Previous/Next neighbour walks. `src/lib/publishing.ts` holds the single rule that turns a `{ status, canViewUnpublished }` view into a Prisma `where`, and it fails closed: without an admin role the predicate is `isPublished = true`, so a hand-typed `?status=draft` reveals nothing.
+
+`PartsOfSpeech` is a PostgreSQL enum with the eight school-standard values — `noun`, `verb`, `adjective`, `adverb`, `pronoun`, `preposition`, `conjunction`, `interjection` — and defaults to `noun`.
+
+The migration `20261104055301_add_publishing_and_parts_of_speech` is purely additive: one `CREATE TYPE` plus four `ALTER TABLE ... ADD COLUMN ... NOT NULL DEFAULT` statements. Every existing row was backfilled as published with part of speech `noun`, and nothing was rewritten or dropped. No index was added on `isPublished` — it is a two-value flag, and the repo only declares indexes the Prisma schema can express.
+
+The migrations create the users and refresh tokens (`20261026161057_create_user_and_refresh_token_tables`), remove the unused profile-picture column (`20261026173014_remove_user_picture`), create the presentation table (`20261026193020_create_presentation_table`), create the sentence table (`20261027052508_create_sentence_table`), create the vocabulary table (`20261027062356_create_vocabulary_table`), and add the unique keys plus the composite list indexes while dropping the redundant single-column ones (`20261028103000_add_unique_keys_and_list_indexes`), and create the conversation and conversation_line tables with their cascade relation and indexes (`20261103205610_add_conversation_library`), and add the publishing flag plus the part-of-speech enum (`20261104055301_add_publishing_and_parts_of_speech`). After any schema change:
 
 ```bash
 npx prisma generate
@@ -224,6 +233,7 @@ src/
 │   ├── validations/             # Zod request schemas
 │   ├── api-error.ts             # ApiError + shared route error formatting
 │   ├── prisma.ts                # PrismaClient singleton with @prisma/adapter-pg
+│   ├── publishing.ts            # Published/draft visibility rule, filter options, and status parsing
 │   └── utils.ts                 # Date, currency and pagination helpers
 ├── server/
 │   ├── repositories/            # Prisma data access for users, refresh tokens, presentations, sentences, vocabulary, and conversations
@@ -267,6 +277,7 @@ Pages are public: **no page route is guarded or redirected**. Signed-out visitor
 - **Access token** — HS512 JWT, 30 minutes, stored in the `accessToken` httpOnly cookie.
 - **Refresh token** — HS512 JWT, 7 days, stored in the `refreshToken` httpOnly cookie. Only its SHA-256 hash is persisted in `RefreshToken`.
 - **Rotation** — `resolveSessionUser` verifies the access token first; when it expires, the refresh token is validated against the database, rotated, and both cookies are reissued.
+- **Read-only role lookup** — `resolveSessionRole()` and `canViewUnpublishedContent()` in `src/server/services/auth.service.ts` read the same cookies but never rotate a token or write a `Set-Cookie`, which is what lets the library Server Components ask "is this an admin?" safely. Anything other than an admin — including a broken or expired token — resolves to no privilege, so the published-only rule fails closed.
 - **Reuse detection** — a refresh token used again after the 30-second grace period deletes all of that user's refresh tokens, invalidating every session.
 - **Cookie flags** — `httpOnly`; `sameSite=lax` in development and `secure` + `sameSite=none` in production.
 - **Passwords** — bcrypt with `HASH_SALT_ROUNDS` (default `10`); Google-only accounts have no password until they complete their profile.
@@ -323,11 +334,11 @@ While the client ID is empty the Google button renders disabled with a notice in
 ### Header, search, and table
 
 - The header combines the **Presentation** title, a subtitle, and the admin-only **New presentation** button.
-- A debounced search input filters on the presentation title. Search and page state live in URL search params (`search`, `page`), so the list stays server-rendered.
+- A debounced search input filters on the presentation title. Search, publication status, and page state live in URL search params (`search`, `status`, `page`), so the list stays server-rendered.
 - The table shows **title** with a text preview capped at 30 characters (a `...` suffix marks truncated text), and a **Practice now** link to `/presentation/[id]` for every row. Sequence is stored and used for ordering but is not displayed.
-- Admins additionally see per-row edit/delete icon buttons; the edit action uses the same `FiEdit` icon as the reference student page. Everyone else sees the list and practice links only.
+- Admins additionally see per-row edit/delete icon buttons and a `warning` **Draft** `Badge` beside the title of any unpublished row; a `Published` / `Draft` / `All statuses` dropdown appears in the filter bar for them alone. Everyone else sees the published list and practice links only.
 - The list shows 20 rows per page by default and renders the shared `Pagination` primitive with the total count.
-- Create and edit share `PresentationFormModal`. Its fields are title, text, and then sequence as the last input. It validates the fields and calls `POST /api/presentations` or `PATCH /api/presentations/:id`.
+- Create and edit share `PresentationFormModal`. Its fields are title, text, then a **Status** dropdown (`Published` / `Draft`, defaulting to Published), and sequence as the last input. It validates the fields and calls `POST /api/presentations` or `PATCH /api/presentations/:id`.
 - Delete asks for SweetAlert confirmation and calls `DELETE /api/presentations/:id`.
 - After a successful mutation the client calls `router.refresh()` so the server-rendered table immediately reflects the change.
 
@@ -335,29 +346,30 @@ While the client ID is empty the Google button renders disabled with a notice in
 
 - Presentation pages remain public. Authorization is enforced in `src/server/services/presentation.service.ts`, not only in the UI.
 - `requireAdminUser()` returns `401` when signed out and `403` for a `public` user. The create, update, and delete service methods all call it.
+- Reads resolve the role with `canViewUnpublishedContent()`, which only *reads* cookies — it never rotates a refresh token — so the Server Component may call it. Non-admins, including signed-out visitors, get the published rows.
 - UI gating uses `useAuth()` and `user?.role === "admin"`; hiding the controls is a convenience, not the security boundary.
 - The page does not call `resolveSessionUser()` because that can write refreshed cookies, which is not allowed in a Server Component.
 
 ### Data rules and API
 
-- Title: 1–200 characters and unique. Text: 1–20,000 characters. Sequence: integer from 1 to 100,000.
+- Title: 1–200 characters and unique. Text: 1–20,000 characters. Sequence: integer from 1 to 100,000. `isPublished` defaults to `true` when a payload omits it.
 - Sequence is not unique. Rows are ordered by `sequence` ascending, then `createdAt` ascending, which the composite index serves without a sort.
 - Saving a title another row already owns returns `409` with "A presentation with this title already exists."; editing a row while keeping its own title succeeds.
-- Search runs as a case-insensitive title `contains` inside the Prisma `where`; `count` plus `skip`/`take` paginates the result.
+- Search runs as a case-insensitive title `contains` and the status rule runs as an `isPublished` predicate, both inside the Prisma `where`; `count` plus `skip`/`take` paginates the result.
 - The form suggests the next sequence (`max(sequence) + 1`) from a server read, and admins can change it.
 
 | Method | Route | Access | Purpose |
 | :--- | :--- | :--- | :--- |
-| `GET` | `/api/presentations` | Public | List presentations with `search`, `page`, and `pageSize` (default 20) |
+| `GET` | `/api/presentations` | Public | List published presentations with `search`, `status`, `page`, and `pageSize` (default 20); an admin session also sees drafts |
 | `POST` | `/api/presentations` | Admin | Create a presentation |
-| `PATCH` | `/api/presentations/:id` | Admin | Update title, text, and sequence |
+| `PATCH` | `/api/presentations/:id` | Admin | Update title, text, sequence, and publication status |
 | `DELETE` | `/api/presentations/:id` | Admin | Delete a presentation |
 
 `GET` returns `{ success: true, data: { items, pagination, nextSequence } }`. Mutation handlers validate with `presentationInputSchema` and return the shared `{ success, message, data }` shape.
 
 ### Practice route
 
-`/presentation/[id]` reads one saved presentation on the server with `getPresentationById()`. It is a blocking route (`instant = false`) so an unknown id returns a real `404` instead of a streamed 200 status. The header shows a back link, the presentation title, and a short subtitle. `PresentationPracticeWorkspace` then displays the saved text in a read-only panel capped at `max-h-96` with vertical scrolling and preserved line breaks; the same accent, voice, speed, IPA, and speech controls as the Practice page sit underneath. The saved text is never edited or persisted from this page.
+`/presentation/[id]` reads one saved presentation on the server with `getPresentationById()`. It is a blocking route (`instant = false`) so an unknown id returns a real `404` instead of a streamed 200 status. A draft id returns the same `404` to anyone who is not an admin, and the **Previous** / **Next** walk skips drafts for those readers, so a private row can never be reached by stepping sideways. The header shows a back link, the presentation title, and a short subtitle. `PresentationPracticeWorkspace` then displays the saved text in a read-only panel capped at `max-h-96` with vertical scrolling and preserved line breaks; the same accent, voice, speed, IPA, and speech controls as the Practice page sit underneath. The saved text is never edited or persisted from this page.
 
 ---
 
@@ -368,12 +380,12 @@ While the client ID is empty the Google button renders disabled with a notice in
 ### Header, search, and table
 
 - The header combines the **Sentences** title, a subtitle, and the admin-only **New sentence** button.
-- A debounced search matches both the English sentence and the Bengali meaning. Search and page live in URL search params (`search`, `page`), so the list stays server-rendered.
-- The table shows the English sentence with the Bengali meaning beneath it (capped at two lines), a **Practice** / **Hide** toggle, and admin-only edit/delete actions. Sequence is not displayed.
+- A debounced search matches both the English sentence and the Bengali meaning. Search, publication status, and page live in URL search params (`search`, `status`, `page`), so the list stays server-rendered.
+- The table shows the English sentence with the Bengali meaning beneath it (capped at two lines), a **Practice** / **Hide** toggle, and admin-only edit/delete actions. Sequence is not displayed, and admins also see a `warning` **Draft** badge beside an unpublished sentence plus the `All statuses` dropdown in the filter bar.
 - The practice toggle carries `aria-expanded` and `aria-controls`. Only one row can be expanded: `SentenceSection` owns a single `expandedId`, so opening another row collapses the current one automatically, and changing the page or search clears it.
 - `DataTable` accepts `expandedRowId` and `renderExpandedRow`; the expanded panel renders in a full-width `colSpan` row directly beneath its sentence.
 - The list shows 20 rows per page by default and renders the shared `Pagination` primitive with the total count.
-- Create and edit share `SentenceFormModal` (English sentence, Bengali meaning, sequence) and call `POST /api/sentences` or `PATCH /api/sentences/:id`. Delete asks for SweetAlert confirmation and calls `DELETE /api/sentences/:id`. After a successful mutation the client calls `router.refresh()`.
+- Create and edit share `SentenceFormModal` (English sentence, Bengali meaning, **Status**, sequence) and call `POST /api/sentences` or `PATCH /api/sentences/:id`. Delete asks for SweetAlert confirmation and calls `DELETE /api/sentences/:id`. After a successful mutation the client calls `router.refresh()`.
 
 ### Inline practice panel
 
@@ -385,21 +397,22 @@ Because the panel lives inside a table row, the shared `Dropdown` renders its me
 
 - Sentence pages remain public; authorization is enforced in `src/server/services/sentence.service.ts`, not only in the UI.
 - `requireAdminUser()` returns `401` when signed out and `403` for a `public` user. Create, update, and delete all call it; UI gating with `useAuth()` is a convenience, not the security boundary.
+- Reads resolve the role with `canViewUnpublishedContent()`, which only reads cookies, so the Server Component may call it. Non-admins see published sentences only.
 - The page does not call `resolveSessionUser()` because that can write refreshed cookies, which is not allowed in a Server Component.
 
 ### Data rules
 
-- Text: 1–1000 characters (trimmed) and unique. Meaning: 1–1000 characters (trimmed). Sequence: integer from 1 to 100,000.
+- Text: 1–1000 characters (trimmed) and unique. Meaning: 1–1000 characters (trimmed). Sequence: integer from 1 to 100,000. `isPublished` defaults to `true` when a payload omits it.
 - Sequence is not unique. Rows are ordered by `sequence` ascending, then `createdAt` ascending, which the composite index serves without a sort.
 - Saving a text another row already owns returns `409` with "A sentence with this text already exists."; editing a row while keeping its own text succeeds.
-- Search runs as a case-insensitive `contains` over `text` **or** `meaning` inside the Prisma `where`; `count` plus `skip`/`take` paginates the result.
+- Search runs as a case-insensitive `contains` over `text` **or** `meaning`, and the status rule as an `isPublished` predicate, both inside the Prisma `where`; `count` plus `skip`/`take` paginates the result.
 - The form suggests the next sequence (`max(sequence) + 1`) from a server read, and admins can change it.
 
 | Method | Route | Access | Purpose |
 | :--- | :--- | :--- | :--- |
-| `GET` | `/api/sentences` | Public | List sentences with `search`, `page`, and `pageSize` (default 20) |
-| `POST` | `/api/sentences` | Admin | Create a sentence with text, meaning, and sequence |
-| `PATCH` | `/api/sentences/:id` | Admin | Update text, meaning, and sequence |
+| `GET` | `/api/sentences` | Public | List published sentences with `search`, `status`, `page`, and `pageSize` (default 20); an admin session also sees drafts |
+| `POST` | `/api/sentences` | Admin | Create a sentence with text, meaning, sequence, and status |
+| `PATCH` | `/api/sentences/:id` | Admin | Update text, meaning, sequence, and status |
 | `DELETE` | `/api/sentences/:id` | Admin | Delete a sentence |
 
 `GET` returns `{ success: true, data: { items, pagination, nextSequence } }`. Mutation handlers validate with `sentenceInputSchema` and return the shared `{ success, message, data }` shape; a missing record returns `404` with "Sentence is not found."
@@ -410,17 +423,17 @@ Because the panel lives inside a table row, the shared `Dropdown` renders its me
 
 `src/app/vocabulary/page.tsx` follows the same server-rendered composition as Sentences. `VocabularyContent` awaits `connection()`, reads the `search`, `letter`, and `page` search params, calls `listVocabulary()` directly, and passes the rows, pagination meta, filters, and next sequence to the view. Vocabulary has **no** detail route; the practice panel expands inside the table.
 
-Each vocabulary row stores a word, its Bengali meaning, an example sentence with its Bengali meaning, and an optional synonym group and optional antonym group. Every synonym/antonym field is optional, and a group only appears in the practice panel when its word is present.
+Each vocabulary row stores a word, its part of speech, its Bengali meaning, an example sentence with its Bengali meaning, and an optional synonym group and optional antonym group. Every synonym/antonym field is optional, and a group only appears in the practice panel when its word is present.
 
 ### Header, filters, and table
 
 - The header combines the **Vocabulary** title, a subtitle, and the admin-only **New word** button.
 - Search is debounced and applies **only** to the word, synonym, and antonym text — it never matches Bengali meanings or sentences.
 - An **A–Z dropdown** filters words by their first letter (`All letters` plus A–Z). The letter is normalized to a single uppercase character on the server, and search and letter filters combine.
-- Search, letter, and page state live in URL search params (`search`, `letter`, `page`), so the list stays server-rendered.
-- The table shows the word with its Bengali meaning beneath it (and a mobile-only IPA line), an **IPA** column for the word (hidden below `sm`), a **Practice** / **Hide** toggle, and admin-only edit/delete actions. Sequence is not displayed.
+- Search, letter, publication status, and page state live in URL search params (`search`, `letter`, `status`, `page`), so the list stays server-rendered. The status dropdown is admin-only.
+- The table shows the word with its Bengali meaning beneath it (and a mobile-only IPA line), the word's **part of speech** as a `neutral` badge under the word, an **IPA** column for the word (hidden below `sm`), a **Practice** / **Hide** toggle, and admin-only edit/delete actions. Sequence is not displayed, and admins also see a `warning` **Draft** badge beside an unpublished word.
 - Only one row can be expanded: `VocabularySection` owns a single `expandedId`, so opening another row collapses the current one, and changing the page or filters clears it. `DataTable` renders the panel in a full-width `colSpan` row.
-- Create and edit share `VocabularyFormModal`; required fields are the word, Bengali meaning, example sentence, example sentence meaning, and sequence, while the synonym and antonym groups are optional. Blank optional groups are submitted as `null`. Delete uses SweetAlert confirmation. After a successful mutation the client calls `router.refresh()`.
+- Create and edit share `VocabularyFormModal`; required fields are the word, Bengali meaning, example sentence, and example sentence meaning, while the synonym and antonym groups are optional. **Part of speech** (the eight-value dropdown, default `noun`) and **Status** (`Published` / `Draft`) sit directly above the sequence input. Blank optional groups are submitted as `null`. Delete uses SweetAlert confirmation. After a successful mutation the client calls `router.refresh()`.
 
 ### Inline practice panel
 
@@ -432,21 +445,23 @@ Every item is an entry card: the word, example sentence, synonym word, synonym s
 
 - Vocabulary pages remain public; authorization is enforced in `src/server/services/vocabulary.service.ts`, not only in the UI.
 - `requireAdminUser()` returns `401` when signed out and `403` for a `public` user. Create, update, and delete all call it; UI gating with `useAuth()` is a convenience, not the security boundary.
+- Reads resolve the role with `canViewUnpublishedContent()`, which only reads cookies, so the Server Component may call it. Non-admins see published words only.
 - The page does not call `resolveSessionUser()` because that can write refreshed cookies, which is not allowed in a Server Component.
 
 ### Data rules
 
 - Word: 1–100 characters and unique. Bengali meaning: 1–500. Example sentence and its Bengali meaning: 1–1000. Sequence: integer from 1 to 100,000.
+- `partsOfSpeech` is one of the eight `PartsOfSpeech` values and defaults to `noun` when a payload omits it; `isPublished` defaults to `true`.
 - Optional synonym and antonym fields accept missing or `null` values and are stored as `null` when blank. A synonym or antonym detail without its word is rejected.
 - Sequence is not unique. Rows are ordered by `sequence` ascending, then `createdAt` ascending, which the composite index serves without a sort.
-- Search runs as a case-insensitive `contains` over `text`, `synonymText`, **or** `antonymText` inside the Prisma `where`. The letter filter is a case-insensitive `startsWith` on `text`. `count` plus `skip`/`take` paginates the result.
+- Search runs as a case-insensitive `contains` over `text`, `synonymText`, **or** `antonymText` inside the Prisma `where`. The letter filter is a case-insensitive `startsWith` on `text`, and the status rule adds the `isPublished` predicate. `count` plus `skip`/`take` paginates the result.
 - Saving a word another row already owns returns `409` with "This vocabulary word is already saved."; editing a row while keeping its own word succeeds.
 - The form suggests the next sequence (`max(sequence) + 1`) from a server read, and admins can change it.
 
 | Method | Route | Access | Purpose |
 | :--- | :--- | :--- | :--- |
-| `GET` | `/api/vocabulary` | Public | List words with `search`, `letter`, `page`, and `pageSize` (default 20) |
-| `POST` | `/api/vocabulary` | Admin | Create a word with its meanings, examples, optional synonym/antonym, and sequence |
+| `GET` | `/api/vocabulary` | Public | List published words with `search`, `letter`, `status`, `page`, and `pageSize` (default 20); an admin session also sees drafts |
+| `POST` | `/api/vocabulary` | Admin | Create a word with its meanings, examples, optional synonym/antonym, sequence, part of speech, and status |
 | `PATCH` | `/api/vocabulary/:id` | Admin | Update any vocabulary field |
 | `DELETE` | `/api/vocabulary/:id` | Admin | Delete a vocabulary row |
 
@@ -461,13 +476,13 @@ Every item is an entry card: the word, example sentence, synonym word, synonym s
 ### Header, search, and table
 
 - The header states **Regular conversation** — the sidebar label — with a subtitle and the admin-only **New conversation** button.
-- A debounced search matches the title, the description, or either speaker name. Search and page live in URL search params (`search`, `page`), so the list stays server-rendered.
-- The table shows the **Conversation** (title plus a description preview capped at 60 characters with a `...` suffix) and the two **Speakers** as badges, so a learner can recognise a dialogue before opening it, then a **Practice** link to `/conversations/[id]` and admin-only edit/delete actions. The list query never loads the turns. Sequence is stored and ordered on but not displayed.
+- A debounced search matches the title, the description, or either speaker name. Search, publication status, and page live in URL search params (`search`, `status`, `page`), so the list stays server-rendered.
+- The table shows the **Conversation** (title plus a description preview capped at 60 characters with a `...` suffix) and the two **Speakers** as badges, so a learner can recognise a dialogue before opening it, then a **Practice** link to `/conversations/[id]` and admin-only edit/delete actions. The list query never loads the turns. Sequence is stored and ordered on but not displayed, and only admins see the `warning` **Draft** badge beside an unpublished title plus the `All statuses` dropdown.
 - Editing needs the turns, which the list does not carry, so `ConversationSection` awaits `GET /api/conversations/:id` before opening the modal. Delete asks for SweetAlert confirmation and warns that the turns go with it; every successful mutation calls `router.refresh()`.
 
 ### Turn editor with drag and drop
 
-`ConversationFormModal` collects the title, description, the two speaker names, and the turn list, with **Sequence** as the last field before the footer. The turn list is `ConversationLineSorter`, built on `@dnd-kit`:
+`ConversationFormModal` collects the title, description, the two speaker names, and the turn list, then a **Status** dropdown (`Published` / `Draft`) and **Sequence** as the last field before the footer. The turn list is `ConversationLineSorter`, built on `@dnd-kit`:
 
 - `DndContext` + `SortableContext` with the vertical strategy; each row is a drag handle, the speaker badge and turn label derived from its position, a textarea, and a remove action.
 - `PointerSensor` only starts a drag after 6 px of movement, so clicking into a textarea to edit a turn never picks the row up, and `KeyboardSensor` with `sortableKeyboardCoordinates` keeps the accessible path: focus the handle, press space, move with the arrows, press space again.
@@ -491,21 +506,22 @@ On save, the service writes the parent and its children inside one `prisma.$tran
 
 - Conversation pages remain public; authorization lives in `src/server/services/conversation.service.ts`.
 - `requireAdminUser()` returns `401` when signed out and `403` for a `public` user on create, update, and delete; UI gating with `useAuth()` is a convenience, not the security boundary.
+- Reads resolve the role with `canViewUnpublishedContent()`, which only reads cookies, so the Server Component may call it. A draft conversation reads as `404` for anyone who is not an admin — on the list, on `GET /api/conversations/:id`, on `/conversations/[id]`, and as a Previous/Next neighbour.
 - The page does not call `resolveSessionUser()` because that can write refreshed cookies, which is not allowed in a Server Component.
 
 ### Data rules
 
-- Title: 1–200 characters and unique. Speaker names: 1–60 each (trimmed). Description: 1–500. Each turn: 1–1000 characters, between 2 and 60 turns per conversation. Sequence: integer from 1 to 100,000.
+- Title: 1–200 characters and unique. Speaker names: 1–60 each (trimmed). Description: 1–500. Each turn: 1–1000 characters, between 2 and 60 turns per conversation. Sequence: integer from 1 to 100,000. `isPublished` defaults to `true` when a payload omits it.
 - Sequence is not unique; rows are ordered by `sequence` ascending, then `createdAt` ascending. A turn is ordered by its own `sequence` inside its conversation.
 - Saving a title another row already owns returns `409` with "A conversation with this title already exists."; editing a row under its own title succeeds. A missing record returns `404` with "Conversation is not found."
 - The form suggests the next sequence (`max(sequence) + 1`) from a server read, and admins can change it.
 
 | Method | Route | Access | Purpose |
 | :--- | :--- | :--- | :--- |
-| `GET` | `/api/conversations` | Public | List conversations with `search`, `page`, and `pageSize` (default 20) |
-| `GET` | `/api/conversations/:id` | Public | Read one conversation with its ordered turns |
-| `POST` | `/api/conversations` | Admin | Create a conversation and its turns |
-| `PATCH` | `/api/conversations/:id` | Admin | Update the conversation and replace its turn list |
+| `GET` | `/api/conversations` | Public | List published conversations with `search`, `status`, `page`, and `pageSize` (default 20); an admin session also sees drafts |
+| `GET` | `/api/conversations/:id` | Public | Read one published conversation with its ordered turns (drafts are admin-only) |
+| `POST` | `/api/conversations` | Admin | Create a conversation, its turns, and its publication status |
+| `PATCH` | `/api/conversations/:id` | Admin | Update the conversation, replace its turn list, and change its status |
 | `DELETE` | `/api/conversations/:id` | Admin | Delete a conversation and, by cascade, its turns |
 
 `GET` returns `{ success: true, data: { items, pagination, nextSequence } }`. Mutation handlers validate with `conversationInputSchema` and return the shared `{ success, message, data }` shape.

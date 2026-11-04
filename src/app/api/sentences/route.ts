@@ -1,6 +1,7 @@
 import { NextResponse, connection } from "next/server";
 import type { NextRequest } from "next/server";
 import { handleApiError } from "@/lib/api-error";
+import { parsePublicationStatus } from "@/lib/publishing";
 import { parsePagination } from "@/lib/utils";
 import { sentenceInputSchema } from "@/lib/validations/sentence";
 import {
@@ -20,6 +21,7 @@ export async function GET(request: NextRequest) {
     );
     const data = await listSentences({
       search: searchParams.get("search") || undefined,
+      status: parsePublicationStatus(searchParams.get("status") || undefined),
       page,
       pageSize,
     });

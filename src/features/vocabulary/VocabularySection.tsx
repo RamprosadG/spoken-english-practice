@@ -43,6 +43,7 @@ export function VocabularySection({
     const params = new URLSearchParams();
     if (next.search.trim()) params.set("search", next.search.trim());
     if (next.letter) params.set("letter", next.letter);
+    if (next.status) params.set("status", next.status);
     if (next.page > 1) params.set("page", String(next.page));
 
     const query = params.toString();
@@ -103,8 +104,10 @@ export function VocabularySection({
       <VocabularyFilters
         search={filters.search}
         letter={filters.letter}
+        status={filters.status}
         onSearchChange={(value) => navigate({ search: value, page: 1 })}
         onLetterChange={(value) => navigate({ letter: value, page: 1 })}
+        onStatusChange={(value) => navigate({ status: value, page: 1 })}
       />
 
       <VocabularyTable

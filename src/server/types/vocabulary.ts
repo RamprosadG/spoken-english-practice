@@ -1,6 +1,8 @@
+import type { PublicationView } from "@/lib/publishing";
+import type { VocabularyPartsOfSpeech } from "@/types/vocabulary";
 import type { PaginationMeta } from "./pagination";
 
-export interface VocabularyFilterParams {
+export interface VocabularyFilterParams extends PublicationView {
   search?: string;
   letter?: string;
   page: number;
@@ -22,6 +24,8 @@ export interface VocabularyRow {
   antonymSentence: string | null;
   antonymSentenceMeaning: string | null;
   sequence: number;
+  isPublished: boolean;
+  partsOfSpeech: VocabularyPartsOfSpeech;
   createdAt: string;
   updatedAt: string;
 }

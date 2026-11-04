@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
+import { publicationWhere, type PublicationView } from "@/lib/publishing";
 import { DEFAULT_PAGE_SIZE, buildPaginationMeta } from "@/lib/utils";
 import type {
   PresentationFilterParams,
@@ -12,6 +13,7 @@ interface PresentationWriteData {
   title: string;
   text: string;
   sequence: number;
+  isPublished: boolean;
 }
 
 interface PresentationCursor {
@@ -26,7 +28,9 @@ interface PresentationCursor {
 export async function findPresentationPage(
   filters: PresentationFilterParams
 ): Promise<PresentationListResult> {
-  const where: Prisma.PresentationWhereInput = {};
+  const where: Prisma.PresentationWhereInput = {
+    ...publicationWhere(filters),
+  };
 
   if (filters.search) {
     where.title = { contains: filters.search, mode: "insensitive" };
@@ -49,6 +53,7 @@ export async function findPresentationPage(
     title: presentation.title,
     text: presentation.text,
     sequence: presentation.sequence,
+    isPublished: presentation.isPublished,
     createdAt: presentation.createdAt.toISOString(),
     updatedAt: presentation.updatedAt.toISOString(),
   }));
@@ -71,14 +76,17 @@ export function findPresentationById(id: string) {
 
 /**
  * Neighbours are the closest rows on each side of this cursor in the list
- * order (sequence, then createdAt), so the walk matches the library table.
+ * order (sequence, then createdAt), so the walk matches the library table and
+ * never steps a learner into a draft.
  */
 export async function findPresentationNeighbors(
-  cursor: PresentationCursor
+  cursor: PresentationCursor,
+  view: PublicationView,
 ): Promise<PresentationNeighbors> {
   const [previous, next] = await Promise.all([
     prisma.presentation.findFirst({
       where: {
+        ...publicationWhere(view),
         OR: [
           { sequence: { lt: cursor.sequence } },
           { sequence: cursor.sequence, createdAt: { lt: cursor.createdAt } },
@@ -89,6 +97,7 @@ export async function findPresentationNeighbors(
     }),
     prisma.presentation.findFirst({
       where: {
+        ...publicationWhere(view),
         OR: [
           { sequence: { gt: cursor.sequence } },
           { sequence: cursor.sequence, createdAt: { gt: cursor.createdAt } },

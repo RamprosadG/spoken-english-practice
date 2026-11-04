@@ -1,6 +1,7 @@
+import type { PublicationView } from "@/lib/publishing";
 import type { PaginationMeta } from "./pagination";
 
-export interface ConversationFilterParams {
+export interface ConversationFilterParams extends PublicationView {
   search?: string;
   page: number;
   pageSize: number;
@@ -13,6 +14,7 @@ export interface ConversationRow {
   speaker2: string;
   description: string;
   sequence: number;
+  isPublished: boolean;
   createdAt: string;
   updatedAt: string;
 }

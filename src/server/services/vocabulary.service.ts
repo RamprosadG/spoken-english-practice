@@ -9,12 +9,15 @@ import {
   findVocabularyPage,
   updateVocabulary as updateVocabularyRecord,
 } from "@/server/repositories/vocabulary.repository";
-import { requireAdminUser } from "@/server/services/auth.service";
+import { canViewUnpublishedContent, requireAdminUser } from "@/server/services/auth.service";
 import type {
   VocabularyFilterParams,
   VocabularyPageResult,
 } from "@/server/types/vocabulary";
-import type { VocabularyItem } from "@/types/vocabulary";
+import type {
+  VocabularyItem,
+  VocabularyPartsOfSpeech,
+} from "@/types/vocabulary";
 
 export const VOCABULARY_PAGE_SIZE = 20;
 
@@ -33,6 +36,8 @@ interface VocabularyRecord {
   antonymSentence: string | null;
   antonymSentenceMeaning: string | null;
   sequence: number;
+  isPublished: boolean;
+  partsOfSpeech: VocabularyPartsOfSpeech;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -53,6 +58,8 @@ function toVocabularyItem(vocabulary: VocabularyRecord): VocabularyItem {
     antonymSentence: vocabulary.antonymSentence,
     antonymSentenceMeaning: vocabulary.antonymSentenceMeaning,
     sequence: vocabulary.sequence,
+    isPublished: vocabulary.isPublished,
+    partsOfSpeech: vocabulary.partsOfSpeech,
     createdAt: vocabulary.createdAt.toISOString(),
     updatedAt: vocabulary.updatedAt.toISOString(),
   };
@@ -64,11 +71,15 @@ export async function listVocabulary(
   // The library changes with every saved record, so never prerender this.
   await connection();
 
+  // Drafts are an admin-only view, and the gate runs inside the SQL query.
+  const canViewUnpublished = await canViewUnpublishedContent();
+
   const letter = query.letter?.trim().toUpperCase();
 
   const [list, nextSequence] = await Promise.all([
     findVocabularyPage({
       ...query,
+      canViewUnpublished,
       search: query.search?.trim() || undefined,
       letter: letter && /^[A-Z]$/.test(letter) ? letter : undefined,
     }),

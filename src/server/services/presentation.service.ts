@@ -10,7 +10,7 @@ import {
   findPresentationPage,
   updatePresentation as updatePresentationRecord,
 } from "@/server/repositories/presentation.repository";
-import { requireAdminUser } from "@/server/services/auth.service";
+import { requireAdminUser, canViewUnpublishedContent } from "@/server/services/auth.service";
 import type {
   PresentationFilterParams,
   PresentationPageResult,
@@ -27,6 +27,7 @@ interface PresentationRecord {
   title: string;
   text: string;
   sequence: number;
+  isPublished: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -39,6 +40,7 @@ function toPresentationItem(
     title: presentation.title,
     text: presentation.text,
     sequence: presentation.sequence,
+    isPublished: presentation.isPublished,
     createdAt: presentation.createdAt.toISOString(),
     updatedAt: presentation.updatedAt.toISOString(),
   };
@@ -50,9 +52,13 @@ export async function listPresentations(
   // The library changes with every saved record, so never prerender this.
   await connection();
 
+  // Drafts are an admin-only view, and the gate runs inside the SQL query.
+  const canViewUnpublished = await canViewUnpublishedContent();
+
   const [list, nextSequence] = await Promise.all([
     findPresentationPage({
       ...query,
+      canViewUnpublished,
       search: query.search?.trim() || undefined,
     }),
     findNextPresentationSequence(),
@@ -67,15 +73,24 @@ export async function getPresentationWithNavigation(
   // Neighbours move with every saved row, so never prerender this.
   await connection();
 
+  const canViewUnpublished = await canViewUnpublishedContent();
+
   const presentation = await findPresentationById(id);
   if (!presentation) {
     return null;
   }
 
-  const neighbors = await findPresentationNeighbors({
-    sequence: presentation.sequence,
-    createdAt: presentation.createdAt,
-  });
+  if (!canViewUnpublished && !presentation.isPublished) {
+    return null;
+  }
+
+  const neighbors = await findPresentationNeighbors(
+    {
+      sequence: presentation.sequence,
+      createdAt: presentation.createdAt,
+    },
+    { canViewUnpublished },
+  );
 
   return {
     presentation: toPresentationItem(presentation),

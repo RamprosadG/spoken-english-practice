@@ -1,6 +1,7 @@
+import type { PublicationView } from "@/lib/publishing";
 import type { PaginationMeta } from "./pagination";
 
-export interface SentenceFilterParams {
+export interface SentenceFilterParams extends PublicationView {
   search?: string;
   page: number;
   pageSize: number;
@@ -11,6 +12,7 @@ export interface SentenceRow {
   text: string;
   meaning: string;
   sequence: number;
+  isPublished: boolean;
   createdAt: string;
   updatedAt: string;
 }

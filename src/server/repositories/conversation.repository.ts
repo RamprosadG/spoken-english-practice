@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
+import { publicationWhere, type PublicationView } from "@/lib/publishing";
 import { DEFAULT_PAGE_SIZE, buildPaginationMeta } from "@/lib/utils";
 import type {
   ConversationFilterParams,
@@ -14,6 +15,7 @@ interface ConversationWriteData {
   speaker2: string;
   description: string;
   sequence: number;
+  isPublished: boolean;
   lines: string[];
 }
 
@@ -47,7 +49,9 @@ function toLineRows(lines: string[]) {
 export async function findConversationPage(
   filters: ConversationFilterParams,
 ): Promise<ConversationListResult> {
-  const where: Prisma.ConversationWhereInput = {};
+  const where: Prisma.ConversationWhereInput = {
+    ...publicationWhere(filters),
+  };
 
   if (filters.search) {
     where.OR = [
@@ -77,6 +81,7 @@ export async function findConversationPage(
     speaker2: conversation.speaker2,
     description: conversation.description,
     sequence: conversation.sequence,
+    isPublished: conversation.isPublished,
     createdAt: conversation.createdAt.toISOString(),
     updatedAt: conversation.updatedAt.toISOString(),
   }));
@@ -102,14 +107,17 @@ export function findConversationById(id: string) {
 
 /**
  * Neighbours are the closest rows on each side of this cursor in the list
- * order (sequence, then createdAt), so the walk matches the library table.
+ * order (sequence, then createdAt), so the walk matches the library table and
+ * never steps a learner into a draft.
  */
 export async function findConversationNeighbors(
   cursor: ConversationCursor,
+  view: PublicationView,
 ): Promise<ConversationNeighbors> {
   const [previous, next] = await Promise.all([
     prisma.conversation.findFirst({
       where: {
+        ...publicationWhere(view),
         OR: [
           { sequence: { lt: cursor.sequence } },
           { sequence: cursor.sequence, createdAt: { lt: cursor.createdAt } },
@@ -120,6 +128,7 @@ export async function findConversationNeighbors(
     }),
     prisma.conversation.findFirst({
       where: {
+        ...publicationWhere(view),
         OR: [
           { sequence: { gt: cursor.sequence } },
           { sequence: cursor.sequence, createdAt: { gt: cursor.createdAt } },
@@ -145,6 +154,7 @@ export function createConversation(data: ConversationWriteData) {
         speaker2: data.speaker2,
         description: data.description,
         sequence: data.sequence,
+        isPublished: data.isPublished,
         lines: { create: toLineRows(data.lines) },
       },
     });
@@ -170,6 +180,7 @@ export function updateConversation(id: string, data: ConversationWriteData) {
         speaker2: data.speaker2,
         description: data.description,
         sequence: data.sequence,
+        isPublished: data.isPublished,
         lines: {
           deleteMany: {},
           create: toLineRows(data.lines),

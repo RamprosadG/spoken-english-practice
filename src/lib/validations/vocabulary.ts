@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { PARTS_OF_SPEECH } from "@/types/vocabulary";
+import { isPublishedInputSchema } from "@/lib/validations/publishing";
 
 const requiredText = (label: string, max: number) =>
   z
@@ -36,6 +38,8 @@ export const vocabularyInputSchema = z.object({
     .int("Sequence must be a whole number.")
     .min(1, "Sequence must be at least 1.")
     .max(100000, "Sequence cannot exceed 100,000."),
+  isPublished: isPublishedInputSchema,
+  partsOfSpeech: z.enum(PARTS_OF_SPEECH).default("noun"),
 }).superRefine((data, ctx) => {
   if (
     !data.synonymText &&

@@ -44,7 +44,14 @@ export function ConversationTable({
       className: "whitespace-normal",
       render: (conversation) => (
         <div className="max-w-[240px] whitespace-normal break-words sm:max-w-md">
-          <p className="font-semibold text-slate-900">{conversation.title}</p>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <p className="font-semibold text-slate-900">{conversation.title}</p>
+            {canManage && !conversation.isPublished && (
+              <Badge variant="warning" size="sm">
+                Draft
+              </Badge>
+            )}
+          </div>
           <p className="mt-1 text-xs text-slate-500">
             {truncateDescription(conversation.description)}
           </p>

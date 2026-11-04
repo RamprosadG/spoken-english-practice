@@ -1,6 +1,7 @@
 "use client";
 
 import { FiChevronUp, FiEdit, FiPlayCircle, FiTrash2 } from "react-icons/fi";
+import Badge from "@/components/ui/badges/Badge";
 import { TableActionButton } from "@/components/ui/buttons/TableActionButton";
 import DataTable, { type Column } from "@/components/ui/tables/DataTable";
 import { useAuth } from "@/features/auth/AuthProvider";
@@ -40,6 +41,16 @@ export function VocabularyTable({
           <p className="line-clamp-2 font-semibold leading-6 text-slate-900">
             {vocabulary.text}
           </p>
+          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+            <Badge variant="neutral" size="sm">
+              {vocabulary.partsOfSpeech}
+            </Badge>
+            {canManage && !vocabulary.isPublished && (
+              <Badge variant="warning" size="sm">
+                Draft
+              </Badge>
+            )}
+          </div>
           <p
             lang="bn"
             className="mt-1 line-clamp-2 text-sm leading-6 text-slate-600"

@@ -43,6 +43,7 @@ export function SentenceSection({
     const next = { ...filters, ...changes };
     const params = new URLSearchParams();
     if (next.search.trim()) params.set("search", next.search.trim());
+    if (next.status) params.set("status", next.status);
     if (next.page > 1) params.set("page", String(next.page));
 
     const query = params.toString();
@@ -102,7 +103,9 @@ export function SentenceSection({
     <>
       <SentenceFilters
         search={filters.search}
+        status={filters.status}
         onSearchChange={(value) => navigate({ search: value, page: 1 })}
+        onStatusChange={(value) => navigate({ status: value, page: 1 })}
       />
 
       <SentenceTable

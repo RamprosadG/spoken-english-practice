@@ -4,8 +4,14 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { IoIosStar } from "react-icons/io";
 import Button from "@/components/ui/buttons/Button";
+import Dropdown from "@/components/ui/dropdowns/Dropdown";
 import Input from "@/components/ui/inputs/Input";
 import Modal from "@/components/ui/modals/Modal";
+import {
+  PUBLICATION_FORM_OPTIONS,
+  isPublishedFromStatus,
+  publicationStatusValue,
+} from "@/lib/publishing";
 import type { PresentationItem } from "@/types/presentation";
 import { presentationRequest } from "./presentation-client";
 
@@ -33,6 +39,9 @@ export function PresentationFormModal({
   const [text, setText] = useState(presentation?.text ?? "");
   const [sequence, setSequence] = useState(
     String(presentation?.sequence ?? defaultSequence),
+  );
+  const [status, setStatus] = useState(
+    publicationStatusValue(presentation?.isPublished ?? true),
   );
   const [errors, setErrors] = useState<FormErrors>({});
   const [apiError, setApiError] = useState("");
@@ -76,6 +85,7 @@ export function PresentationFormModal({
           title: title.trim(),
           text: text.trim(),
           sequence: Number(sequence),
+          isPublished: isPublishedFromStatus(status),
         }),
       });
 
@@ -171,6 +181,16 @@ export function PresentationFormModal({
             </span>
           )}
         </div>
+
+        <Dropdown
+          label="Status"
+          id="presentation-status"
+          name="isPublished"
+          options={PUBLICATION_FORM_OPTIONS}
+          value={status}
+          onChange={setStatus}
+          required
+        />
 
         <Input
           label="Sequence"

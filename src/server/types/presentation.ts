@@ -1,6 +1,7 @@
+import type { PublicationView } from "@/lib/publishing";
 import type { PaginationMeta } from "./pagination";
 
-export interface PresentationFilterParams {
+export interface PresentationFilterParams extends PublicationView {
   search?: string;
   page: number;
   pageSize: number;
@@ -11,6 +12,7 @@ export interface PresentationRow {
   title: string;
   text: string;
   sequence: number;
+  isPublished: boolean;
   createdAt: string;
   updatedAt: string;
 }

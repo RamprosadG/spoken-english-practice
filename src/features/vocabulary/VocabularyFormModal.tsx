@@ -4,9 +4,18 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { IoIosStar } from "react-icons/io";
 import Button from "@/components/ui/buttons/Button";
+import Dropdown from "@/components/ui/dropdowns/Dropdown";
 import Input from "@/components/ui/inputs/Input";
 import Modal from "@/components/ui/modals/Modal";
-import type { VocabularyItem } from "@/types/vocabulary";
+import {
+  PUBLICATION_FORM_OPTIONS,
+  isPublishedFromStatus,
+  publicationStatusValue,
+} from "@/lib/publishing";
+import {
+  PARTS_OF_SPEECH_OPTIONS,
+  type VocabularyItem,
+} from "@/types/vocabulary";
 import { vocabularyRequest } from "./vocabulary-client";
 
 interface VocabularyFormModalProps {
@@ -29,6 +38,8 @@ interface FormState {
   antonymMeaning: string;
   antonymSentence: string;
   antonymSentenceMeaning: string;
+  partsOfSpeech: string;
+  status: string;
   sequence: string;
 }
 
@@ -52,6 +63,8 @@ function buildInitialState(
     antonymMeaning: vocabulary?.antonymMeaning ?? "",
     antonymSentence: vocabulary?.antonymSentence ?? "",
     antonymSentenceMeaning: vocabulary?.antonymSentenceMeaning ?? "",
+    partsOfSpeech: vocabulary?.partsOfSpeech ?? "noun",
+    status: publicationStatusValue(vocabulary?.isPublished ?? true),
     sequence: String(vocabulary?.sequence ?? defaultSequence),
   };
 }
@@ -217,6 +230,8 @@ export function VocabularyFormModal({
           antonymSentenceMeaning:
             form.antonymSentenceMeaning.trim() || null,
           sequence: Number(form.sequence),
+          isPublished: isPublishedFromStatus(form.status),
+          partsOfSpeech: form.partsOfSpeech,
         }),
       });
 
@@ -422,6 +437,27 @@ export function VocabularyFormModal({
             />
           </div>
         </fieldset>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Dropdown
+            label="Part of speech"
+            id="vocabulary-parts-of-speech"
+            name="partsOfSpeech"
+            options={PARTS_OF_SPEECH_OPTIONS}
+            value={form.partsOfSpeech}
+            onChange={(value) => setField("partsOfSpeech", value)}
+            required
+          />
+          <Dropdown
+            label="Status"
+            id="vocabulary-status"
+            name="isPublished"
+            options={PUBLICATION_FORM_OPTIONS}
+            value={form.status}
+            onChange={(value) => setField("status", value)}
+            required
+          />
+        </div>
 
         <Input
           label="Sequence"

@@ -4,8 +4,14 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { IoIosStar } from "react-icons/io";
 import Button from "@/components/ui/buttons/Button";
+import Dropdown from "@/components/ui/dropdowns/Dropdown";
 import Input from "@/components/ui/inputs/Input";
 import Modal from "@/components/ui/modals/Modal";
+import {
+  PUBLICATION_FORM_OPTIONS,
+  isPublishedFromStatus,
+  publicationStatusValue,
+} from "@/lib/publishing";
 import type { SentenceItem } from "@/types/sentence";
 import { sentenceRequest } from "./sentence-client";
 
@@ -33,6 +39,9 @@ export function SentenceFormModal({
   const [meaning, setMeaning] = useState(sentence?.meaning ?? "");
   const [sequence, setSequence] = useState(
     String(sentence?.sequence ?? defaultSequence),
+  );
+  const [status, setStatus] = useState(
+    publicationStatusValue(sentence?.isPublished ?? true),
   );
   const [errors, setErrors] = useState<FormErrors>({});
   const [apiError, setApiError] = useState("");
@@ -76,6 +85,7 @@ export function SentenceFormModal({
           text: text.trim(),
           meaning: meaning.trim(),
           sequence: Number(sequence),
+          isPublished: isPublishedFromStatus(status),
         }),
       });
 
@@ -191,6 +201,16 @@ export function SentenceFormModal({
             </span>
           )}
         </div>
+
+        <Dropdown
+          label="Status"
+          id="sentence-status"
+          name="isPublished"
+          options={PUBLICATION_FORM_OPTIONS}
+          value={status}
+          onChange={setStatus}
+          required
+        />
 
         <Input
           label="Sequence"

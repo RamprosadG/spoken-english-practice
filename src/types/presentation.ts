@@ -5,12 +5,14 @@ export interface PresentationItem {
   title: string;
   text: string;
   sequence: number;
+  isPublished: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface PresentationFilters {
   search: string;
+  status: string;
   page: number;
 }
 

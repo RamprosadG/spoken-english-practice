@@ -11,7 +11,7 @@ import {
   updateConversation as updateConversationRecord,
   type ConversationWithLines,
 } from "@/server/repositories/conversation.repository";
-import { requireAdminUser } from "@/server/services/auth.service";
+import { canViewUnpublishedContent, requireAdminUser } from "@/server/services/auth.service";
 import type {
   ConversationFilterParams,
   ConversationPageResult,
@@ -49,6 +49,7 @@ function toConversationItem(conversation: ConversationWithLines): ConversationIt
     speaker2: conversation.speaker2,
     description: conversation.description,
     sequence: conversation.sequence,
+    isPublished: conversation.isPublished,
     createdAt: conversation.createdAt.toISOString(),
     updatedAt: conversation.updatedAt.toISOString(),
   };
@@ -69,9 +70,13 @@ export async function listConversations(
   // The library changes with every saved record, so never prerender this.
   await connection();
 
+  // Drafts are an admin-only view, and the gate runs inside the SQL query.
+  const canViewUnpublished = await canViewUnpublishedContent();
+
   const [list, nextSequence] = await Promise.all([
     findConversationPage({
       ...query,
+      canViewUnpublished,
       search: query.search?.trim() || undefined,
     }),
     findNextConversationSequence(),
@@ -90,6 +95,10 @@ export async function getConversationDetail(
     throw new ApiError(404, "Conversation is not found.");
   }
 
+  if (!(await canViewUnpublishedContent()) && !conversation.isPublished) {
+    throw new ApiError(404, "Conversation is not found.");
+  }
+
   return toConversationDetail(conversation);
 }
 
@@ -99,15 +108,24 @@ export async function getConversationWithNavigation(
   // Neighbours move with every saved row, so never prerender this.
   await connection();
 
+  const canViewUnpublished = await canViewUnpublishedContent();
+
   const conversation = await findConversationById(id);
   if (!conversation) {
     return null;
   }
 
-  const neighbors = await findConversationNeighbors({
-    sequence: conversation.sequence,
-    createdAt: conversation.createdAt,
-  });
+  if (!canViewUnpublished && !conversation.isPublished) {
+    return null;
+  }
+
+  const neighbors = await findConversationNeighbors(
+    {
+      sequence: conversation.sequence,
+      createdAt: conversation.createdAt,
+    },
+    { canViewUnpublished },
+  );
 
   return {
     conversation: toConversationDetail(conversation),
@@ -128,6 +146,7 @@ export async function createConversation(
       speaker2: input.speaker2,
       description: input.description,
       sequence: input.sequence,
+      isPublished: input.isPublished,
       lines: input.lines,
     });
 
@@ -158,6 +177,7 @@ export async function updateConversation(
       speaker2: input.speaker2,
       description: input.description,
       sequence: input.sequence,
+      isPublished: input.isPublished,
       lines: input.lines,
     });
 

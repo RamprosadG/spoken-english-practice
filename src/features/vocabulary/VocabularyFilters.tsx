@@ -2,6 +2,8 @@
 
 import Dropdown from "@/components/ui/dropdowns/Dropdown";
 import SearchInput from "@/components/ui/inputs/SearchInput";
+import { useAuth } from "@/features/auth/AuthProvider";
+import { PUBLICATION_FILTER_OPTIONS } from "@/lib/publishing";
 
 const LETTER_OPTIONS = [
   { value: "", label: "All letters" },
@@ -14,16 +16,22 @@ const LETTER_OPTIONS = [
 interface VocabularyFiltersProps {
   search: string;
   letter: string;
+  status: string;
   onSearchChange: (value: string) => void;
   onLetterChange: (value: string) => void;
+  onStatusChange: (value: string) => void;
 }
 
 export function VocabularyFilters({
   search,
   letter,
+  status,
   onSearchChange,
   onLetterChange,
+  onStatusChange,
 }: VocabularyFiltersProps) {
+  const { user } = useAuth();
+
   return (
     <div className="w-full flex flex-col md:flex-row mt-3 gap-4 items-stretch md:items-center">
       <div className="flex-1 w-full min-w-0">
@@ -41,6 +49,16 @@ export function VocabularyFilters({
           hideOptionalText
         />
       </div>
+      {user?.role === "admin" && (
+        <div className="w-full md:w-40 shrink-0">
+          <Dropdown
+            options={PUBLICATION_FILTER_OPTIONS}
+            value={status}
+            onChange={onStatusChange}
+            hideOptionalText
+          />
+        </div>
+      )}
     </div>
   );
 }

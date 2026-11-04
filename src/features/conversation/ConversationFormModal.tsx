@@ -4,8 +4,14 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { IoIosStar } from "react-icons/io";
 import Button from "@/components/ui/buttons/Button";
+import Dropdown from "@/components/ui/dropdowns/Dropdown";
 import Input from "@/components/ui/inputs/Input";
 import Modal from "@/components/ui/modals/Modal";
+import {
+  PUBLICATION_FORM_OPTIONS,
+  isPublishedFromStatus,
+  publicationStatusValue,
+} from "@/lib/publishing";
 import type { ConversationDetailItem } from "@/types/conversation";
 import {
   ConversationLineSorter,
@@ -58,6 +64,9 @@ export function ConversationFormModal({
   const [speaker2, setSpeaker2] = useState(conversation?.speaker2 ?? "");
   const [sequence, setSequence] = useState(
     String(conversation?.sequence ?? defaultSequence),
+  );
+  const [status, setStatus] = useState(
+    publicationStatusValue(conversation?.isPublished ?? true),
   );
   const [lines, setLines] = useState<ConversationLineDraft[]>(() =>
     buildInitialLines(conversation),
@@ -120,6 +129,7 @@ export function ConversationFormModal({
           speaker1: speaker1.trim(),
           speaker2: speaker2.trim(),
           sequence: Number(sequence),
+          isPublished: isPublishedFromStatus(status),
           lines: lines.map((line) => line.text.trim()),
         }),
       });
@@ -262,6 +272,16 @@ export function ConversationFormModal({
           speaker2={speaker2}
           errors={lineErrors}
           onChange={updateLines}
+        />
+
+        <Dropdown
+          label="Status"
+          id="conversation-status"
+          name="isPublished"
+          options={PUBLICATION_FORM_OPTIONS}
+          value={status}
+          onChange={setStatus}
+          required
         />
 
         <Input

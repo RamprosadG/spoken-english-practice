@@ -17,6 +17,7 @@ export interface ConversationItem {
   speaker2: string;
   description: string;
   sequence: number;
+  isPublished: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -27,6 +28,7 @@ export interface ConversationDetailItem extends ConversationItem {
 
 export interface ConversationFilters {
   search: string;
+  status: string;
   page: number;
 }
 

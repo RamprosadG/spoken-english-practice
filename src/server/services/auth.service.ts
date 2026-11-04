@@ -334,6 +334,55 @@ export async function resolveSessionUser(): Promise<AuthUser | null> {
   return toAuthUser(user);
 }
 
+/**
+ * Reads the signed-in role without touching the session: no rotation, no
+ * cookie writes, no clearing. Safe to call from a Server Component, unlike
+ * resolveSessionUser(), which can set cookies when it refreshes.
+ */
+export async function resolveSessionRole(): Promise<UserRole | null> {
+  const { accessToken, refreshToken } = await readAuthCookies();
+
+  if (accessToken) {
+    const userId = verifyAccessToken(accessToken);
+    if (userId) {
+      const user = await findUserById(userId);
+      if (user) {
+        return user.role;
+      }
+    }
+  }
+
+  if (!refreshToken) {
+    return null;
+  }
+
+  const userId = verifyRefreshToken(refreshToken);
+  if (!userId) {
+    return null;
+  }
+
+  const tokenRecord = await findRefreshTokenByHash(hashToken(refreshToken));
+  if (!tokenRecord || tokenRecord.userId !== userId) {
+    return null;
+  }
+
+  if (tokenRecord.expiresAt.getTime() <= Date.now()) {
+    return null;
+  }
+
+  if (isRefreshTokenReused(tokenRecord.used, tokenRecord.usedAt)) {
+    return null;
+  }
+
+  const user = await findUserById(userId);
+  return user?.role ?? null;
+}
+
+/** Admins see drafts too, so every library read asks for this. */
+export async function canViewUnpublishedContent(): Promise<boolean> {
+  return (await resolveSessionRole()) === "admin";
+}
+
 export async function requireSessionUser(): Promise<AuthUser> {
   const user = await resolveSessionUser();
   if (!user) {

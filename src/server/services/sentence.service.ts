@@ -9,7 +9,7 @@ import {
   findSentencePage,
   updateSentence as updateSentenceRecord,
 } from "@/server/repositories/sentence.repository";
-import { requireAdminUser } from "@/server/services/auth.service";
+import { canViewUnpublishedContent, requireAdminUser } from "@/server/services/auth.service";
 import type {
   SentenceFilterParams,
   SentencePageResult,
@@ -23,6 +23,7 @@ interface SentenceRecord {
   text: string;
   meaning: string;
   sequence: number;
+  isPublished: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -33,6 +34,7 @@ function toSentenceItem(sentence: SentenceRecord): SentenceItem {
     text: sentence.text,
     meaning: sentence.meaning,
     sequence: sentence.sequence,
+    isPublished: sentence.isPublished,
     createdAt: sentence.createdAt.toISOString(),
     updatedAt: sentence.updatedAt.toISOString(),
   };
@@ -44,9 +46,13 @@ export async function listSentences(
   // The library changes with every saved record, so never prerender this.
   await connection();
 
+  // Drafts are an admin-only view, and the gate runs inside the SQL query.
+  const canViewUnpublished = await canViewUnpublishedContent();
+
   const [list, nextSequence] = await Promise.all([
     findSentencePage({
       ...query,
+      canViewUnpublished,
       search: query.search?.trim() || undefined,
     }),
     findNextSentenceSequence(),

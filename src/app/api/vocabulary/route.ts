@@ -1,6 +1,7 @@
 import { NextResponse, connection } from "next/server";
 import type { NextRequest } from "next/server";
 import { handleApiError } from "@/lib/api-error";
+import { parsePublicationStatus } from "@/lib/publishing";
 import { parsePagination } from "@/lib/utils";
 import { vocabularyInputSchema } from "@/lib/validations/vocabulary";
 import {
@@ -21,6 +22,7 @@ export async function GET(request: NextRequest) {
     const data = await listVocabulary({
       search: searchParams.get("search") || undefined,
       letter: searchParams.get("letter") || undefined,
+      status: parsePublicationStatus(searchParams.get("status") || undefined),
       page,
       pageSize,
     });

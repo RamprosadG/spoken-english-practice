@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
+import { publicationWhere } from "@/lib/publishing";
 import { DEFAULT_PAGE_SIZE, buildPaginationMeta } from "@/lib/utils";
 import type {
   SentenceFilterParams,
@@ -11,16 +12,20 @@ interface SentenceWriteData {
   text: string;
   meaning: string;
   sequence: number;
+  isPublished: boolean;
 }
 
 /**
  * Search and pagination run in PostgreSQL; only the requested page of rows is
- * fetched. The search covers both the English sentence and its meaning.
+ * fetched. The search covers both the English sentence and its meaning, and
+ * unpublished rows are filtered out in the same statement.
  */
 export async function findSentencePage(
   filters: SentenceFilterParams
 ): Promise<SentenceListResult> {
-  const where: Prisma.SentenceWhereInput = {};
+  const where: Prisma.SentenceWhereInput = {
+    ...publicationWhere(filters),
+  };
 
   if (filters.search) {
     where.OR = [
@@ -46,6 +51,7 @@ export async function findSentencePage(
     text: sentence.text,
     meaning: sentence.meaning,
     sequence: sentence.sequence,
+    isPublished: sentence.isPublished,
     createdAt: sentence.createdAt.toISOString(),
     updatedAt: sentence.updatedAt.toISOString(),
   }));

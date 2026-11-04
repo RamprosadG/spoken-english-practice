@@ -5,12 +5,14 @@ export interface SentenceItem {
   text: string;
   meaning: string;
   sequence: number;
+  isPublished: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface SentenceFilters {
   search: string;
+  status: string;
   page: number;
 }
 
