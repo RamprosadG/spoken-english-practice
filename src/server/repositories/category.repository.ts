@@ -162,6 +162,22 @@ export async function countCategoryUsage(
   return prisma.listening.count({ where: { categoryId: id } });
 }
 
+export function countCategories(kind: CategoryKind): Promise<number> {
+  if (kind === "presentation") {
+    return prisma.presentationCategory.count();
+  }
+
+  if (kind === "sentence") {
+    return prisma.sentenceCategory.count();
+  }
+
+  if (kind === "conversation") {
+    return prisma.conversationCategory.count();
+  }
+
+  return prisma.listeningCategory.count();
+}
+
 function nextSequenceOf(latest: { sequence: number } | null): number {
   return (latest?.sequence ?? 0) + 1;
 }

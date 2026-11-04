@@ -112,6 +112,10 @@ export function findListeningById(id: string) {
   });
 }
 
+export function countListenings() {
+  return prisma.listening.count();
+}
+
 export function createListening(data: ListeningWriteData) {
   return prisma.$transaction(async (tx) => {
     const created = await tx.listening.create({

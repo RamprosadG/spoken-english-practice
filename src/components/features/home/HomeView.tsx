@@ -1,11 +1,14 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { FiArrowRight } from "react-icons/fi";
 import {
   HiOutlineBookOpen,
   HiOutlineChatAlt2,
   HiOutlineMicrophone,
   HiOutlinePresentationChartBar,
+  HiOutlineUserGroup,
   HiOutlineUsers,
+  HiOutlineVolumeUp,
 } from "react-icons/hi";
 import type { IconType } from "react-icons";
 import StatCard from "@/components/ui/stats/StatCard";
@@ -22,6 +25,8 @@ interface DestinationCard {
   tint: string;
 }
 
+// Both card lists follow the sidebar order so the home page reads the same way
+// as the navigation rail next to it.
 const destinations: DestinationCard[] = [
   {
     title: "Important Vocabularies",
@@ -42,6 +47,15 @@ const destinations: DestinationCard[] = [
     tint: "bg-sky-50 text-sky-600",
   },
   {
+    title: "Regular conversation",
+    href: "/conversations",
+    description:
+      "Two-speaker dialogues with a separate voice for each side, so you can rehearse a real exchange turn by turn.",
+    action: "Open conversations",
+    icon: HiOutlineUserGroup,
+    tint: "bg-teal-50 text-teal-600",
+  },
+  {
     title: "Daily Presentations",
     href: "/presentation",
     description:
@@ -49,6 +63,15 @@ const destinations: DestinationCard[] = [
     action: "Open presentations",
     icon: HiOutlinePresentationChartBar,
     tint: "bg-indigo-50 text-indigo-600",
+  },
+  {
+    title: "Listening practice",
+    href: "/listenings",
+    description:
+      "Play one hidden sentence at a time, type what you hear, and fix only the words you missed.",
+    action: "Start a dictation",
+    icon: HiOutlineVolumeUp,
+    tint: "bg-amber-50 text-amber-600",
   },
   {
     title: "Live practice",
@@ -65,8 +88,20 @@ interface HomeViewProps {
   summary: HomeSummary;
 }
 
+function categoryLabel(count: number): string {
+  return `${numberFormatter.format(count)} ${count === 1 ? "category" : "categories"}`;
+}
+
 export function HomeView({ summary }: HomeViewProps) {
-  const stats = [
+  const stats: {
+    title: string;
+    value: number;
+    subtitle: string;
+    meta?: string;
+    icon: ReactNode;
+    iconBgColor: string;
+    iconColor: string;
+  }[] = [
     {
       title: "Learners",
       value: summary.users,
@@ -87,17 +122,37 @@ export function HomeView({ summary }: HomeViewProps) {
       title: "Common sentences",
       value: summary.sentences,
       subtitle: "Lines with audio",
+      meta: categoryLabel(summary.categories.sentence),
       icon: <HiOutlineChatAlt2 className="h-5 w-5" />,
       iconBgColor: "bg-sky-50",
       iconColor: "text-sky-600",
     },
     {
+      title: "Regular conversation",
+      value: summary.conversations,
+      subtitle: "Dialogues with two voices",
+      meta: categoryLabel(summary.categories.conversation),
+      icon: <HiOutlineUserGroup className="h-5 w-5" />,
+      iconBgColor: "bg-teal-50",
+      iconColor: "text-teal-600",
+    },
+    {
       title: "Daily Presentations",
       value: summary.presentations,
       subtitle: "Passages to rehearse",
+      meta: categoryLabel(summary.categories.presentation),
       icon: <HiOutlinePresentationChartBar className="h-5 w-5" />,
       iconBgColor: "bg-indigo-50",
       iconColor: "text-indigo-600",
+    },
+    {
+      title: "Listening practice",
+      value: summary.listenings,
+      subtitle: "Sentences to dictate",
+      meta: categoryLabel(summary.categories.listening),
+      icon: <HiOutlineVolumeUp className="h-5 w-5" />,
+      iconBgColor: "bg-amber-50",
+      iconColor: "text-amber-600",
     },
   ];
 
@@ -110,13 +165,14 @@ export function HomeView({ summary }: HomeViewProps) {
         >
           What is inside today
         </h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
           {stats.map((stat) => (
             <StatCard
               key={stat.title}
               title={stat.title}
               value={numberFormatter.format(stat.value)}
               subtitle={stat.subtitle}
+              meta={stat.meta}
               icon={stat.icon}
               iconBgColor={stat.iconBgColor}
               iconColor={stat.iconColor}

@@ -129,6 +129,10 @@ export function findConversationById(id: string) {
   });
 }
 
+export function countConversations() {
+  return prisma.conversation.count();
+}
+
 /**
  * Neighbours are the closest rows on each side of this cursor in the list
  * order (sequence, then createdAt), so the walk matches the library table and
