@@ -21,13 +21,21 @@ export function ListenControls({
   return (
     <div className={`w-full ${className}`}>
       <div
-        className={`grid grid-cols-1 gap-3 ${stacked ? "" : "sm:grid-cols-2"}`}
+        className={`grid grid-cols-1 gap-3 ${stacked ? "" : "sm:grid-cols-2 lg:grid-cols-3"}`}
       >
         <Dropdown
           label="Accent"
           value={speech.accent}
           onChange={speech.handleAccentChange}
           options={ACCENT_OPTIONS}
+          hideOptionalText
+        />
+        <Dropdown
+          label="Voice"
+          value={speech.voice}
+          onChange={speech.handleVoiceChange}
+          options={speech.voiceOptions}
+          placeholder="Automatic (best match)"
           hideOptionalText
         />
         <Dropdown

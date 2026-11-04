@@ -72,6 +72,37 @@ model Sentence {
   @@map("sentence")
 }
 
+model Conversation {
+  id          String   @id @default(uuid())
+  title       String   @unique
+  speaker1    String
+  speaker2    String
+  description String
+  sequence    Int
+
+  lines ConversationLine[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sequence, createdAt])
+  @@map("conversation")
+}
+
+model ConversationLine {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  text           String
+  sequence       Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([conversationId, sequence])
+  @@map("conversation_line")
+}
+
 model Vocabulary {
   id                     String   @id @default(uuid())
   text                   String   @unique

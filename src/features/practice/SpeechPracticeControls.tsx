@@ -19,6 +19,8 @@ export function SpeechPracticeControls({
 }: SpeechPracticeControlsProps) {
   const {
     accent,
+    voice,
+    voiceOptions,
     speed,
     showIpa,
     repeat,
@@ -30,6 +32,7 @@ export function SpeechPracticeControls({
     statusDotClass,
     hasText,
     handleAccentChange,
+    handleVoiceChange,
     handleSpeedChange,
     handleShowIpaChange,
     handleRepeatChange,
@@ -39,12 +42,21 @@ export function SpeechPracticeControls({
 
   return (
     <>
-      <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Dropdown
           label="Accent"
           value={accent}
           onChange={handleAccentChange}
           options={ACCENT_OPTIONS}
+          hideOptionalText
+        />
+
+        <Dropdown
+          label="Voice"
+          value={voice}
+          onChange={handleVoiceChange}
+          options={voiceOptions}
+          placeholder="Automatic (best match)"
           hideOptionalText
         />
 

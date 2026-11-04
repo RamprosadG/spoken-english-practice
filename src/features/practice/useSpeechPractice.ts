@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { buildVoiceOptions, findPickedVoice } from "./speechVoices";
 
 export type Accent = "en-GB" | "en-US";
 export type Speed = "0.5" | "0.75" | "1" | "1.25" | "1.5";
@@ -126,6 +127,8 @@ function findAccentVoice(
 
 export function useSpeechPractice(text: string, title = "") {
   const [accent, setAccent] = useState<Accent>("en-GB");
+  const [voiceURI, setVoiceURI] = useState("");
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [speed, setSpeed] = useState<Speed>("1");
   const [showIpa, setShowIpa] = useState(false);
   const [ipaMode, setIpaMode] = useState<IpaMode>("sentence");
@@ -163,7 +166,9 @@ export function useSpeechPractice(text: string, title = "") {
     }
 
     const loadVoices = () => {
-      voicesRef.current = window.speechSynthesis.getVoices();
+      const list = window.speechSynthesis.getVoices();
+      voicesRef.current = list;
+      setVoices(list);
     };
 
     loadVoices();
@@ -261,7 +266,9 @@ export function useSpeechPractice(text: string, title = "") {
     utterance.lang = accent;
     utterance.rate = Number(speed);
 
-    const voice = findAccentVoice(voicesRef.current, accent);
+    const voice =
+      findPickedVoice(voicesRef.current, voiceURI) ??
+      findAccentVoice(voicesRef.current, accent);
     if (voice) {
       utterance.voice = voice;
     } else {
@@ -320,12 +327,28 @@ export function useSpeechPractice(text: string, title = "") {
     if (value === accent) return;
 
     setAccent(value as Accent);
+    // A hand-picked voice belongs to the accent it was listed under.
+    setVoiceURI("");
     setPlaybackNotice(null);
     if (showIpa) {
       setIpaStatus("loading");
     }
     if (speechStatus !== "idle") {
       stopSpeech();
+    }
+  };
+
+  const handleVoiceChange = (value: string) => {
+    if (value === voiceURI) return;
+
+    setVoiceURI(value);
+    if (speechStatus !== "idle") {
+      stopSpeech();
+      setPlaybackNotice(
+        "Voice changed. Press Start to play the text again with the new voice.",
+      );
+    } else {
+      setPlaybackNotice(null);
     }
   };
 
@@ -427,6 +450,10 @@ export function useSpeechPractice(text: string, title = "") {
 
   const isSpeaking = speechStatus === "speaking";
   const isPaused = speechStatus === "paused";
+  const voiceOptions = useMemo(
+    () => buildVoiceOptions(voices, accent),
+    [voices, accent],
+  );
   const speechLabel = isSpeaking
     ? `Speaking in ${ACCENT_LABELS[accent]} at ${speed}×.`
     : isPaused
@@ -445,6 +472,8 @@ export function useSpeechPractice(text: string, title = "") {
 
   return {
     accent,
+    voice: voiceURI,
+    voiceOptions,
     speed,
     showIpa,
     repeat,
@@ -465,6 +494,7 @@ export function useSpeechPractice(text: string, title = "") {
     hasText: speakableText.length > 0,
     handleTextEdited,
     handleAccentChange,
+    handleVoiceChange,
     handleSpeedChange,
     handleShowIpaChange,
     handleRepeatChange,
