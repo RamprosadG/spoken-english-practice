@@ -46,9 +46,6 @@ export function SentenceTable({
                 Draft
               </Badge>
             )}
-            <Badge variant="neutral" size="sm">
-              {sentence.categoryName}
-            </Badge>
           </div>
           <p
             lang="bn"
@@ -57,6 +54,17 @@ export function SentenceTable({
             {sentence.meaning}
           </p>
         </div>
+      ),
+    },
+    {
+      key: "category",
+      header: "Category",
+      headerClassName: "max-sm:px-2",
+      className: "max-sm:px-2",
+      render: (sentence) => (
+        <Badge variant="neutral" size="sm">
+          {sentence.categoryName}
+        </Badge>
       ),
     },
     {

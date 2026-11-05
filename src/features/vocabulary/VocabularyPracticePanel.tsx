@@ -64,15 +64,11 @@ export function VocabularyPracticePanel({
       className="border-t border-slate-200 px-4 py-5 sm:px-6 sm:py-6"
     >
       <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <p className="text-lg font-semibold leading-7 text-slate-900 sm:text-xl">
-            {vocabulary.text}
-          </p>
+        <p className="break-words text-2xl font-bold leading-tight text-slate-900 sm:text-3xl">
+          {vocabulary.text}
+        </p>
 
-          <div className="w-full lg:w-auto lg:min-w-[26rem]">
-            <ListenControls speech={speech} />
-          </div>
-        </div>
+        <ListenControls speech={speech} oneRow className="mt-4" />
 
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
           <PracticeEntry

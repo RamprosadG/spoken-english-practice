@@ -11,17 +11,25 @@ interface ListenControlsProps {
   speech: ListenSpeech;
   className?: string;
   stacked?: boolean;
+  oneRow?: boolean;
 }
 
 export function ListenControls({
   speech,
   className = "",
   stacked = false,
+  oneRow = false,
 }: ListenControlsProps) {
   return (
     <div className={`w-full ${className}`}>
       <div
-        className={`grid grid-cols-1 gap-3 ${stacked ? "" : "sm:grid-cols-2 lg:grid-cols-3"}`}
+        className={`grid grid-cols-1 gap-3 ${
+          stacked
+            ? ""
+            : oneRow
+              ? "sm:grid-cols-3"
+              : "sm:grid-cols-2 lg:grid-cols-3"
+        }`}
       >
         <Dropdown
           label="Accent"
