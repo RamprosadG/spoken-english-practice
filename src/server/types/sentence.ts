@@ -9,14 +9,22 @@ export interface SentenceFilterParams extends PublicationView {
   pageSize: number;
 }
 
+export interface SentenceAlternateRow {
+  id: string;
+  text: string;
+  sequence: number;
+}
+
 export interface SentenceRow {
   id: string;
   text: string;
   meaning: string;
+  whenToUse: string | null;
   sequence: number;
   isPublished: boolean;
   categoryId: string;
   categoryName: string;
+  alternates: SentenceAlternateRow[];
   createdAt: string;
   updatedAt: string;
 }

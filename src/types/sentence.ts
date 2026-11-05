@@ -1,14 +1,22 @@
 import type { PaginationMeta } from "@/server/types/pagination";
 import type { CategoryOption, CategoryRow } from "@/server/types/category";
 
+export interface SentenceAlternateItem {
+  id: string;
+  text: string;
+  sequence: number;
+}
+
 export interface SentenceItem {
   id: string;
   text: string;
   meaning: string;
+  whenToUse: string | null;
   sequence: number;
   isPublished: boolean;
   categoryId: string;
   categoryName: string;
+  alternates: SentenceAlternateItem[];
   createdAt: string;
   updatedAt: string;
 }

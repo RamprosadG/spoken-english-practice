@@ -15,6 +15,11 @@ import {
 } from "@/lib/publishing";
 import type { CategoryOption } from "@/types/category";
 import type { SentenceItem } from "@/types/sentence";
+import {
+  SentenceAlternateList,
+  createAlternateKey,
+  type SentenceAlternateDraft,
+} from "./SentenceAlternateList";
 import { sentenceRequest } from "./sentence-client";
 
 interface SentenceFormModalProps {
@@ -32,6 +37,15 @@ interface FormErrors {
   sequence?: string;
 }
 
+function buildInitialAlternates(
+  sentence: SentenceItem | null,
+): SentenceAlternateDraft[] {
+  return (sentence?.alternates ?? []).map((alternate) => ({
+    key: createAlternateKey(),
+    text: alternate.text,
+  }));
+}
+
 export function SentenceFormModal({
   sentence,
   categories,
@@ -42,6 +56,7 @@ export function SentenceFormModal({
   const isEditing = Boolean(sentence);
   const [text, setText] = useState(sentence?.text ?? "");
   const [meaning, setMeaning] = useState(sentence?.meaning ?? "");
+  const [whenToUse, setWhenToUse] = useState(sentence?.whenToUse ?? "");
   const [categoryId, setCategoryId] = useState(
     sentence?.categoryId ?? categories[0]?.id ?? "",
   );
@@ -51,12 +66,26 @@ export function SentenceFormModal({
   const [status, setStatus] = useState(
     publicationStatusValue(sentence?.isPublished ?? true),
   );
+  const [alternates, setAlternates] = useState<SentenceAlternateDraft[]>(() =>
+    buildInitialAlternates(sentence),
+  );
+  const [alternateErrors, setAlternateErrors] = useState<Record<string, string>>(
+    {},
+  );
   const [errors, setErrors] = useState<FormErrors>({});
   const [apiError, setApiError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  function updateAlternates(next: SentenceAlternateDraft[]) {
+    setAlternates(next);
+    // Any edit can fill an empty expression, so the per-row messages are dropped.
+    setAlternateErrors({});
+    if (apiError) setApiError("");
+  }
+
   function validate(): boolean {
     const nextErrors: FormErrors = {};
+    const nextAlternateErrors: Record<string, string> = {};
 
     if (!text.trim()) {
       nextErrors.text = "Sentence text is required.";
@@ -70,13 +99,24 @@ export function SentenceFormModal({
       nextErrors.category = "Choose a category.";
     }
 
+    alternates.forEach((alternate, index) => {
+      if (!alternate.text.trim()) {
+        nextAlternateErrors[alternate.key] = `Expression ${index + 1} is empty.`;
+      }
+    });
+
     const parsedSequence = Number(sequence);
     if (!Number.isInteger(parsedSequence) || parsedSequence < 1) {
       nextErrors.sequence = "Sequence must be a whole number of at least 1.";
     }
 
     setErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
+    setAlternateErrors(nextAlternateErrors);
+
+    return (
+      Object.keys(nextErrors).length === 0 &&
+      Object.keys(nextAlternateErrors).length === 0
+    );
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -96,9 +136,11 @@ export function SentenceFormModal({
         body: JSON.stringify({
           text: text.trim(),
           meaning: meaning.trim(),
+          whenToUse: whenToUse.trim() || null,
           categoryId,
           sequence: Number(sequence),
           isPublished: isPublishedFromStatus(status),
+          alternates: alternates.map((alternate) => alternate.text.trim()),
         }),
       });
 
@@ -214,6 +256,26 @@ export function SentenceFormModal({
             </span>
           )}
         </div>
+
+        <Input
+          label="When to use"
+          type="text"
+          name="whenToUse"
+          id="sentence-when-to-use"
+          maxLength={500}
+          placeholder="When you meet a stranger"
+          value={whenToUse}
+          onChange={(event) => {
+            setWhenToUse(event.target.value);
+            if (apiError) setApiError("");
+          }}
+        />
+
+        <SentenceAlternateList
+          alternates={alternates}
+          errors={alternateErrors}
+          onChange={updateAlternates}
+        />
 
         <Dropdown
           label="Category"

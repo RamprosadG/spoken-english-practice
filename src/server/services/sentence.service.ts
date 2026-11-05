@@ -29,10 +29,12 @@ function toSentenceItem(sentence: SentenceSelected): SentenceItem {
     id: sentence.id,
     text: sentence.text,
     meaning: sentence.meaning,
+    whenToUse: sentence.whenToUse,
     sequence: sentence.sequence,
     isPublished: sentence.isPublished,
     categoryId: sentence.categoryId,
     categoryName: sentence.category.name,
+    alternates: sentence.alternates,
     createdAt: sentence.createdAt.toISOString(),
     updatedAt: sentence.updatedAt.toISOString(),
   };

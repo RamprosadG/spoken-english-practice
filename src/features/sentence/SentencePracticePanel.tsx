@@ -29,6 +29,15 @@ export function SentencePracticePanel({
 
             <InlineIpa text={sentence.text} accent={speech.accent} />
 
+            {sentence.whenToUse && (
+              <p className="mt-3 text-sm leading-6 text-slate-700">
+                <span className="font-semibold text-slate-900">
+                  When to Use:
+                </span>{" "}
+                {sentence.whenToUse}
+              </p>
+            )}
+
             <div className="mt-3 rounded-lg border border-slate-100 bg-slate-50 px-3.5 py-3">
               <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                 Meaning (বাংলা)
@@ -37,6 +46,43 @@ export function SentencePracticePanel({
                 {sentence.meaning}
               </p>
             </div>
+
+            {sentence.alternates.length > 0 && (
+              <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                  Alternate expressions
+                </p>
+
+                <ul className="mt-2 flex flex-col gap-3">
+                  {sentence.alternates.map((alternate) => (
+                    <li
+                      key={alternate.id}
+                      className="flex items-start justify-between gap-3"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium leading-6 text-slate-900">
+                          {alternate.text}
+                        </p>
+                        <InlineIpa
+                          text={alternate.text}
+                          accent={speech.accent}
+                        />
+                      </div>
+
+                      <PlayTextButton
+                        isPlaying={
+                          speech.speakingKey === `alternate-${alternate.id}`
+                        }
+                        onClick={() =>
+                          speech.play(`alternate-${alternate.id}`, alternate.text)
+                        }
+                        ariaLabel={`Listen to alternate expression ${alternate.sequence}`}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           <div className="w-full shrink-0 lg:w-72">

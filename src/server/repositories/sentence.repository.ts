@@ -11,9 +11,11 @@ import type {
 interface SentenceWriteData {
   text: string;
   meaning: string;
+  whenToUse: string | null;
   categoryId: string;
   sequence: number;
   isPublished: boolean;
+  alternates: string[];
 }
 
 /** Every read that reaches the browser carries the category name with it. */
@@ -21,17 +23,28 @@ const SENTENCE_SELECT = {
   id: true,
   text: true,
   meaning: true,
+  whenToUse: true,
   sequence: true,
   isPublished: true,
   categoryId: true,
   createdAt: true,
   updatedAt: true,
   category: { select: { name: true } },
+  // The inline practice panel plays the alternates, so the page carries them.
+  alternates: {
+    orderBy: { sequence: "asc" },
+    select: { id: true, text: true, sequence: true },
+  },
 } as const;
 
 export type SentenceSelected = Prisma.SentenceGetPayload<{
   select: typeof SENTENCE_SELECT;
 }>;
+
+/** Array position becomes the stored alternate sequence, one-based. */
+function toAlternateRows(alternates: string[]) {
+  return alternates.map((text, index) => ({ text, sequence: index + 1 }));
+}
 
 /**
  * Search and pagination run in PostgreSQL; only the requested page of rows is
@@ -73,10 +86,12 @@ export async function findSentencePage(
     id: sentence.id,
     text: sentence.text,
     meaning: sentence.meaning,
+    whenToUse: sentence.whenToUse,
     sequence: sentence.sequence,
     isPublished: sentence.isPublished,
     categoryId: sentence.categoryId,
     categoryName: sentence.category.name,
+    alternates: sentence.alternates,
     createdAt: sentence.createdAt.toISOString(),
     updatedAt: sentence.updatedAt.toISOString(),
   }));
@@ -105,13 +120,39 @@ export function countSentences() {
 }
 
 export function createSentence(data: SentenceWriteData) {
-  return prisma.sentence.create({ data, select: SENTENCE_SELECT });
+  return prisma.sentence.create({
+    data: {
+      text: data.text,
+      meaning: data.meaning,
+      whenToUse: data.whenToUse,
+      categoryId: data.categoryId,
+      sequence: data.sequence,
+      isPublished: data.isPublished,
+      alternates: { create: toAlternateRows(data.alternates) },
+    },
+    select: SENTENCE_SELECT,
+  });
 }
 
+/**
+ * Alternates are rewritten from scratch on every save: the incoming array is
+ * the whole truth, so diffing by id would only add a failure mode.
+ */
 export function updateSentence(id: string, data: SentenceWriteData) {
   return prisma.sentence.update({
     where: { id },
-    data,
+    data: {
+      text: data.text,
+      meaning: data.meaning,
+      whenToUse: data.whenToUse,
+      categoryId: data.categoryId,
+      sequence: data.sequence,
+      isPublished: data.isPublished,
+      alternates: {
+        deleteMany: {},
+        create: toAlternateRows(data.alternates),
+      },
+    },
     select: SENTENCE_SELECT,
   });
 }
