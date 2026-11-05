@@ -48,14 +48,20 @@ export function PresentationTable({
                 Draft
               </Badge>
             )}
-            <Badge variant="neutral" size="sm">
-              {presentation.categoryName}
-            </Badge>
           </div>
           <p className="mt-1 text-xs text-slate-500">
             {truncateText(presentation.text)}
           </p>
         </div>
+      ),
+    },
+    {
+      key: "category",
+      header: "Category",
+      render: (presentation) => (
+        <Badge variant="neutral" size="sm">
+          {presentation.categoryName}
+        </Badge>
       ),
     },
     {

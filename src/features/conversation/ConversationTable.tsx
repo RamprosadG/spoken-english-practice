@@ -51,14 +51,20 @@ export function ConversationTable({
                 Draft
               </Badge>
             )}
-            <Badge variant="neutral" size="sm">
-              {conversation.categoryName}
-            </Badge>
           </div>
           <p className="mt-1 text-xs text-slate-500">
             {truncateDescription(conversation.description)}
           </p>
         </div>
+      ),
+    },
+    {
+      key: "category",
+      header: "Category",
+      render: (conversation) => (
+        <Badge variant="neutral" size="sm">
+          {conversation.categoryName}
+        </Badge>
       ),
     },
     {

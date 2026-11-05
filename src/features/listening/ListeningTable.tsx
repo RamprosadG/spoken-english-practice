@@ -46,11 +46,17 @@ export function ListeningTable({
                 Draft
               </Badge>
             )}
-            <Badge variant="neutral" size="sm">
-              {listening.categoryName}
-            </Badge>
           </div>
         </div>
+      ),
+    },
+    {
+      key: "category",
+      header: "Category",
+      render: (listening) => (
+        <Badge variant="neutral" size="sm">
+          {listening.categoryName}
+        </Badge>
       ),
     },
     {
