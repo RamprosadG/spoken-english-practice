@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import { showErrorAlert, showSuccessAlert } from "@/components/ui/alerts/Alerts";
@@ -25,6 +25,17 @@ interface ListeningSectionProps {
   isLoading?: boolean;
 }
 
+// Filter and page state lives in the URL, so the library can be rendered on
+// the server.
+function toQuery(filters: ListeningFiltersState) {
+  const params = new URLSearchParams();
+  if (filters.search.trim()) params.set("search", filters.search.trim());
+  if (filters.category) params.set("category", filters.category);
+  if (filters.status) params.set("status", filters.status);
+  if (filters.page > 1) params.set("page", String(filters.page));
+  return params.toString();
+}
+
 export function ListeningSection({
   listenings,
   pagination,
@@ -42,18 +53,17 @@ export function ListeningSection({
     useState<ListeningDetail | null>(null);
   const [loadingEditId, setLoadingEditId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const requestedQuery = useRef(toQuery(filters));
 
-  // Filter and page state lives in the URL, so the library can be rendered on
-  // the server.
   const navigate = (changes: Partial<ListeningFiltersState>) => {
-    const next = { ...filters, ...changes };
-    const params = new URLSearchParams();
-    if (next.search.trim()) params.set("search", next.search.trim());
-    if (next.category) params.set("category", next.category);
-    if (next.status) params.set("status", next.status);
-    if (next.page > 1) params.set("page", String(next.page));
+    const query = toQuery({ ...filters, ...changes });
+    // router.replace refetches even the URL already on screen, and the pending
+    // transition blanks the table into the loader — so a change that writes
+    // nothing new (SearchInput's mount emit under StrictMode, a re-picked
+    // option) must never reach the router.
+    if (query === requestedQuery.current) return;
+    requestedQuery.current = query;
 
-    const query = params.toString();
     startTransition(() => {
       router.replace(query ? `${pathname}?${query}` : pathname, {
         scroll: false,
