@@ -67,9 +67,9 @@ function toRelatedWordRows(words: RelatedWordInput[]) {
 
 /**
  * Search, the A-Z letter filter and pagination all run in PostgreSQL. The
- * search covers the word and its synonyms and antonyms; the letter filter applies
- * to the vocabulary word itself. Unpublished rows never leave the database for
- * a learner.
+ * search covers the word and its example sentence, never a synonym or antonym;
+ * the letter filter applies to the vocabulary word itself. Unpublished rows
+ * never leave the database for a learner.
  */
 export async function findVocabularyPage(
   filters: VocabularyFilterParams
@@ -89,16 +89,7 @@ export async function findVocabularyPage(
   if (filters.search) {
     where.OR = [
       { text: { contains: filters.search, mode: "insensitive" } },
-      {
-        synonyms: {
-          some: { word: { contains: filters.search, mode: "insensitive" } },
-        },
-      },
-      {
-        antonyms: {
-          some: { word: { contains: filters.search, mode: "insensitive" } },
-        },
-      },
+      { sentence: { contains: filters.search, mode: "insensitive" } },
     ];
   }
 

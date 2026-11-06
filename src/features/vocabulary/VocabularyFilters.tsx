@@ -46,7 +46,7 @@ export function VocabularyFilters({
         <SearchInput
           value={search}
           onDebouncedChange={onSearchChange}
-          placeholder="Search words, synonyms or antonyms..."
+          placeholder="Search words or example sentences..."
         />
       </div>
       <div className="w-full md:w-40 shrink-0">
