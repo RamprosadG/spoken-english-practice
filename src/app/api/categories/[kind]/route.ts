@@ -2,7 +2,10 @@ import { NextResponse, connection } from "next/server";
 import type { NextRequest } from "next/server";
 import { handleApiError } from "@/lib/api-error";
 import { categoryInputSchema, categoryKindSchema } from "@/lib/validations/category";
-import { createCategory, getCategoryOptions } from "@/server/services/category.service";
+import {
+  createCategory,
+  getPublicCategoryOptions,
+} from "@/server/services/category.service";
 
 interface CategoryKindRouteContext {
   params: Promise<{ kind: string }>;
@@ -16,7 +19,7 @@ export async function GET(
 
   try {
     const kind = categoryKindSchema.parse((await params).kind);
-    const categories = await getCategoryOptions(kind);
+    const categories = await getPublicCategoryOptions(kind);
 
     return NextResponse.json({ success: true, data: categories });
   } catch (error) {

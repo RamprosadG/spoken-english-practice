@@ -9,7 +9,9 @@ export interface CategoryWriteData {
 /**
  * Each library has its own category table, so every read and write dispatches on
  * the kind instead of sharing one table with a type column. The shapes are
- * normalised here so callers never see which Prisma model answered.
+ * normalised here so callers never see which Prisma model answered. The interview
+ * library is the only one with two lookup tables — categories and topics — and the
+ * topic picker is managed through this same module.
  */
 const CATEGORY_LIST_ORDER = [
   { sequence: "asc" as const },
@@ -40,7 +42,21 @@ export async function findCategoryOptions(
     });
   }
 
-  return prisma.listeningCategory.findMany({
+  if (kind === "listening") {
+    return prisma.listeningCategory.findMany({
+      orderBy: CATEGORY_LIST_ORDER,
+      select: { id: true, name: true },
+    });
+  }
+
+  if (kind === "interview") {
+    return prisma.interviewCategory.findMany({
+      orderBy: CATEGORY_LIST_ORDER,
+      select: { id: true, name: true },
+    });
+  }
+
+  return prisma.interviewTopic.findMany({
     orderBy: CATEGORY_LIST_ORDER,
     select: { id: true, name: true },
   });
@@ -104,13 +120,51 @@ export async function findCategoryRows(kind: CategoryKind): Promise<CategoryRow[
     }));
   }
 
-  const rows = await prisma.listeningCategory.findMany({
+  if (kind === "listening") {
+    const rows = await prisma.listeningCategory.findMany({
+      orderBy: CATEGORY_LIST_ORDER,
+      select: {
+        id: true,
+        name: true,
+        sequence: true,
+        _count: { select: { listenings: true } },
+      },
+    });
+
+    return rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      sequence: row.sequence,
+      usageCount: row._count.listenings,
+    }));
+  }
+
+  if (kind === "interview") {
+    const rows = await prisma.interviewCategory.findMany({
+      orderBy: CATEGORY_LIST_ORDER,
+      select: {
+        id: true,
+        name: true,
+        sequence: true,
+        _count: { select: { interviewQuestions: true } },
+      },
+    });
+
+    return rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      sequence: row.sequence,
+      usageCount: row._count.interviewQuestions,
+    }));
+  }
+
+  const rows = await prisma.interviewTopic.findMany({
     orderBy: CATEGORY_LIST_ORDER,
     select: {
       id: true,
       name: true,
       sequence: true,
-      _count: { select: { listenings: true } },
+      _count: { select: { interviewQuestions: true } },
     },
   });
 
@@ -118,7 +172,7 @@ export async function findCategoryRows(kind: CategoryKind): Promise<CategoryRow[
     id: row.id,
     name: row.name,
     sequence: row.sequence,
-    usageCount: row._count.listenings,
+    usageCount: row._count.interviewQuestions,
   }));
 }
 
@@ -140,7 +194,15 @@ export async function findCategoryById(
     return prisma.conversationCategory.findUnique({ where: { id }, select });
   }
 
-  return prisma.listeningCategory.findUnique({ where: { id }, select });
+  if (kind === "listening") {
+    return prisma.listeningCategory.findUnique({ where: { id }, select });
+  }
+
+  if (kind === "interview") {
+    return prisma.interviewCategory.findUnique({ where: { id }, select });
+  }
+
+  return prisma.interviewTopic.findUnique({ where: { id }, select });
 }
 
 export async function countCategoryUsage(
@@ -159,7 +221,15 @@ export async function countCategoryUsage(
     return prisma.conversation.count({ where: { categoryId: id } });
   }
 
-  return prisma.listening.count({ where: { categoryId: id } });
+  if (kind === "listening") {
+    return prisma.listening.count({ where: { categoryId: id } });
+  }
+
+  if (kind === "interview") {
+    return prisma.interviewQuestion.count({ where: { categoryId: id } });
+  }
+
+  return prisma.interviewQuestion.count({ where: { topicId: id } });
 }
 
 export function countCategories(kind: CategoryKind): Promise<number> {
@@ -175,7 +245,15 @@ export function countCategories(kind: CategoryKind): Promise<number> {
     return prisma.conversationCategory.count();
   }
 
-  return prisma.listeningCategory.count();
+  if (kind === "listening") {
+    return prisma.listeningCategory.count();
+  }
+
+  if (kind === "interview") {
+    return prisma.interviewCategory.count();
+  }
+
+  return prisma.interviewTopic.count();
 }
 
 function nextSequenceOf(latest: { sequence: number } | null): number {
@@ -206,8 +284,20 @@ export async function findNextCategorySequence(
     );
   }
 
+  if (kind === "listening") {
+    return nextSequenceOf(
+      await prisma.listeningCategory.findFirst({ orderBy, select }),
+    );
+  }
+
+  if (kind === "interview") {
+    return nextSequenceOf(
+      await prisma.interviewCategory.findFirst({ orderBy, select }),
+    );
+  }
+
   return nextSequenceOf(
-    await prisma.listeningCategory.findFirst({ orderBy, select }),
+    await prisma.interviewTopic.findFirst({ orderBy, select }),
   );
 }
 
@@ -272,13 +362,51 @@ export async function createCategory(
     };
   }
 
-  const row = await prisma.listeningCategory.create({
+  if (kind === "listening") {
+    const row = await prisma.listeningCategory.create({
+      data,
+      select: {
+        id: true,
+        name: true,
+        sequence: true,
+        _count: { select: { listenings: true } },
+      },
+    });
+
+    return {
+      id: row.id,
+      name: row.name,
+      sequence: row.sequence,
+      usageCount: row._count.listenings,
+    };
+  }
+
+  if (kind === "interview") {
+    const row = await prisma.interviewCategory.create({
+      data,
+      select: {
+        id: true,
+        name: true,
+        sequence: true,
+        _count: { select: { interviewQuestions: true } },
+      },
+    });
+
+    return {
+      id: row.id,
+      name: row.name,
+      sequence: row.sequence,
+      usageCount: row._count.interviewQuestions,
+    };
+  }
+
+  const row = await prisma.interviewTopic.create({
     data,
     select: {
       id: true,
       name: true,
       sequence: true,
-      _count: { select: { listenings: true } },
+      _count: { select: { interviewQuestions: true } },
     },
   });
 
@@ -286,7 +414,7 @@ export async function createCategory(
     id: row.id,
     name: row.name,
     sequence: row.sequence,
-    usageCount: row._count.listenings,
+    usageCount: row._count.interviewQuestions,
   };
 }
 
@@ -355,14 +483,54 @@ export async function updateCategory(
     };
   }
 
-  const row = await prisma.listeningCategory.update({
+  if (kind === "listening") {
+    const row = await prisma.listeningCategory.update({
+      where: { id },
+      data,
+      select: {
+        id: true,
+        name: true,
+        sequence: true,
+        _count: { select: { listenings: true } },
+      },
+    });
+
+    return {
+      id: row.id,
+      name: row.name,
+      sequence: row.sequence,
+      usageCount: row._count.listenings,
+    };
+  }
+
+  if (kind === "interview") {
+    const row = await prisma.interviewCategory.update({
+      where: { id },
+      data,
+      select: {
+        id: true,
+        name: true,
+        sequence: true,
+        _count: { select: { interviewQuestions: true } },
+      },
+    });
+
+    return {
+      id: row.id,
+      name: row.name,
+      sequence: row.sequence,
+      usageCount: row._count.interviewQuestions,
+    };
+  }
+
+  const row = await prisma.interviewTopic.update({
     where: { id },
     data,
     select: {
       id: true,
       name: true,
       sequence: true,
-      _count: { select: { listenings: true } },
+      _count: { select: { interviewQuestions: true } },
     },
   });
 
@@ -370,7 +538,7 @@ export async function updateCategory(
     id: row.id,
     name: row.name,
     sequence: row.sequence,
-    usageCount: row._count.listenings,
+    usageCount: row._count.interviewQuestions,
   };
 }
 
@@ -387,5 +555,13 @@ export function deleteCategory(kind: CategoryKind, id: string): Promise<unknown>
     return prisma.conversationCategory.delete({ where: { id } });
   }
 
-  return prisma.listeningCategory.delete({ where: { id } });
+  if (kind === "listening") {
+    return prisma.listeningCategory.delete({ where: { id } });
+  }
+
+  if (kind === "interview") {
+    return prisma.interviewCategory.delete({ where: { id } });
+  }
+
+  return prisma.interviewTopic.delete({ where: { id } });
 }

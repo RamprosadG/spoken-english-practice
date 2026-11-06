@@ -58,10 +58,7 @@ export default async function PresentationPracticePage({
         </p>
       </header>
 
-      <PresentationPracticeWorkspace
-        title={presentation.title}
-        text={presentation.text}
-      />
+      <PresentationPracticeWorkspace text={presentation.text} />
     </div>
   );
 }

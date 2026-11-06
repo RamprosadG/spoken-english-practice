@@ -6,15 +6,13 @@ import { SpeechPracticeControls } from "@/features/practice/SpeechPracticeContro
 import { useSpeechPractice } from "@/features/practice/useSpeechPractice";
 
 interface PresentationPracticeWorkspaceProps {
-  title: string;
   text: string;
 }
 
 export function PresentationPracticeWorkspace({
-  title,
   text,
 }: PresentationPracticeWorkspaceProps) {
-  const practice = useSpeechPractice(text, title);
+  const practice = useSpeechPractice(text);
 
   return (
     <section className="flex w-full flex-col gap-6">
@@ -30,23 +28,17 @@ export function PresentationPracticeWorkspace({
             </p>
           </div>
 
-          <CopyTextButton
-            text={`${title}\n\n${text}`}
-            subject="presentation title and text"
-          />
+          <CopyTextButton text={text} subject="presentation text" />
         </div>
 
         <div className="p-5 sm:p-6">
           <div
             tabIndex={0}
             role="region"
-            aria-label="Presentation title and text"
+            aria-label="Presentation text"
             className="max-h-96 overflow-y-auto break-words rounded-lg border border-gray-300 bg-white px-3.5 py-3 text-sm leading-6 text-slate-900 shadow-xs outline-none transition-all duration-200 focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500"
           >
-            <p className="text-base font-bold leading-7 text-slate-900">
-              {title}
-            </p>
-            <p className="mt-4 whitespace-pre-wrap">{text}</p>
+            <p className="whitespace-pre-wrap">{text}</p>
           </div>
 
           <SpeechPracticeControls practice={practice} />

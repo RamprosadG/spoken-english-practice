@@ -8,7 +8,12 @@ import Button from "@/components/ui/buttons/Button";
 import Input from "@/components/ui/inputs/Input";
 import Modal from "@/components/ui/modals/Modal";
 import { TableActionButton } from "@/components/ui/buttons/TableActionButton";
-import { categoryUsageLabel, type CategoryKind } from "@/lib/categories";
+import {
+  CATEGORY_NOUNS,
+  capitalize,
+  categoryUsageLabel,
+  type CategoryKind,
+} from "@/lib/categories";
 import type { CategoryRow } from "@/types/category";
 import { categoryPath, categoryRequest } from "./category-client";
 
@@ -33,6 +38,10 @@ export function CategoryManageModal({
   onClose,
   onSaved,
 }: CategoryManageModalProps) {
+  // One modal manages all the pickers, so every label comes from the registry:
+  // categories for four libraries, topics for the interview one.
+  const noun = CATEGORY_NOUNS[kind];
+  const nounLabel = capitalize(noun.singular);
   const [name, setName] = useState("");
   const [sequence, setSequence] = useState("");
   const [editing, setEditing] = useState<EditState | null>(null);
@@ -73,12 +82,12 @@ export function CategoryManageModal({
       });
       setName("");
       setSequence("");
-      onSaved("Category created successfully.");
+      onSaved(`${nounLabel} created successfully.`);
     } catch (error) {
       setApiError(
         error instanceof Error
           ? error.message
-          : "Failed to save the category. Please try again.",
+          : `Failed to save the ${noun.singular}. Please try again.`,
       );
     } finally {
       setIsSubmitting(false);
@@ -98,12 +107,12 @@ export function CategoryManageModal({
         body: JSON.stringify(buildPayload(editing)),
       });
       setEditing(null);
-      onSaved("Category updated successfully.");
+      onSaved(`${nounLabel} updated successfully.`);
     } catch (error) {
       setApiError(
         error instanceof Error
           ? error.message
-          : "Failed to save the category. Please try again.",
+          : `Failed to save the ${noun.singular}. Please try again.`,
       );
     } finally {
       setIsSubmitting(false);
@@ -112,7 +121,7 @@ export function CategoryManageModal({
 
   async function handleDelete(category: CategoryRow) {
     const result = await Swal.fire({
-      title: "Delete category?",
+      title: `Delete ${noun.singular}?`,
       text: `"${category.name}" will be permanently removed.`,
       icon: "warning",
       showCancelButton: true,
@@ -134,12 +143,12 @@ export function CategoryManageModal({
       if (editing?.id === category.id) {
         setEditing(null);
       }
-      onSaved("Category deleted successfully.");
+      onSaved(`${nounLabel} deleted successfully.`);
     } catch (error) {
       setApiError(
         error instanceof Error
           ? error.message
-          : "Failed to delete the category. Please try again.",
+          : `Failed to delete the ${noun.singular}. Please try again.`,
       );
     } finally {
       setDeletingId(null);
@@ -157,14 +166,14 @@ export function CategoryManageModal({
       <form onSubmit={handleCreate} className="flex flex-col gap-3">
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_8rem]">
           <Input
-            label="New category"
+            label={`New ${noun.singular}`}
             type="text"
             name="category-name"
             id={`category-${kind}-name`}
             required
             hideOptionalText
             maxLength={100}
-            placeholder="Enter a category name"
+            placeholder={`Enter a ${noun.singular} name`}
             value={name}
             onChange={(event) => {
               setName(event.target.value);
@@ -192,14 +201,14 @@ export function CategoryManageModal({
           isLoading={isSubmitting}
           disabled={isBusy}
         >
-          Add category
+          Add {noun.singular}
         </Button>
       </form>
 
       <ul className="mt-5 flex flex-col gap-2 border-t border-slate-100 pt-5">
         {categories.length === 0 && (
           <li className="text-sm text-slate-500">
-            No categories yet. Add one to start grouping.
+            No {noun.plural} yet. Add one to start grouping.
           </li>
         )}
 

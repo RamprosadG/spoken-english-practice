@@ -1,6 +1,13 @@
 import { Prisma } from "@/generated/prisma/client";
 import { ApiError, uniqueViolationError } from "@/lib/api-error";
-import { CATEGORY_ENTITY_LABELS, categoryUsageLabel, type CategoryKind } from "@/lib/categories";
+import {
+  CATEGORY_DUPLICATE_MESSAGES,
+  CATEGORY_ENTITY_LABELS,
+  CATEGORY_NOUNS,
+  categoryUsageLabel,
+  isPrivateCategoryKind,
+  type CategoryKind,
+} from "@/lib/categories";
 import type { CategoryInput } from "@/lib/validations/category";
 import {
   countCategoryUsage,
@@ -12,10 +19,29 @@ import {
   findNextCategorySequence,
   updateCategory as updateCategoryRecord,
 } from "@/server/repositories/category.repository";
-import { requireAdminUser } from "@/server/services/auth.service";
+import {
+  requireAdminUser,
+  resolveSessionRole,
+} from "@/server/services/auth.service";
 import type { CategoryOption, CategoryRow } from "@/server/types/category";
 
 export function getCategoryOptions(kind: CategoryKind): Promise<CategoryOption[]> {
+  return findCategoryOptions(kind);
+}
+
+/**
+ * The read behind `GET /api/categories/[kind]`. Interview categories and topics
+ * only ever name rows of a private library, so their names stop being public;
+ * the role is resolved without touching cookies, so this stays safe to call from
+ * a request path.
+ */
+export async function getPublicCategoryOptions(
+  kind: CategoryKind,
+): Promise<CategoryOption[]> {
+  if (isPrivateCategoryKind(kind) && (await resolveSessionRole()) !== "admin") {
+    throw new ApiError(403, "You do not have permission to perform this action.");
+  }
+
   return findCategoryOptions(kind);
 }
 
@@ -37,7 +63,10 @@ export async function requireCategory(
 ): Promise<{ id: string; name: string; sequence: number }> {
   const category = await findCategoryById(kind, id);
   if (!category) {
-    throw new ApiError(400, "Selected category does not exist.");
+    throw new ApiError(
+      400,
+      `Selected ${CATEGORY_NOUNS[kind].singular} does not exist.`,
+    );
   }
 
   return category;
@@ -54,10 +83,7 @@ export async function createCategory(
   try {
     return await createCategoryRecord(kind, { name: input.name, sequence });
   } catch (error) {
-    throw uniqueViolationError(
-      error,
-      `A ${CATEGORY_ENTITY_LABELS[kind]} category with this name already exists.`,
-    );
+    throw uniqueViolationError(error, CATEGORY_DUPLICATE_MESSAGES[kind]);
   }
 }
 
@@ -79,10 +105,7 @@ export async function updateCategory(
       sequence: input.sequence ?? existing.sequence,
     });
   } catch (error) {
-    throw uniqueViolationError(
-      error,
-      `A ${CATEGORY_ENTITY_LABELS[kind]} category with this name already exists.`,
-    );
+    throw uniqueViolationError(error, CATEGORY_DUPLICATE_MESSAGES[kind]);
   }
 }
 
@@ -101,7 +124,7 @@ export async function deleteCategory(
   if (usage > 0) {
     throw new ApiError(
       409,
-      `"${existing.name}" still has ${categoryUsageLabel(kind, usage)} assigned to it. Move them to another category first.`,
+      `"${existing.name}" still has ${categoryUsageLabel(kind, usage)} assigned to it. Move them to another ${CATEGORY_NOUNS[kind].singular} first.`,
     );
   }
 
@@ -115,7 +138,7 @@ export async function deleteCategory(
     ) {
       throw new ApiError(
         409,
-        `"${existing.name}" still has ${CATEGORY_ENTITY_LABELS[kind]}s assigned to it. Move them to another category first.`,
+        `"${existing.name}" still has ${CATEGORY_ENTITY_LABELS[kind]}s assigned to it. Move them to another ${CATEGORY_NOUNS[kind].singular} first.`,
       );
     }
 

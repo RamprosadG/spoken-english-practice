@@ -12,13 +12,17 @@ import {
   HiOutlineMicrophone,
   HiOutlineUserGroup,
   HiOutlineVolumeUp,
+  HiOutlineClipboardCheck,
 } from "react-icons/hi";
 import { IconType } from "react-icons";
+import { useAuth } from "@/features/auth/AuthProvider";
 
 interface NavItem {
   name: string;
   href: string;
   icon: IconType;
+  /** The interview library is private, so a public reader never sees the link. */
+  adminOnly?: boolean;
 }
 
 const navItems: NavItem[] = [
@@ -28,6 +32,7 @@ const navItems: NavItem[] = [
   { name: "Regular conversation", href: "/conversations", icon: HiOutlineUserGroup },
   { name: "Daily Presentations", href: "/presentation", icon: HiOutlinePresentationChartBar },
   { name: "Listening practice", href: "/listenings", icon: HiOutlineVolumeUp },
+  { name: "Interview questions", href: "/interview-questions", icon: HiOutlineClipboardCheck, adminOnly: true },
   { name: "Live practice", href: "/practice", icon: HiOutlineMicrophone },
 ];
 
@@ -38,10 +43,15 @@ interface SidebarProps {
 
 export function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
+  const visibleNavItems = navItems.filter(
+    (item) => !item.adminOnly || isAdmin,
+  );
 
   const navList = (onNavigate?: () => void) => (
     <ul className="space-y-1">
-      {navItems.map((item) => {
+      {visibleNavItems.map((item) => {
         const isActive = pathname === item.href;
         const Icon = item.icon;
 

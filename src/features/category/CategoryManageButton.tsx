@@ -6,7 +6,11 @@ import { FiTag } from "react-icons/fi";
 import { showSuccessAlert } from "@/components/ui/alerts/Alerts";
 import Button from "@/components/ui/buttons/Button";
 import { useAuth } from "@/features/auth/AuthProvider";
-import { CATEGORY_MANAGE_TITLES, type CategoryKind } from "@/lib/categories";
+import {
+  CATEGORY_MANAGE_TITLES,
+  categoryButtonLabel,
+  type CategoryKind,
+} from "@/lib/categories";
 import type { CategoryRow } from "@/types/category";
 import { CategoryManageModal } from "./CategoryManageModal";
 
@@ -38,7 +42,7 @@ export function CategoryManageButton({
         onClick={() => setIsOpen(true)}
         className="w-full whitespace-nowrap sm:w-auto max-sm:text-xs max-sm:px-2 max-sm:gap-1.5"
       >
-        Categories
+        {categoryButtonLabel(kind)}
       </Button>
 
       {isOpen && (

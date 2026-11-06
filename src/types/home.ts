@@ -1,4 +1,4 @@
-import type { CategoryKind } from "@/lib/categories";
+import type { HomeCategoryKind } from "@/lib/categories";
 
 export interface HomeSummary {
   users: number;
@@ -7,6 +7,10 @@ export interface HomeSummary {
   conversations: number;
   presentations: number;
   listenings: number;
-  /** Vocabulary is deliberately uncategorised, so it has no entry here. */
-  categories: Record<CategoryKind, number>;
+  /**
+   * Only the four kinds Home links to. Vocabulary is deliberately uncategorised,
+   * and the interview kinds belong to a private library, so neither is counted
+   * here.
+   */
+  categories: Record<HomeCategoryKind, number>;
 }
