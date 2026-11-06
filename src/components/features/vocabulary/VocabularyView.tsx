@@ -12,12 +12,19 @@ export function VocabularyView({ data, isLoading = false }: VocabularyViewProps)
   return (
     <>
       <VocabularyHeader
-        actions={<VocabularyActions nextSequence={data.nextSequence} />}
+        actions={
+          <VocabularyActions
+            nextSequence={data.nextSequence}
+            categories={data.categories}
+            categoryRows={data.categoryRows}
+          />
+        }
       />
       <VocabularySection
         vocabularies={data.vocabularies}
         pagination={data.pagination}
         filters={data.filters}
+        categories={data.categories}
         isLoading={isLoading}
       />
     </>

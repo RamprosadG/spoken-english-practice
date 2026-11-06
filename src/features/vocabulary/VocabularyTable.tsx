@@ -66,6 +66,17 @@ export function VocabularyTable({
       ),
     },
     {
+      key: "category",
+      header: "Category",
+      headerClassName: "max-sm:px-2",
+      className: "max-sm:px-2",
+      render: (vocabulary) => (
+        <Badge variant="neutral" size="sm">
+          {vocabulary.categoryName}
+        </Badge>
+      ),
+    },
+    {
       key: "ipa",
       header: "IPA",
       headerClassName: "max-sm:hidden",

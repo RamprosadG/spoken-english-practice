@@ -114,6 +114,7 @@ export function HomeView({ summary }: HomeViewProps) {
       title: "Important Vocabularies",
       value: summary.vocabularies,
       subtitle: "Words with examples",
+      meta: categoryLabel(summary.categories.vocabulary),
       icon: <HiOutlineBookOpen className="h-5 w-5" />,
       iconBgColor: "bg-violet-50",
       iconColor: "text-violet-600",

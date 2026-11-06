@@ -1,12 +1,22 @@
 import type { PublicationView } from "@/lib/publishing";
+import type { CategoryOption, CategoryRow } from "@/server/types/category";
 import type { VocabularyPartsOfSpeech } from "@/types/vocabulary";
 import type { PaginationMeta } from "./pagination";
 
 export interface VocabularyFilterParams extends PublicationView {
   search?: string;
   letter?: string;
+  categoryId?: string;
   page: number;
   pageSize: number;
+}
+
+/** One row of `vocabulary_synonym` or `vocabulary_antonym`. */
+export interface VocabularyRelatedWordRow {
+  id: string;
+  word: string;
+  sentence: string;
+  sequence: number;
 }
 
 export interface VocabularyRow {
@@ -15,17 +25,13 @@ export interface VocabularyRow {
   meaning: string;
   sentence: string;
   sentenceMeaning: string;
-  synonymText: string | null;
-  synonymMeaning: string | null;
-  synonymSentence: string | null;
-  synonymSentenceMeaning: string | null;
-  antonymText: string | null;
-  antonymMeaning: string | null;
-  antonymSentence: string | null;
-  antonymSentenceMeaning: string | null;
   sequence: number;
   isPublished: boolean;
   partsOfSpeech: VocabularyPartsOfSpeech;
+  categoryId: string;
+  categoryName: string;
+  synonyms: VocabularyRelatedWordRow[];
+  antonyms: VocabularyRelatedWordRow[];
   createdAt: string;
   updatedAt: string;
 }
@@ -37,4 +43,6 @@ export interface VocabularyListResult {
 
 export interface VocabularyPageResult extends VocabularyListResult {
   nextSequence: number;
+  categories: CategoryOption[];
+  categoryRows: CategoryRow[];
 }

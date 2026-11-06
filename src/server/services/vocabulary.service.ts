@@ -8,58 +8,36 @@ import {
   findVocabularyById,
   findVocabularyPage,
   updateVocabulary as updateVocabularyRecord,
+  type VocabularySelected,
 } from "@/server/repositories/vocabulary.repository";
 import { canViewUnpublishedContent, requireAdminUser } from "@/server/services/auth.service";
+import {
+  getCategoryOptions,
+  getManagedCategories,
+  requireCategory,
+} from "@/server/services/category.service";
 import type {
   VocabularyFilterParams,
   VocabularyPageResult,
 } from "@/server/types/vocabulary";
-import type {
-  VocabularyItem,
-  VocabularyPartsOfSpeech,
-} from "@/types/vocabulary";
+import type { VocabularyItem } from "@/types/vocabulary";
 
 export const VOCABULARY_PAGE_SIZE = 20;
 
-interface VocabularyRecord {
-  id: string;
-  text: string;
-  meaning: string;
-  sentence: string;
-  sentenceMeaning: string;
-  synonymText: string | null;
-  synonymMeaning: string | null;
-  synonymSentence: string | null;
-  synonymSentenceMeaning: string | null;
-  antonymText: string | null;
-  antonymMeaning: string | null;
-  antonymSentence: string | null;
-  antonymSentenceMeaning: string | null;
-  sequence: number;
-  isPublished: boolean;
-  partsOfSpeech: VocabularyPartsOfSpeech;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-function toVocabularyItem(vocabulary: VocabularyRecord): VocabularyItem {
+function toVocabularyItem(vocabulary: VocabularySelected): VocabularyItem {
   return {
     id: vocabulary.id,
     text: vocabulary.text,
     meaning: vocabulary.meaning,
     sentence: vocabulary.sentence,
     sentenceMeaning: vocabulary.sentenceMeaning,
-    synonymText: vocabulary.synonymText,
-    synonymMeaning: vocabulary.synonymMeaning,
-    synonymSentence: vocabulary.synonymSentence,
-    synonymSentenceMeaning: vocabulary.synonymSentenceMeaning,
-    antonymText: vocabulary.antonymText,
-    antonymMeaning: vocabulary.antonymMeaning,
-    antonymSentence: vocabulary.antonymSentence,
-    antonymSentenceMeaning: vocabulary.antonymSentenceMeaning,
     sequence: vocabulary.sequence,
     isPublished: vocabulary.isPublished,
     partsOfSpeech: vocabulary.partsOfSpeech,
+    categoryId: vocabulary.categoryId,
+    categoryName: vocabulary.category.name,
+    synonyms: vocabulary.synonyms,
+    antonyms: vocabulary.antonyms,
     createdAt: vocabulary.createdAt.toISOString(),
     updatedAt: vocabulary.updatedAt.toISOString(),
   };
@@ -76,23 +54,30 @@ export async function listVocabulary(
 
   const letter = query.letter?.trim().toUpperCase();
 
-  const [list, nextSequence] = await Promise.all([
+  const [list, nextSequence, categories, categoryRows] = await Promise.all([
     findVocabularyPage({
       ...query,
       canViewUnpublished,
       search: query.search?.trim() || undefined,
+      categoryId: query.categoryId?.trim() || undefined,
       letter: letter && /^[A-Z]$/.test(letter) ? letter : undefined,
     }),
     findNextVocabularySequence(),
+    getCategoryOptions("vocabulary"),
+    // Usage counts cover drafts, so only an admin is given the management rows.
+    canViewUnpublished
+      ? getManagedCategories("vocabulary")
+      : Promise.resolve([]),
   ]);
 
-  return { ...list, nextSequence };
+  return { ...list, nextSequence, categories, categoryRows };
 }
 
 export async function createVocabulary(
   input: VocabularyInput,
 ): Promise<VocabularyItem> {
   await requireAdminUser();
+  await requireCategory("vocabulary", input.categoryId);
 
   try {
     const vocabulary = await createVocabularyRecord(input);
@@ -110,6 +95,7 @@ export async function updateVocabulary(
   input: VocabularyInput,
 ): Promise<VocabularyItem> {
   await requireAdminUser();
+  await requireCategory("vocabulary", input.categoryId);
 
   const existing = await findVocabularyById(id);
   if (!existing) {

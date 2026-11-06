@@ -8,6 +8,7 @@ export const CATEGORY_KINDS = [
   "sentence",
   "conversation",
   "listening",
+  "vocabulary",
   "interview",
   "topic",
 ] as const;
@@ -20,6 +21,7 @@ export const HOME_CATEGORY_KINDS = [
   "sentence",
   "conversation",
   "listening",
+  "vocabulary",
 ] as const;
 
 export type HomeCategoryKind = (typeof HOME_CATEGORY_KINDS)[number];
@@ -39,6 +41,7 @@ export const CATEGORY_ENTITY_LABELS: Record<CategoryKind, string> = {
   sentence: "sentence",
   conversation: "conversation",
   listening: "listening",
+  vocabulary: "vocabulary word",
   interview: "interview question",
   topic: "interview question",
 };
@@ -54,6 +57,7 @@ export const CATEGORY_NOUNS: Record<CategoryKind, CategoryNouns> = {
   sentence: { singular: "category", plural: "categories" },
   conversation: { singular: "category", plural: "categories" },
   listening: { singular: "category", plural: "categories" },
+  vocabulary: { singular: "category", plural: "categories" },
   interview: { singular: "category", plural: "categories" },
   topic: { singular: "topic", plural: "topics" },
 };
@@ -63,6 +67,7 @@ export const CATEGORY_MANAGE_TITLES: Record<CategoryKind, string> = {
   sentence: "Sentence categories",
   conversation: "Conversation categories",
   listening: "Listening categories",
+  vocabulary: "Vocabulary categories",
   interview: "Interview categories",
   topic: "Interview topics",
 };
@@ -76,6 +81,7 @@ export const CATEGORY_DUPLICATE_MESSAGES: Record<CategoryKind, string> = {
   sentence: "A sentence category with this name already exists.",
   conversation: "A conversation category with this name already exists.",
   listening: "A listening category with this name already exists.",
+  vocabulary: "A vocabulary category with this name already exists.",
   interview: "An interview category with this name already exists.",
   topic: "An interview topic with this name already exists.",
 };

@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
     const data = await listVocabulary({
       search: searchParams.get("search") || undefined,
       letter: searchParams.get("letter") || undefined,
+      categoryId: searchParams.get("category") || undefined,
       status: parsePublicationStatus(searchParams.get("status") || undefined),
       page,
       pageSize,

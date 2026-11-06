@@ -5,7 +5,7 @@ import { ListenControls } from "@/features/practice/ListenControls";
 import { PlayTextButton } from "@/features/practice/PlayTextButton";
 import { useListenSpeech } from "@/features/practice/useListenSpeech";
 import type { ListenSpeech } from "@/features/practice/useListenSpeech";
-import type { VocabularyItem } from "@/types/vocabulary";
+import type { VocabularyItem, VocabularyRelatedWord } from "@/types/vocabulary";
 
 interface VocabularyPracticePanelProps {
   vocabulary: VocabularyItem;
@@ -53,6 +53,110 @@ function PracticeEntry({
   );
 }
 
+interface RelatedWordEntryProps {
+  text: string;
+  entryKey: string;
+  ariaLabel: string;
+  tone: "strong" | "plain";
+  speech: ListenSpeech;
+}
+
+/**
+ * One line of a synonym or antonym subsection: the text, its IPA and its own
+ * Listen button — the same row shape an alternate expression uses.
+ */
+function RelatedWordEntry({
+  text,
+  entryKey,
+  ariaLabel,
+  tone,
+  speech,
+}: RelatedWordEntryProps) {
+  return (
+    <div className="flex items-start justify-between gap-3">
+      <div className="min-w-0">
+        <p
+          className={
+            tone === "strong"
+              ? "text-sm font-medium leading-6 break-words text-slate-900"
+              : "text-sm leading-6 break-words text-slate-700"
+          }
+        >
+          {text}
+        </p>
+        <InlineIpa text={text} accent={speech.accent} />
+      </div>
+      <PlayTextButton
+        isPlaying={speech.speakingKey === entryKey}
+        onClick={() => speech.play(entryKey, text)}
+        ariaLabel={ariaLabel}
+      />
+    </div>
+  );
+}
+
+interface RelatedWordSectionProps {
+  vocabularyId: string;
+  singular: string;
+  words: VocabularyRelatedWord[];
+  speech: ListenSpeech;
+}
+
+function RelatedWordSection({
+  vocabularyId,
+  singular,
+  words,
+  speech,
+}: RelatedWordSectionProps) {
+  const lower = singular.toLowerCase();
+  const headingId = `vocabulary-${lower}s-${vocabularyId}`;
+
+  return (
+    <section
+      aria-labelledby={headingId}
+      className="rounded-xl border border-slate-200 bg-slate-50 p-3.5 sm:p-4"
+    >
+      <h3
+        id={headingId}
+        className="text-xs font-semibold uppercase tracking-wider text-slate-600"
+      >
+        {`${singular}s`}
+      </h3>
+
+      <ul className="mt-3 flex flex-col gap-3">
+        {words.map((word, index) => (
+          <li
+            key={word.id}
+            className="rounded-lg border border-slate-200 bg-white p-3.5"
+          >
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+              {`${lower} ${index + 1}`}
+            </p>
+
+            <RelatedWordEntry
+              text={word.word}
+              entryKey={`${lower}-${word.id}-word`}
+              ariaLabel={`Listen to the ${lower} ${index + 1}`}
+              tone="strong"
+              speech={speech}
+            />
+
+            <div className="mt-3 border-t border-slate-100 pt-3">
+              <RelatedWordEntry
+                text={word.sentence}
+                entryKey={`${lower}-${word.id}-sentence`}
+                ariaLabel={`Listen to the ${lower} ${index + 1} example sentence`}
+                tone="plain"
+                speech={speech}
+              />
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 export function VocabularyPracticePanel({
   vocabulary,
 }: VocabularyPracticePanelProps) {
@@ -86,49 +190,29 @@ export function VocabularyPracticePanel({
             entryKey="sentence"
             speech={speech}
           />
-
-          {vocabulary.synonymText && (
-            <>
-              <PracticeEntry
-                label="Synonym"
-                english={vocabulary.synonymText}
-                bengali={vocabulary.synonymMeaning}
-                entryKey="synonym"
-                speech={speech}
-              />
-              {vocabulary.synonymSentence && (
-                <PracticeEntry
-                  label="Synonym sentence"
-                  english={vocabulary.synonymSentence}
-                  bengali={vocabulary.synonymSentenceMeaning}
-                  entryKey="synonym-sentence"
-                  speech={speech}
-                />
-              )}
-            </>
-          )}
-
-          {vocabulary.antonymText && (
-            <>
-              <PracticeEntry
-                label="Antonym"
-                english={vocabulary.antonymText}
-                bengali={vocabulary.antonymMeaning}
-                entryKey="antonym"
-                speech={speech}
-              />
-              {vocabulary.antonymSentence && (
-                <PracticeEntry
-                  label="Antonym sentence"
-                  english={vocabulary.antonymSentence}
-                  bengali={vocabulary.antonymSentenceMeaning}
-                  entryKey="antonym-sentence"
-                  speech={speech}
-                />
-              )}
-            </>
-          )}
         </div>
+
+        {(vocabulary.synonyms.length > 0 || vocabulary.antonyms.length > 0) && (
+          <div className="mt-4 flex flex-col gap-4">
+            {vocabulary.synonyms.length > 0 && (
+              <RelatedWordSection
+                vocabularyId={vocabulary.id}
+                singular="Synonym"
+                words={vocabulary.synonyms}
+                speech={speech}
+              />
+            )}
+
+            {vocabulary.antonyms.length > 0 && (
+              <RelatedWordSection
+                vocabularyId={vocabulary.id}
+                singular="Antonym"
+                words={vocabulary.antonyms}
+                speech={speech}
+              />
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

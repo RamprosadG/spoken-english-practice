@@ -8,9 +8,8 @@ export interface HomeSummary {
   presentations: number;
   listenings: number;
   /**
-   * Only the four kinds Home links to. Vocabulary is deliberately uncategorised,
-   * and the interview kinds belong to a private library, so neither is counted
-   * here.
+   * Only the five kinds Home links to. The interview kinds belong to a private
+   * library, so neither is counted here.
    */
   categories: Record<HomeCategoryKind, number>;
 }

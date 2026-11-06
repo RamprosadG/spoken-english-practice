@@ -240,29 +240,72 @@ model ListeningItem {
   @@map("listening_item")
 }
 
-model Vocabulary {
-  id                     String        @id @default(uuid())
-  text                   String        @unique
-  meaning                String
-  sentence               String
-  sentenceMeaning        String
-  synonymText            String?
-  synonymMeaning         String?
-  synonymSentence        String?
-  synonymSentenceMeaning String?
-  antonymText            String?
-  antonymMeaning         String?
-  antonymSentence        String?
-  antonymSentenceMeaning String?
-  sequence               Int
-  isPublished            Boolean       @default(true)
-  partsOfSpeech          PartsOfSpeech @default(noun)
+model VocabularyCategory {
+  id       String @id @default(uuid())
+  name     String @unique
+  sequence Int
+
+  vocabularies Vocabulary[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([sequence, createdAt])
+  @@map("vocabulary_category")
+}
+
+model Vocabulary {
+  id              String        @id @default(uuid())
+  text            String        @unique
+  meaning         String
+  sentence        String
+  sentenceMeaning String
+  sequence        Int
+  isPublished     Boolean       @default(true)
+  partsOfSpeech   PartsOfSpeech @default(noun)
+
+  categoryId String
+  category   VocabularyCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  synonyms VocabularySynonym[]
+  antonyms VocabularyAntonym[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sequence, createdAt])
+  @@index([categoryId, sequence, createdAt])
   @@map("vocabulary")
+}
+
+model VocabularySynonym {
+  id           String     @id @default(uuid())
+  vocabularyId String
+  vocabulary   Vocabulary @relation(fields: [vocabularyId], references: [id], onDelete: Cascade)
+  word         String
+  sentence     String
+  sequence     Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([vocabularyId, sequence])
+  @@map("vocabulary_synonym")
+}
+
+model VocabularyAntonym {
+  id           String     @id @default(uuid())
+  vocabularyId String
+  vocabulary   Vocabulary @relation(fields: [vocabularyId], references: [id], onDelete: Cascade)
+  word         String
+  sentence     String
+  sequence     Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([vocabularyId, sequence])
+  @@map("vocabulary_antonym")
 }
 
 model InterviewCategory {

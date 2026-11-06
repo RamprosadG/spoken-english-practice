@@ -10,6 +10,7 @@ import type {
   VocabularyFilters as VocabularyFiltersState,
   VocabularyItem,
 } from "@/types/vocabulary";
+import type { CategoryOption } from "@/types/category";
 import { VocabularyFilters } from "./VocabularyFilters";
 import { VocabularyFormModal } from "./VocabularyFormModal";
 import { VocabularyTable } from "./VocabularyTable";
@@ -19,6 +20,7 @@ interface VocabularySectionProps {
   vocabularies: VocabularyItem[];
   pagination: PaginationMeta | null;
   filters: VocabularyFiltersState;
+  categories: CategoryOption[];
   isLoading?: boolean;
 }
 
@@ -27,6 +29,7 @@ interface VocabularySectionProps {
 function toQuery(filters: VocabularyFiltersState) {
   const params = new URLSearchParams();
   if (filters.search.trim()) params.set("search", filters.search.trim());
+  if (filters.category) params.set("category", filters.category);
   if (filters.letter) params.set("letter", filters.letter);
   if (filters.status) params.set("status", filters.status);
   if (filters.page > 1) params.set("page", String(filters.page));
@@ -37,6 +40,7 @@ export function VocabularySection({
   vocabularies,
   pagination,
   filters,
+  categories,
   isLoading = false,
 }: VocabularySectionProps) {
   const router = useRouter();
@@ -78,7 +82,7 @@ export function VocabularySection({
   async function handleDelete(vocabulary: VocabularyItem) {
     const result = await Swal.fire({
       title: "Delete vocabulary?",
-      text: `"${vocabulary.text}" will be permanently removed.`,
+      text: `"${vocabulary.text}" and all of its synonyms and antonyms will be permanently removed.`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Delete",
@@ -115,9 +119,12 @@ export function VocabularySection({
     <>
       <VocabularyFilters
         search={filters.search}
+        category={filters.category}
         letter={filters.letter}
         status={filters.status}
+        categories={categories}
         onSearchChange={(value) => navigate({ search: value, page: 1 })}
+        onCategoryChange={(value) => navigate({ category: value, page: 1 })}
         onLetterChange={(value) => navigate({ letter: value, page: 1 })}
         onStatusChange={(value) => navigate({ status: value, page: 1 })}
       />
@@ -145,6 +152,7 @@ export function VocabularySection({
       {editingVocabulary && (
         <VocabularyFormModal
           vocabulary={editingVocabulary}
+          categories={categories}
           defaultSequence={editingVocabulary.sequence}
           onClose={() => setEditingVocabulary(null)}
           onSaved={(message) => {

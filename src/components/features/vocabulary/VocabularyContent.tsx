@@ -13,8 +13,10 @@ import { VocabularyView } from "./VocabularyView";
 const emptyData: VocabularyListData = {
   vocabularies: [],
   pagination: null,
-  filters: { search: "", letter: "", status: "", page: 1 },
+  filters: { search: "", category: "", letter: "", status: "", page: 1 },
   nextSequence: 1,
+  categories: [],
+  categoryRows: [],
 };
 
 export function VocabularyLoading() {
@@ -27,6 +29,9 @@ function readFilters(
   const rawPage = Number(Array.isArray(query.page) ? query.page[0] : query.page);
   const rawLetter = Array.isArray(query.letter) ? query.letter[0] : query.letter;
   const rawStatus = Array.isArray(query.status) ? query.status[0] : query.status;
+  const rawCategory = Array.isArray(query.category)
+    ? query.category[0]
+    : query.category;
   const letter =
     typeof rawLetter === "string" && /^[a-z]$/i.test(rawLetter)
       ? rawLetter.toUpperCase()
@@ -34,6 +39,7 @@ function readFilters(
 
   return {
     search: typeof query.search === "string" ? query.search : "",
+    category: typeof rawCategory === "string" ? rawCategory : "",
     letter,
     status: typeof rawStatus === "string" ? rawStatus : "",
     page: Number.isFinite(rawPage) && rawPage > 0 ? Math.floor(rawPage) : 1,
@@ -55,6 +61,7 @@ export async function VocabularyContent({
 
   const list = await listVocabulary({
     search: filters.search || undefined,
+    categoryId: filters.category || undefined,
     letter: filters.letter || undefined,
     status: parsePublicationStatus(filters.status),
     page: filters.page,
@@ -66,6 +73,8 @@ export async function VocabularyContent({
     pagination: list.pagination,
     filters: { ...filters, page: list.pagination.page },
     nextSequence: list.nextSequence,
+    categories: list.categories,
+    categoryRows: list.categoryRows,
   };
 
   return <VocabularyView data={data} />;

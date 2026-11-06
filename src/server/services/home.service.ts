@@ -26,6 +26,7 @@ export async function getHomeSummary(): Promise<HomeSummary> {
     sentenceCategories,
     conversationCategories,
     listeningCategories,
+    vocabularyCategories,
   ] = await Promise.all([
     countUsers(),
     countVocabulary(),
@@ -37,6 +38,7 @@ export async function getHomeSummary(): Promise<HomeSummary> {
     countCategories("sentence"),
     countCategories("conversation"),
     countCategories("listening"),
+    countCategories("vocabulary"),
   ]);
 
   return {
@@ -51,6 +53,7 @@ export async function getHomeSummary(): Promise<HomeSummary> {
       sentence: sentenceCategories,
       conversation: conversationCategories,
       listening: listeningCategories,
+      vocabulary: vocabularyCategories,
     },
   };
 }

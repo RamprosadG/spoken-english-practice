@@ -7,19 +7,28 @@ import Button from "@/components/ui/buttons/Button";
 import Dropdown from "@/components/ui/dropdowns/Dropdown";
 import Input from "@/components/ui/inputs/Input";
 import Modal from "@/components/ui/modals/Modal";
+import { buildCategoryFormOptions } from "@/lib/categories";
 import {
   PUBLICATION_FORM_OPTIONS,
   isPublishedFromStatus,
   publicationStatusValue,
 } from "@/lib/publishing";
+import type { CategoryOption } from "@/types/category";
 import {
   PARTS_OF_SPEECH_OPTIONS,
   type VocabularyItem,
 } from "@/types/vocabulary";
+import {
+  VocabularyRelatedWordList,
+  createRelatedWordKey,
+  type VocabularyRelatedWordDraft,
+  type VocabularyRelatedWordErrors,
+} from "./VocabularyRelatedWordList";
 import { vocabularyRequest } from "./vocabulary-client";
 
 interface VocabularyFormModalProps {
   vocabulary: VocabularyItem | null;
+  categories: CategoryOption[];
   defaultSequence: number;
   onClose: () => void;
   onSaved: (message: string) => void;
@@ -30,14 +39,7 @@ interface FormState {
   meaning: string;
   sentence: string;
   sentenceMeaning: string;
-  synonymText: string;
-  synonymMeaning: string;
-  synonymSentence: string;
-  synonymSentenceMeaning: string;
-  antonymText: string;
-  antonymMeaning: string;
-  antonymSentence: string;
-  antonymSentenceMeaning: string;
+  categoryId: string;
   partsOfSpeech: string;
   status: string;
   sequence: string;
@@ -45,9 +47,11 @@ interface FormState {
 
 type FormField = keyof FormState;
 type FormErrors = Partial<Record<FormField, string>>;
+type RelatedErrors = Record<string, VocabularyRelatedWordErrors>;
 
 function buildInitialState(
   vocabulary: VocabularyItem | null,
+  categories: CategoryOption[],
   defaultSequence: number,
 ): FormState {
   return {
@@ -55,18 +59,21 @@ function buildInitialState(
     meaning: vocabulary?.meaning ?? "",
     sentence: vocabulary?.sentence ?? "",
     sentenceMeaning: vocabulary?.sentenceMeaning ?? "",
-    synonymText: vocabulary?.synonymText ?? "",
-    synonymMeaning: vocabulary?.synonymMeaning ?? "",
-    synonymSentence: vocabulary?.synonymSentence ?? "",
-    synonymSentenceMeaning: vocabulary?.synonymSentenceMeaning ?? "",
-    antonymText: vocabulary?.antonymText ?? "",
-    antonymMeaning: vocabulary?.antonymMeaning ?? "",
-    antonymSentence: vocabulary?.antonymSentence ?? "",
-    antonymSentenceMeaning: vocabulary?.antonymSentenceMeaning ?? "",
+    categoryId: vocabulary?.categoryId ?? categories[0]?.id ?? "",
     partsOfSpeech: vocabulary?.partsOfSpeech ?? "noun",
     status: publicationStatusValue(vocabulary?.isPublished ?? true),
     sequence: String(vocabulary?.sequence ?? defaultSequence),
   };
+}
+
+function buildRelatedDrafts(
+  words: VocabularyItem["synonyms"],
+): VocabularyRelatedWordDraft[] {
+  return words.map((word) => ({
+    key: createRelatedWordKey(),
+    word: word.word,
+    sentence: word.sentence,
+  }));
 }
 
 interface TextAreaFieldProps {
@@ -128,14 +135,23 @@ function TextAreaField({
 
 export function VocabularyFormModal({
   vocabulary,
+  categories,
   defaultSequence,
   onClose,
   onSaved,
 }: VocabularyFormModalProps) {
   const isEditing = Boolean(vocabulary);
   const [form, setForm] = useState<FormState>(() =>
-    buildInitialState(vocabulary, defaultSequence),
+    buildInitialState(vocabulary, categories, defaultSequence),
   );
+  const [synonyms, setSynonyms] = useState<VocabularyRelatedWordDraft[]>(() =>
+    buildRelatedDrafts(vocabulary?.synonyms ?? []),
+  );
+  const [antonyms, setAntonyms] = useState<VocabularyRelatedWordDraft[]>(() =>
+    buildRelatedDrafts(vocabulary?.antonyms ?? []),
+  );
+  const [synonymErrors, setSynonymErrors] = useState<RelatedErrors>({});
+  const [antonymErrors, setAntonymErrors] = useState<RelatedErrors>({});
   const [errors, setErrors] = useState<FormErrors>({});
   const [apiError, setApiError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -154,6 +170,28 @@ export function VocabularyFormModal({
     if (apiError) setApiError("");
   }
 
+  function validateRelated(
+    label: string,
+    words: VocabularyRelatedWordDraft[],
+  ): [RelatedErrors, number] {
+    const next: RelatedErrors = {};
+
+    words.forEach((word, index) => {
+      const rowErrors: VocabularyRelatedWordErrors = {};
+      if (!word.word.trim()) {
+        rowErrors.word = `${label} ${index + 1} is empty.`;
+      }
+      if (!word.sentence.trim()) {
+        rowErrors.sentence = `${label} ${index + 1} has no example sentence.`;
+      }
+      if (Object.keys(rowErrors).length > 0) {
+        next[word.key] = rowErrors;
+      }
+    });
+
+    return [next, Object.keys(next).length];
+  }
+
   function validate(): boolean {
     const nextErrors: FormErrors = {};
 
@@ -170,34 +208,33 @@ export function VocabularyFormModal({
       nextErrors.sentenceMeaning =
         "Bengali meaning of the example sentence is required.";
     }
+    if (!form.categoryId) {
+      nextErrors.categoryId = "Choose a category.";
+    }
 
     const parsedSequence = Number(form.sequence);
     if (!Number.isInteger(parsedSequence) || parsedSequence < 1) {
       nextErrors.sequence = "Sequence must be a whole number of at least 1.";
     }
 
-    if (
-      !form.synonymText.trim() &&
-      (form.synonymMeaning.trim() ||
-        form.synonymSentence.trim() ||
-        form.synonymSentenceMeaning.trim())
-    ) {
-      nextErrors.synonymText =
-        "Enter the synonym word to use its details.";
-    }
-
-    if (
-      !form.antonymText.trim() &&
-      (form.antonymMeaning.trim() ||
-        form.antonymSentence.trim() ||
-        form.antonymSentenceMeaning.trim())
-    ) {
-      nextErrors.antonymText =
-        "Enter the antonym word to use its details.";
-    }
+    const [nextSynonymErrors, synonymErrorCount] = validateRelated(
+      "Synonym",
+      synonyms,
+    );
+    const [nextAntonymErrors, antonymErrorCount] = validateRelated(
+      "Antonym",
+      antonyms,
+    );
 
     setErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
+    setSynonymErrors(nextSynonymErrors);
+    setAntonymErrors(nextAntonymErrors);
+
+    return (
+      Object.keys(nextErrors).length === 0 &&
+      synonymErrorCount === 0 &&
+      antonymErrorCount === 0
+    );
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -219,19 +256,18 @@ export function VocabularyFormModal({
           meaning: form.meaning.trim(),
           sentence: form.sentence.trim(),
           sentenceMeaning: form.sentenceMeaning.trim(),
-          synonymText: form.synonymText.trim() || null,
-          synonymMeaning: form.synonymMeaning.trim() || null,
-          synonymSentence: form.synonymSentence.trim() || null,
-          synonymSentenceMeaning:
-            form.synonymSentenceMeaning.trim() || null,
-          antonymText: form.antonymText.trim() || null,
-          antonymMeaning: form.antonymMeaning.trim() || null,
-          antonymSentence: form.antonymSentence.trim() || null,
-          antonymSentenceMeaning:
-            form.antonymSentenceMeaning.trim() || null,
+          categoryId: form.categoryId,
           sequence: Number(form.sequence),
           isPublished: isPublishedFromStatus(form.status),
           partsOfSpeech: form.partsOfSpeech,
+          synonyms: synonyms.map((synonym) => ({
+            word: synonym.word.trim(),
+            sentence: synonym.sentence.trim(),
+          })),
+          antonyms: antonyms.map((antonym) => ({
+            word: antonym.word.trim(),
+            sentence: antonym.sentence.trim(),
+          })),
         }),
       });
 
@@ -320,123 +356,40 @@ export function VocabularyFormModal({
           onChange={(value) => setField("sentenceMeaning", value)}
         />
 
-        <fieldset className="rounded-lg border border-slate-200 p-4">
-          <legend className="px-1 text-sm font-semibold text-slate-800">
-            Synonym{" "}
-            <span className="font-normal text-slate-400">(optional)</span>
-          </legend>
-          <p className="text-xs text-slate-500">
-            Add a related word with its own meaning and example.
-          </p>
+        <VocabularyRelatedWordList
+          singular="Synonym"
+          hint="Words that mean the same as this one. Each entry keeps its own example sentence, IPA and audio."
+          words={synonyms}
+          errors={synonymErrors}
+          onChange={(next) => {
+            setSynonyms(next);
+            setSynonymErrors({});
+            if (apiError) setApiError("");
+          }}
+        />
 
-          <div className="mt-3 grid gap-4 sm:grid-cols-2">
-            <Input
-              label="Synonym word"
-              id="vocabulary-synonym-text"
-              name="synonymText"
-              maxLength={100}
-              placeholder="e.g. begin"
-              value={form.synonymText}
-              error={errors.synonymText}
-              onChange={(event) =>
-                setField("synonymText", event.target.value)
-              }
-            />
-            <Input
-              label="Bengali meaning"
-              id="vocabulary-synonym-meaning"
-              name="synonymMeaning"
-              lang="bn"
-              maxLength={500}
-              placeholder="Write the Bengali meaning"
-              value={form.synonymMeaning}
-              onChange={(event) =>
-                setField("synonymMeaning", event.target.value)
-              }
-            />
-          </div>
+        <VocabularyRelatedWordList
+          singular="Antonym"
+          hint="Words that mean the opposite of this one. Each entry keeps its own example sentence, IPA and audio."
+          words={antonyms}
+          errors={antonymErrors}
+          onChange={(next) => {
+            setAntonyms(next);
+            setAntonymErrors({});
+            if (apiError) setApiError("");
+          }}
+        />
 
-          <div className="mt-4 flex flex-col gap-4">
-            <TextAreaField
-              id="vocabulary-synonym-sentence"
-              label="Example sentence"
-              rows={2}
-              placeholder="Write an example with the synonym"
-              value={form.synonymSentence}
-              onChange={(value) => setField("synonymSentence", value)}
-            />
-            <TextAreaField
-              id="vocabulary-synonym-sentence-meaning"
-              label="Sentence meaning (বাংলা)"
-              lang="bn"
-              rows={2}
-              placeholder="Write the Bengali meaning of the example"
-              value={form.synonymSentenceMeaning}
-              onChange={(value) =>
-                setField("synonymSentenceMeaning", value)
-              }
-            />
-          </div>
-        </fieldset>
-
-        <fieldset className="rounded-lg border border-slate-200 p-4">
-          <legend className="px-1 text-sm font-semibold text-slate-800">
-            Antonym{" "}
-            <span className="font-normal text-slate-400">(optional)</span>
-          </legend>
-          <p className="text-xs text-slate-500">
-            Add an opposite word with its own meaning and example.
-          </p>
-
-          <div className="mt-3 grid gap-4 sm:grid-cols-2">
-            <Input
-              label="Antonym word"
-              id="vocabulary-antonym-text"
-              name="antonymText"
-              maxLength={100}
-              placeholder="e.g. finish"
-              value={form.antonymText}
-              error={errors.antonymText}
-              onChange={(event) =>
-                setField("antonymText", event.target.value)
-              }
-            />
-            <Input
-              label="Bengali meaning"
-              id="vocabulary-antonym-meaning"
-              name="antonymMeaning"
-              lang="bn"
-              maxLength={500}
-              placeholder="Write the Bengali meaning"
-              value={form.antonymMeaning}
-              onChange={(event) =>
-                setField("antonymMeaning", event.target.value)
-              }
-            />
-          </div>
-
-          <div className="mt-4 flex flex-col gap-4">
-            <TextAreaField
-              id="vocabulary-antonym-sentence"
-              label="Example sentence"
-              rows={2}
-              placeholder="Write an example with the antonym"
-              value={form.antonymSentence}
-              onChange={(value) => setField("antonymSentence", value)}
-            />
-            <TextAreaField
-              id="vocabulary-antonym-sentence-meaning"
-              label="Sentence meaning (বাংলা)"
-              lang="bn"
-              rows={2}
-              placeholder="Write the Bengali meaning of the example"
-              value={form.antonymSentenceMeaning}
-              onChange={(value) =>
-                setField("antonymSentenceMeaning", value)
-              }
-            />
-          </div>
-        </fieldset>
+        <Dropdown
+          label="Category"
+          id="vocabulary-category"
+          name="categoryId"
+          options={buildCategoryFormOptions(categories)}
+          value={form.categoryId}
+          error={errors.categoryId}
+          onChange={(value) => setField("categoryId", value)}
+          required
+        />
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Dropdown

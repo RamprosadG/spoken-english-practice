@@ -6,13 +6,21 @@ import { FiPlus } from "react-icons/fi";
 import { showSuccessAlert } from "@/components/ui/alerts/Alerts";
 import Button from "@/components/ui/buttons/Button";
 import { useAuth } from "@/features/auth/AuthProvider";
+import { CategoryManageButton } from "@/features/category/CategoryManageButton";
+import type { CategoryOption, CategoryRow } from "@/types/category";
 import { VocabularyFormModal } from "./VocabularyFormModal";
 
 interface VocabularyActionsProps {
   nextSequence: number;
+  categories: CategoryOption[];
+  categoryRows: CategoryRow[];
 }
 
-export function VocabularyActions({ nextSequence }: VocabularyActionsProps) {
+export function VocabularyActions({
+  nextSequence,
+  categories,
+  categoryRows,
+}: VocabularyActionsProps) {
   const router = useRouter();
   const { user } = useAuth();
   const [, startRefresh] = useTransition();
@@ -32,9 +40,12 @@ export function VocabularyActions({ nextSequence }: VocabularyActionsProps) {
         New word
       </Button>
 
+      <CategoryManageButton kind="vocabulary" categories={categoryRows} />
+
       {isCreateOpen && (
         <VocabularyFormModal
           vocabulary={null}
+          categories={categories}
           defaultSequence={nextSequence}
           onClose={() => setIsCreateOpen(false)}
           onSaved={(message) => {

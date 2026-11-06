@@ -9,27 +9,65 @@ import type {
   VocabularyRow,
 } from "@/server/types/vocabulary";
 
+interface RelatedWordInput {
+  word: string;
+  sentence: string;
+}
+
 interface VocabularyWriteData {
   text: string;
   meaning: string;
   sentence: string;
   sentenceMeaning: string;
-  synonymText: string | null;
-  synonymMeaning: string | null;
-  synonymSentence: string | null;
-  synonymSentenceMeaning: string | null;
-  antonymText: string | null;
-  antonymMeaning: string | null;
-  antonymSentence: string | null;
-  antonymSentenceMeaning: string | null;
+  categoryId: string;
   sequence: number;
   isPublished: boolean;
   partsOfSpeech: VocabularyPartsOfSpeech;
+  synonyms: RelatedWordInput[];
+  antonyms: RelatedWordInput[];
+}
+
+const RELATIVE_WORD_SELECT = {
+  id: true,
+  word: true,
+  sentence: true,
+  sequence: true,
+} as const;
+
+/**
+ * Every read that reaches the browser carries the category name and both related
+ * word lists with it: the inline practice panel plays them, so the page must
+ * have them and no detail route exists to fetch them later.
+ */
+const VOCABULARY_SELECT = {
+  id: true,
+  text: true,
+  meaning: true,
+  sentence: true,
+  sentenceMeaning: true,
+  sequence: true,
+  isPublished: true,
+  partsOfSpeech: true,
+  categoryId: true,
+  createdAt: true,
+  updatedAt: true,
+  category: { select: { name: true } },
+  synonyms: { orderBy: { sequence: "asc" }, select: RELATIVE_WORD_SELECT },
+  antonyms: { orderBy: { sequence: "asc" }, select: RELATIVE_WORD_SELECT },
+} as const;
+
+export type VocabularySelected = Prisma.VocabularyGetPayload<{
+  select: typeof VOCABULARY_SELECT;
+}>;
+
+/** Array position becomes the stored sequence, one-based. */
+function toRelatedWordRows(words: RelatedWordInput[]) {
+  return words.map((word, index) => ({ ...word, sequence: index + 1 }));
 }
 
 /**
  * Search, the A-Z letter filter and pagination all run in PostgreSQL. The
- * search covers the word, synonym and antonym only; the letter filter applies
+ * search covers the word and its synonyms and antonyms; the letter filter applies
  * to the vocabulary word itself. Unpublished rows never leave the database for
  * a learner.
  */
@@ -44,11 +82,23 @@ export async function findVocabularyPage(
     where.text = { startsWith: filters.letter, mode: "insensitive" };
   }
 
+  if (filters.categoryId) {
+    where.categoryId = filters.categoryId;
+  }
+
   if (filters.search) {
     where.OR = [
       { text: { contains: filters.search, mode: "insensitive" } },
-      { synonymText: { contains: filters.search, mode: "insensitive" } },
-      { antonymText: { contains: filters.search, mode: "insensitive" } },
+      {
+        synonyms: {
+          some: { word: { contains: filters.search, mode: "insensitive" } },
+        },
+      },
+      {
+        antonyms: {
+          some: { word: { contains: filters.search, mode: "insensitive" } },
+        },
+      },
     ];
   }
 
@@ -60,6 +110,7 @@ export async function findVocabularyPage(
   const vocabularies = await prisma.vocabulary.findMany({
     where,
     orderBy: [{ sequence: "asc" }, { createdAt: "asc" }],
+    select: VOCABULARY_SELECT,
     skip,
     take: pageSize,
   });
@@ -70,17 +121,13 @@ export async function findVocabularyPage(
     meaning: vocabulary.meaning,
     sentence: vocabulary.sentence,
     sentenceMeaning: vocabulary.sentenceMeaning,
-    synonymText: vocabulary.synonymText,
-    synonymMeaning: vocabulary.synonymMeaning,
-    synonymSentence: vocabulary.synonymSentence,
-    synonymSentenceMeaning: vocabulary.synonymSentenceMeaning,
-    antonymText: vocabulary.antonymText,
-    antonymMeaning: vocabulary.antonymMeaning,
-    antonymSentence: vocabulary.antonymSentence,
-    antonymSentenceMeaning: vocabulary.antonymSentenceMeaning,
     sequence: vocabulary.sequence,
     isPublished: vocabulary.isPublished,
     partsOfSpeech: vocabulary.partsOfSpeech,
+    categoryId: vocabulary.categoryId,
+    categoryName: vocabulary.category.name,
+    synonyms: vocabulary.synonyms,
+    antonyms: vocabulary.antonyms,
     createdAt: vocabulary.createdAt.toISOString(),
     updatedAt: vocabulary.updatedAt.toISOString(),
   }));
@@ -98,7 +145,10 @@ export async function findNextVocabularySequence(): Promise<number> {
 }
 
 export function findVocabularyById(id: string) {
-  return prisma.vocabulary.findUnique({ where: { id } });
+  return prisma.vocabulary.findUnique({
+    where: { id },
+    select: VOCABULARY_SELECT,
+  });
 }
 
 export function countVocabulary() {
@@ -106,11 +156,50 @@ export function countVocabulary() {
 }
 
 export function createVocabulary(data: VocabularyWriteData) {
-  return prisma.vocabulary.create({ data });
+  return prisma.vocabulary.create({
+    data: {
+      text: data.text,
+      meaning: data.meaning,
+      sentence: data.sentence,
+      sentenceMeaning: data.sentenceMeaning,
+      categoryId: data.categoryId,
+      sequence: data.sequence,
+      isPublished: data.isPublished,
+      partsOfSpeech: data.partsOfSpeech,
+      synonyms: { create: toRelatedWordRows(data.synonyms) },
+      antonyms: { create: toRelatedWordRows(data.antonyms) },
+    },
+    select: VOCABULARY_SELECT,
+  });
 }
 
+/**
+ * Both lists are rewritten from scratch on every save: the incoming arrays are
+ * the whole truth, so diffing by id would only add a failure mode.
+ */
 export function updateVocabulary(id: string, data: VocabularyWriteData) {
-  return prisma.vocabulary.update({ where: { id }, data });
+  return prisma.vocabulary.update({
+    where: { id },
+    data: {
+      text: data.text,
+      meaning: data.meaning,
+      sentence: data.sentence,
+      sentenceMeaning: data.sentenceMeaning,
+      categoryId: data.categoryId,
+      sequence: data.sequence,
+      isPublished: data.isPublished,
+      partsOfSpeech: data.partsOfSpeech,
+      synonyms: {
+        deleteMany: {},
+        create: toRelatedWordRows(data.synonyms),
+      },
+      antonyms: {
+        deleteMany: {},
+        create: toRelatedWordRows(data.antonyms),
+      },
+    },
+    select: VOCABULARY_SELECT,
+  });
 }
 
 export function deleteVocabulary(id: string) {
