@@ -55,8 +55,11 @@ export function PracticeWorkspace() {
 
   return (
     <section className="flex w-full flex-col">
+      {/* The material and the controls are separate blocks, exactly as on the
+          presentation practice page: this card holds only the text, so the
+          accent, voice, speed and playback row never sits inside it. */}
       <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-6">
+        <div className="flex flex-wrap items-start justify-between gap-2 border-b border-slate-100 px-5 py-4">
           <div>
             <h2 className="text-base font-semibold text-slate-900">
               Practice text
@@ -70,23 +73,25 @@ export function PracticeWorkspace() {
           <CopyTextButton text={text} subject="practice text" />
         </div>
 
-        <div className="p-5 sm:p-6">
-          <label htmlFor="practice-text" className="sr-only">
-            English text
-          </label>
-          <textarea
-            id="practice-text"
-            value={text}
-            onChange={(event) => handleTextChange(event.target.value)}
-            rows={7}
-            placeholder="Type or paste the English text you want to practice..."
-            className="block min-h-[180px] w-full resize-y rounded-lg border border-gray-300 bg-white px-3.5 py-3 text-sm leading-6 text-slate-900 shadow-xs outline-none transition-all duration-200 placeholder:text-gray-400 hover:border-indigo-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500"
-          />
+        {/* The field is the card body itself, so it carries no inset of its own:
+            it spans the full card width and meets the card frame on all four
+            sides. The only chrome left is the house field recipe — the indigo
+            hover and focus border — drawn on the field edge inside the card. */}
+        <label htmlFor="practice-text" className="sr-only">
+          English text
+        </label>
+        <textarea
+          id="practice-text"
+          value={text}
+          onChange={(event) => handleTextChange(event.target.value)}
+          rows={7}
+          placeholder="Type or paste the English text you want to practice..."
+          className="block min-h-[180px] w-full resize-y rounded-b-xl border border-transparent bg-white px-5 py-4 text-sm leading-6 text-slate-900 outline-none transition-all duration-200 placeholder:text-gray-400 hover:border-indigo-400 focus:border-indigo-500 focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+        />
+      </div>
 
-          <div className="mt-5">
-            <SpeechPracticeControls practice={practice} />
-          </div>
-        </div>
+      <div className="mt-6">
+        <SpeechPracticeControls practice={practice} />
       </div>
 
       {practice.showIpa && <IpaTranscriptionSection practice={practice} />}
