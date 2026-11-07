@@ -179,6 +179,9 @@ export function useListenSpeech() {
     error,
     notice,
     play,
+    // Callers that take the panel off screen use this to put their own audio
+    // down; there is deliberately no pause control for the learner.
+    stop,
     handleAccentChange,
     handleVoiceChange,
     handleSpeedChange,

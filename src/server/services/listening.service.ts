@@ -5,6 +5,7 @@ import {
   createListening as createListeningRecord,
   deleteListening as deleteListeningRecord,
   findListeningById,
+  findListeningNeighbors,
   findListeningPage,
   findNextListeningSequence,
   updateListening as updateListeningRecord,
@@ -20,7 +21,12 @@ import type {
   ListeningFilterParams,
   ListeningPageResult,
 } from "@/server/types/listening";
-import type { Listening, ListeningDetail, ListeningItem } from "@/types/listening";
+import type {
+  Listening,
+  ListeningDetail,
+  ListeningItem,
+  ListeningNavigation,
+} from "@/types/listening";
 
 export const LISTENING_PAGE_SIZE = 20;
 
@@ -95,24 +101,38 @@ export async function getListeningDetail(id: string): Promise<ListeningDetail> {
 
 /**
  * The practice route needs a missing or unpublished row to render `notFound()`
- * rather than an API error, so this read answers with null.
+ * rather than an API error, so this read answers with null. It also walks to the
+ * neighbouring listenings, because the page's Previous and Next move through the
+ * library rather than through one listening's sentences.
  */
-export async function getListeningForPractice(
+export async function getListeningWithNavigation(
   id: string,
-): Promise<ListeningDetail | null> {
-  // Which rows a reader may open depends on their role, so never prerender this.
+): Promise<ListeningNavigation | null> {
+  // Which rows a reader may open, and which sit next to them, both change per
+  // request, so never prerender this.
   await connection();
+
+  const canViewUnpublished = await canViewUnpublishedContent();
 
   const listening = await findListeningById(id);
   if (!listening) {
     return null;
   }
 
-  if (!(await canViewUnpublishedContent()) && !listening.isPublished) {
+  if (!canViewUnpublished && !listening.isPublished) {
     return null;
   }
 
-  return toListeningDetail(listening);
+  const neighbors = await findListeningNeighbors(
+    { sequence: listening.sequence, createdAt: listening.createdAt },
+    { canViewUnpublished },
+  );
+
+  return {
+    listening: toListeningDetail(listening),
+    previousId: neighbors.previousId,
+    nextId: neighbors.nextId,
+  };
 }
 
 export async function createListening(

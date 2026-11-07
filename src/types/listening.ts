@@ -28,6 +28,13 @@ export interface ListeningDetail extends Listening {
   items: ListeningItem[];
 }
 
+/** The practice route walks sideways through the library, one listening at a time. */
+export interface ListeningNavigation {
+  listening: ListeningDetail;
+  previousId: string | null;
+  nextId: string | null;
+}
+
 export interface ListeningFilters {
   search: string;
   category: string;

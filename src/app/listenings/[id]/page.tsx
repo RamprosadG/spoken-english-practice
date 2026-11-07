@@ -2,10 +2,9 @@ import { connection } from "next/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FiArrowLeft } from "react-icons/fi";
-import Badge from "@/components/ui/badges/Badge";
 import { ListeningPracticeNav } from "@/components/features/listening/ListeningPracticeNav";
-import { ListeningDictationWorkspace } from "@/features/listening/ListeningDictationWorkspace";
-import { getListeningForPractice } from "@/server/services/listening.service";
+import { ListeningPracticeTabs } from "@/features/listening/ListeningPracticeTabs";
+import { getListeningWithNavigation } from "@/server/services/listening.service";
 
 interface ListeningPracticePageProps {
   params: Promise<{ id: string }>;
@@ -16,8 +15,10 @@ interface ListeningPracticePageProps {
 export const instant = false;
 
 /**
- * The sentence being practised rides the URL, so a reload or a shared link
- * lands on the same item. Anything out of range falls back to the nearest one.
+ * The sentence being dictated rides the URL, so a reload or a shared link lands
+ * on the same item. Anything out of range falls back to the nearest one. The
+ * page's own Previous and Next row moves between listenings, not sentences, so
+ * it never carries this parameter.
  */
 function readItemNumber(
   searchParams: { [key: string]: string | string[] | undefined },
@@ -44,14 +45,14 @@ export default async function ListeningPracticePage({
 
   const { id } = await params;
   const query = await searchParams;
-  const listening = await getListeningForPractice(id);
+  const navigation = await getListeningWithNavigation(id);
 
-  if (!listening || listening.items.length === 0) {
+  if (!navigation || navigation.listening.items.length === 0) {
     notFound();
   }
 
+  const { listening, previousId, nextId } = navigation;
   const itemNumber = readItemNumber(query, listening.items.length);
-  const currentItem = listening.items[itemNumber - 1];
 
   return (
     <div className="flex flex-col gap-6 w-full">
@@ -63,34 +64,24 @@ export default async function ListeningPracticePage({
           <FiArrowLeft className="h-4 w-4" />
           Back to listenings
         </Link>
-        <ListeningPracticeNav
-          listeningId={listening.id}
-          item={itemNumber}
-          totalItems={listening.items.length}
-        />
+        <ListeningPracticeNav previousId={previousId} nextId={nextId} />
       </div>
 
       <header className="border-b border-slate-200 pb-5">
-        <div className="flex flex-wrap items-center gap-2">
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl max-sm:text-lg">
-            {listening.title}
-          </h1>
-          <Badge variant="neutral" size="sm">
-            {listening.categoryName}
-          </Badge>
-        </div>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl max-sm:text-lg">
+          {listening.title}
+        </h1>
         <p className="mt-1 text-sm text-slate-500">
-          Play one sentence at a time, write the words you hear, and use the
-          per-word hint to fix only what went wrong.
+          Work the sentences out by ear one at a time, or open the full
+          transcription to read every one of them and hear the whole listening
+          at once.
         </p>
       </header>
 
-      <ListeningDictationWorkspace
-        key={currentItem.id}
+      <ListeningPracticeTabs
         listeningId={listening.id}
-        item={currentItem}
+        items={listening.items}
         itemNumber={itemNumber}
-        totalItems={listening.items.length}
       />
     </div>
   );

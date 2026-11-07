@@ -1,10 +1,11 @@
 import prisma from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
-import { publicationWhere } from "@/lib/publishing";
+import { publicationWhere, type PublicationView } from "@/lib/publishing";
 import { DEFAULT_PAGE_SIZE, buildPaginationMeta } from "@/lib/utils";
 import type {
   ListeningFilterParams,
   ListeningListResult,
+  ListeningNeighbors,
   ListeningRow,
 } from "@/server/types/listening";
 
@@ -14,6 +15,11 @@ interface ListeningWriteData {
   sequence: number;
   isPublished: boolean;
   items: string[];
+}
+
+interface ListeningCursor {
+  sequence: number;
+  createdAt: Date;
 }
 
 const itemOrder: Prisma.ListeningItemOrderByWithRelationInput[] = [
@@ -110,6 +116,47 @@ export function findListeningById(id: string) {
     where: { id },
     include: listeningInclude,
   });
+}
+
+/**
+ * The two rows either side of this one in the order the library lists by, found
+ * with the same keyset `OR` walk the other libraries use. The publication filter
+ * runs on both sides, so a draft is never a neighbour for a reader who cannot
+ * open it.
+ */
+export async function findListeningNeighbors(
+  cursor: ListeningCursor,
+  view: PublicationView,
+): Promise<ListeningNeighbors> {
+  const [previous, next] = await Promise.all([
+    prisma.listening.findFirst({
+      where: {
+        ...publicationWhere(view),
+        OR: [
+          { sequence: { lt: cursor.sequence } },
+          { sequence: cursor.sequence, createdAt: { lt: cursor.createdAt } },
+        ],
+      },
+      orderBy: [{ sequence: "desc" }, { createdAt: "desc" }],
+      select: { id: true },
+    }),
+    prisma.listening.findFirst({
+      where: {
+        ...publicationWhere(view),
+        OR: [
+          { sequence: { gt: cursor.sequence } },
+          { sequence: cursor.sequence, createdAt: { gt: cursor.createdAt } },
+        ],
+      },
+      orderBy: [{ sequence: "asc" }, { createdAt: "asc" }],
+      select: { id: true },
+    }),
+  ]);
+
+  return {
+    previousId: previous?.id ?? null,
+    nextId: next?.id ?? null,
+  };
 }
 
 export function countListenings() {

@@ -41,6 +41,7 @@ export function ListeningFilters({
         value={category}
         onChange={onCategoryChange}
         hideOptionalText
+        className="max-sm:text-xs"
       />
       {user?.role === "admin" && (
         <Dropdown
@@ -48,6 +49,7 @@ export function ListeningFilters({
           value={status}
           onChange={onStatusChange}
           hideOptionalText
+          className="max-sm:text-xs"
         />
       )}
     </FilterBar>

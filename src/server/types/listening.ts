@@ -31,3 +31,8 @@ export interface ListeningPageResult extends ListeningListResult {
   categories: CategoryOption[];
   categoryRows: CategoryRow[];
 }
+
+export interface ListeningNeighbors {
+  previousId: string | null;
+  nextId: string | null;
+}
