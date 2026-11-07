@@ -2,9 +2,7 @@ import { connection } from "next/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FiArrowLeft } from "react-icons/fi";
-import Badge from "@/components/ui/badges/Badge";
 import { InterviewQuestionPracticeNav } from "@/components/features/interview-question/InterviewQuestionPracticeNav";
-import { INTERVIEW_DIFFICULTY_BADGE_VARIANTS } from "@/features/interview-question/difficultyStyles";
 import { InterviewQuestionPracticeWorkspace } from "@/features/interview-question/InterviewQuestionPracticeWorkspace";
 import { getInterviewQuestionWithNavigation } from "@/server/services/interview-question.service";
 
@@ -46,23 +44,9 @@ export default async function InterviewQuestionPracticePage({
       </div>
 
       <header className="border-b border-slate-200 pb-5">
-        <div className="flex flex-wrap items-center gap-2">
-          <h1 className="text-2xl font-bold tracking-tight break-words text-slate-900 sm:text-3xl max-sm:text-lg">
-            {question.question}
-          </h1>
-          <Badge variant="neutral" size="sm">
-            {question.categoryName}
-          </Badge>
-          <Badge variant="neutral" size="sm">
-            {question.topicName}
-          </Badge>
-          <Badge
-            variant={INTERVIEW_DIFFICULTY_BADGE_VARIANTS[question.difficulty]}
-            size="sm"
-          >
-            {question.difficulty}
-          </Badge>
-        </div>
+        <h1 className="text-2xl font-bold tracking-tight break-words text-slate-900 sm:text-3xl max-sm:text-lg">
+          {question.question}
+        </h1>
         <p className="mt-1 text-sm text-slate-500">
           One voice asks, the other answers: play the exchange, answer it
           yourself out loud, then replay it until the wording is yours.

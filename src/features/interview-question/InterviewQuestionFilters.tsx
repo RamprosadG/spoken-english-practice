@@ -52,24 +52,28 @@ export function InterviewQuestionFilters({
         value={category}
         onChange={onCategoryChange}
         hideOptionalText
+        className="max-sm:text-xs"
       />
       <Dropdown
         options={buildCategoryFilterOptions(topics, ALL_TOPICS_LABEL)}
         value={topic}
         onChange={onTopicChange}
         hideOptionalText
+        className="max-sm:text-xs"
       />
       <Dropdown
         options={INTERVIEW_DIFFICULTY_FILTER_OPTIONS}
         value={difficulty}
         onChange={onDifficultyChange}
         hideOptionalText
+        className="max-sm:text-xs"
       />
       <Dropdown
         options={PUBLICATION_FILTER_OPTIONS}
         value={status}
         onChange={onStatusChange}
         hideOptionalText
+        className="max-sm:text-xs"
       />
     </FilterBar>
   );

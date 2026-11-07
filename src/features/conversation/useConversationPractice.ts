@@ -96,7 +96,12 @@ export function useConversationPractice({
   const [speechStatus, setSpeechStatus] = useState<SpeechStatus>("idle");
   const [speechError, setSpeechError] = useState<string | null>(null);
   const [playbackNotice, setPlaybackNotice] = useState<string | null>(null);
-  const [playingTurnIndex, setPlayingTurnIndex] = useState<number | null>(null);
+  const [playingTurnIndex, setPlayingTurnIndex] = useState<number | null>(
+    null,
+  );
+  // Set only while a single sentence of a turn plays, so an IPA row can tell
+  // itself apart from its neighbours without a second speech engine.
+  const [playingRowKey, setPlayingRowKey] = useState<string | null>(null);
 
   const activeUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   // A running chain captures the callbacks from the render that started it, so
@@ -172,6 +177,7 @@ export function useConversationPractice({
     window.speechSynthesis.cancel();
     applyStatus("idle");
     setPlayingTurnIndex(null);
+    setPlayingRowKey(null);
     setSpeechError(null);
   };
 
@@ -179,11 +185,16 @@ export function useConversationPractice({
     activeUtteranceRef.current = null;
     nextTurnRef.current = 0;
     setPlayingTurnIndex(null);
+    setPlayingRowKey(null);
     applyStatus("idle");
   };
 
-  /** Speaks one turn, then the rest of the conversation when `chained`. */
-  const speakTurn = (index: number, chained: boolean) => {
+  /** Speaks one turn, or one sentence of it, then the rest when `chained`. */
+  const speakTurn = (
+    index: number,
+    chained: boolean,
+    row?: { text: string; key: string },
+  ) => {
     const synthesis = window.speechSynthesis;
     const turn = turnsRef.current[index];
 
@@ -205,7 +216,7 @@ export function useConversationPractice({
     setPlaybackNotice(null);
 
     // Only the spoken words reach the utterance; the name stays a label.
-    const utterance = new SpeechSynthesisUtterance(turn.text);
+    const utterance = new SpeechSynthesisUtterance(row?.text ?? turn.text);
     utterance.lang = accentRef.current;
     utterance.rate = Number(speedRef.current);
 
@@ -261,6 +272,7 @@ export function useConversationPractice({
 
     activeUtteranceRef.current = utterance;
     setPlayingTurnIndex(index);
+    setPlayingRowKey(row?.key ?? null);
     applyStatus("speaking");
     synthesis.speak(utterance);
   };
@@ -329,6 +341,28 @@ export function useConversationPractice({
     }
 
     speakTurn(index, false);
+  };
+
+  /**
+   * The same one-shot listen for a single sentence of a turn, in that turn's
+   * voice. `key` names the row so only the sentence being spoken lights up.
+   */
+  const handlePlaySentence = (
+    turnIndex: number,
+    text: string,
+    key: string,
+  ) => {
+    if (playingRowKey === key && speechStatus !== "idle") {
+      stopSpeech();
+      return;
+    }
+
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      setSpeechError("Speech playback is not supported in this browser.");
+      return;
+    }
+
+    speakTurn(turnIndex, false, { text, key });
   };
 
   const announceSettingChange = (message: string) => {
@@ -414,6 +448,7 @@ export function useConversationPractice({
     speechError,
     playbackNotice,
     playingTurnIndex,
+    playingRowKey,
     isSpeaking,
     isPaused,
     hasTurns,
@@ -426,6 +461,7 @@ export function useConversationPractice({
     handleShowIpaChange,
     handleRepeatChange,
     handlePlayTurn,
+    handlePlaySentence,
     handleStartPause,
     handleReset,
   };

@@ -1,11 +1,10 @@
 "use client";
 
 import { useMemo } from "react";
-import Badge from "@/components/ui/badges/Badge";
 import { ConversationPracticeControls } from "@/features/conversation/ConversationPracticeControls";
 import {
-  SPEAKER_BADGE_VARIANTS,
-  SPEAKER_ROW_CLASSES,
+  SPEAKER_NAME_TEXT_CLASSES,
+  SPEAKER_RULE_CLASSES,
 } from "@/features/conversation/speakerStyles";
 import { useConversationPractice } from "@/features/conversation/useConversationPractice";
 import { CopyTextButton } from "@/features/practice/CopyTextButton";
@@ -13,7 +12,7 @@ import type {
   ConversationLineItem,
   ConversationSpeaker,
 } from "@/types/conversation";
-import { InterviewQuestionIpaCard } from "./InterviewQuestionIpaCard";
+import { InterviewQuestionIpaSection } from "./InterviewQuestionIpaSection";
 
 const SPEAKER_NAMES: Record<ConversationSpeaker, string> = {
   one: "Interviewer",
@@ -58,9 +57,14 @@ export function InterviewQuestionPracticeWorkspace({
   );
 
   return (
-    <section className="flex w-full flex-col gap-6">
+    <section className="flex w-full flex-col">
+      {/* The exchange leads the page in one fixed-height card, exactly as the
+          presentation and conversation pages do: a model answer is long, and
+          without the cap it would push the controls off the screen. Only the
+          voices are marked by a hairline and a colour rather than a tinted box,
+          and this is the page's single box. */}
       <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-6">
+        <div className="flex flex-wrap items-start justify-between gap-2 border-b border-slate-100 px-5 py-4">
           <div>
             <h2 className="text-base font-semibold text-slate-900">
               Question and answer
@@ -71,45 +75,45 @@ export function InterviewQuestionPracticeWorkspace({
             </p>
           </div>
 
-          <CopyTextButton
-            text={copyText}
-            subject="question and answer"
-          />
+          <CopyTextButton text={copyText} subject="question and answer" />
         </div>
 
-        <div className="p-5 sm:p-6">
-          <div
-            tabIndex={0}
-            role="region"
-            aria-label="Question and answer"
-            className="flex max-h-96 flex-col gap-3 overflow-y-auto break-words rounded-lg border border-gray-300 bg-white px-3.5 py-3 text-sm leading-6 text-slate-900 shadow-xs outline-none transition-all duration-200 focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500"
-          >
-            {lines.map((line) => (
-              <div
-                key={line.id}
-                className={`rounded-lg border px-3 py-2.5 ${SPEAKER_ROW_CLASSES[line.speaker]}`}
-              >
-                <div className="mb-1 flex items-center gap-2">
-                  <Badge
-                    variant={SPEAKER_BADGE_VARIANTS[line.speaker]}
-                    size="sm"
-                  >
-                    {SPEAKER_NAMES[line.speaker]}
-                  </Badge>
-                  <span className="text-xs font-medium text-slate-500">
-                    {TURN_LABELS[line.speaker]}
+        <div
+          tabIndex={0}
+          role="region"
+          aria-label="Question and answer"
+          className="max-h-96 overflow-y-auto px-5 py-4 outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+        >
+          <ol className="divide-y divide-slate-200">
+            {practice.turns.map((turn) => (
+              <li key={turn.key} className="py-5 first:pt-0 last:pb-0">
+                <p className="flex flex-wrap items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider">
+                  <span className={SPEAKER_NAME_TEXT_CLASSES[turn.speaker]}>
+                    {turn.speakerName}
                   </span>
-                </div>
-                <p className="whitespace-pre-wrap">{line.text}</p>
-              </div>
+                  <span aria-hidden="true" className="text-slate-300">
+                    ·
+                  </span>
+                  <span className="text-slate-400">
+                    {TURN_LABELS[turn.speaker]}
+                  </span>
+                </p>
+                <p
+                  className={`mt-1.5 max-w-prose break-words whitespace-pre-line border-l-2 pl-3 text-sm leading-6 text-slate-900 ${SPEAKER_RULE_CLASSES[turn.speaker]}`}
+                >
+                  {turn.text}
+                </p>
+              </li>
             ))}
-          </div>
-
-          <ConversationPracticeControls practice={practice} />
+          </ol>
         </div>
       </div>
 
-      {practice.showIpa && <InterviewQuestionIpaCard practice={practice} />}
+      <div className="mt-6">
+        <ConversationPracticeControls practice={practice} />
+      </div>
+
+      {practice.showIpa && <InterviewQuestionIpaSection practice={practice} />}
     </section>
   );
 }
