@@ -221,7 +221,7 @@ src/
 │       ├── PracticeWorkspace.tsx # Editable text island (localStorage-backed)
 │       ├── useSpeechPractice.ts  # Advanced IPA, accent, voice, speed and speech state
 │       ├── SpeechPracticeControls.tsx # Advanced accent/voice/speed/IPA and playback controls
-│       ├── IpaTranscriptionCard.tsx   # Advanced IPA transcription card
+│       ├── IpaTranscriptionSection.tsx # Sentence-by-sentence IPA list, cardless
 │       ├── useIpaTranscription.ts     # Automatic dialect-aware inline IPA
 │       ├── InlineIpa.tsx              # Renders IPA beneath any English item
 │       ├── useListenSpeech.ts         # Listen-only accent, voice, speed and playback state
@@ -329,16 +329,17 @@ While the client ID is empty the Google button renders disabled with a notice in
 
 ## 8. Presentation Library
 
-`src/app/presentation/page.tsx` is a Server Component. It wraps `PresentationContent` in `<Suspense>`; that async component awaits `connection()`, reads the `search` and `page` search params, calls `listPresentations()` directly, and passes the rows, pagination meta, filters, and next sequence to the view. The initial read does not make an HTTP hop.
+`src/app/presentation/page.tsx` is a Server Component. It wraps `PresentationContent` in `<Suspense>`; that async component awaits `connection()`, reads the `search`, `category`, `status`, and `page` search params, calls `listPresentations()` directly, and passes the rows, pagination meta, filters, next sequence, and the category lists to the view. The initial read does not make an HTTP hop.
 
 ### Header, search, and table
 
-- The header combines the **Presentation** title, a subtitle, and the admin-only **New presentation** button.
-- A debounced search input filters on the presentation title. Search, publication status, and page state live in URL search params (`search`, `status`, `page`), so the list stays server-rendered.
-- The table shows **title** with a text preview capped at 30 characters (a `...` suffix marks truncated text), and a **Practice now** link to `/presentation/[id]` for every row. Sequence is stored and used for ordering but is not displayed.
-- Admins additionally see per-row edit/delete icon buttons and a `warning` **Draft** `Badge` beside the title of any unpublished row; a `Published` / `Draft` / `All statuses` dropdown appears in the filter bar for them alone. Everyone else sees the published list and practice links only.
+- The header combines the **Daily Presentations** title, a subtitle, and the admin-only **New presentation** and **Categories** buttons in one row.
+- The filter bar holds a debounced search input, an always-visible category dropdown, and — for admins — a `Published` / `Draft` / `All statuses` dropdown. Search, filter, and page state live in URL search params (`search`, `category`, `status`, `page`), so the list stays server-rendered; `FilterBar` lays the controls out by how many the reader has, so a phone gets two per row and `md` collapses them into one search-plus-pills row.
+- The table shows **Presentation** (the row's `sequence` as a quiet `#N` line, the title, and a text preview capped at 30 characters — a `...` suffix marks truncated text), **Category** as its own column of `neutral` badges, and a **Practice now** link to `/presentation/[id]` for every row.
+- On a phone the table becomes a card list: one card per row repeats the same `#N` / category caption, the title, the full body clamped to two lines, and the practice link.
+- Admins additionally see per-row edit/delete icon buttons and a `warning` **Draft** `Badge` beside the title of any unpublished row; on the card face they get a bordered **Update** / **Delete** row below the practice link. Everyone else sees the published list and practice links only.
 - The list shows 20 rows per page by default and renders the shared `Pagination` primitive with the total count.
-- Create and edit share `PresentationFormModal`. Its fields are title, text, then a **Status** dropdown (`Published` / `Draft`, defaulting to Published), and sequence as the last input. It validates the fields and calls `POST /api/presentations` or `PATCH /api/presentations/:id`.
+- Create and edit share `PresentationFormModal`. Its fields are title, text, then a required **Category** dropdown and a **Status** dropdown (`Published` / `Draft`, defaulting to Published), and sequence as the last input. It validates the fields and calls `POST /api/presentations` or `PATCH /api/presentations/:id`.
 - Delete asks for SweetAlert confirmation and calls `DELETE /api/presentations/:id`.
 - After a successful mutation the client calls `router.refresh()` so the server-rendered table immediately reflects the change.
 
@@ -353,23 +354,24 @@ While the client ID is empty the Google button renders disabled with a notice in
 ### Data rules and API
 
 - Title: 1–200 characters and unique. Text: 1–20,000 characters. Sequence: integer from 1 to 100,000. `isPublished` defaults to `true` when a payload omits it.
+- Every row belongs to a required `presentation_category` row, chosen in the form and managed from the **Categories** modal. A category in use cannot be deleted (`onDelete: Restrict`), so the modal disables its delete button and names the count.
 - Sequence is not unique. Rows are ordered by `sequence` ascending, then `createdAt` ascending, which the composite index serves without a sort.
 - Saving a title another row already owns returns `409` with "A presentation with this title already exists."; editing a row while keeping its own title succeeds.
-- Search runs as a case-insensitive title `contains` and the status rule runs as an `isPublished` predicate, both inside the Prisma `where`; `count` plus `skip`/`take` paginates the result.
+- Search runs as a case-insensitive title `contains`, the chosen category as a `categoryId` predicate, and the status rule as an `isPublished` predicate — all inside the same Prisma `where`; `count` plus `skip`/`take` paginates the result.
 - The form suggests the next sequence (`max(sequence) + 1`) from a server read, and admins can change it.
 
 | Method | Route | Access | Purpose |
 | :--- | :--- | :--- | :--- |
-| `GET` | `/api/presentations` | Public | List published presentations with `search`, `status`, `page`, and `pageSize` (default 20); an admin session also sees drafts |
+| `GET` | `/api/presentations` | Public | List published presentations with `search`, `category`, `status`, `page`, and `pageSize` (default 20); an admin session also sees drafts |
 | `POST` | `/api/presentations` | Admin | Create a presentation |
 | `PATCH` | `/api/presentations/:id` | Admin | Update title, text, sequence, and publication status |
 | `DELETE` | `/api/presentations/:id` | Admin | Delete a presentation |
 
-`GET` returns `{ success: true, data: { items, pagination, nextSequence } }`. Mutation handlers validate with `presentationInputSchema` and return the shared `{ success, message, data }` shape.
+`GET` returns `{ success: true, data: { items, pagination, nextSequence, categories, categoryRows } }`, where `categoryRows` — the rows with their usage counts — is filled only for an admin. Mutation handlers validate with `presentationInputSchema` and return the shared `{ success, message, data }` shape.
 
 ### Practice route
 
-`/presentation/[id]` reads one saved presentation on the server with `getPresentationById()`. It is a blocking route (`instant = false`) so an unknown id returns a real `404` instead of a streamed 200 status. A draft id returns the same `404` to anyone who is not an admin, and the **Previous** / **Next** walk skips drafts for those readers, so a private row can never be reached by stepping sideways. The header shows a back link, the presentation title, and a short subtitle. `PresentationPracticeWorkspace` then displays the saved text in a read-only panel capped at `max-h-96` with vertical scrolling and preserved line breaks; the same accent, voice, speed, IPA, and speech controls as the Practice page sit underneath. The saved text is never edited or persisted from this page.
+`/presentation/[id]` reads one saved presentation on the server with `getPresentationWithNavigation()`. It is a blocking route (`instant = false`) so an unknown id returns a real `404` instead of a streamed 200 status. A draft id returns the same `404` to anyone who is not an admin, and the **Previous** / **Next** walk skips drafts for those readers, so a private row can never be reached by stepping sideways. The page opens with the back link and the nav row, then the header — the title and a short subtitle, and no category chip, since the grouping already shows in the library table. `PresentationPracticeWorkspace` then puts **the material first**: one card holds the saved text in a read-only region capped at `max-h-96` with vertical scrolling and preserved line breaks, and it is the only box on the page — the inner bordered frame it used to nest is gone. Below the card sit the same accent, voice, speed, IPA, and speech controls as the Practice page (four controls, so a phone gets them two per row and `xl` puts all four across), and turning **Show IPA** on adds the hairline-separated IPA sentence list below those — the same shape the conversation practice page uses, without a speaker name or turn number, so the text card stays the only box on the page. The saved text is never edited or persisted from this page.
 
 ---
 
@@ -530,19 +532,19 @@ On save, the service writes the parent and its children inside one `prisma.$tran
 
 ## 12. Practice Workspace
 
-`src/features/practice/PracticeWorkspace.tsx` is the editable client island embedded by the Practice page. The advanced IPA and speech behavior lives in `useSpeechPractice.ts` and is rendered by `SpeechPracticeControls` and `IpaTranscriptionCard`; `src/features/presentation/PresentationPracticeWorkspace.tsx` reuses all three with saved text. The Sentence and Vocabulary libraries instead use the listen-only `useIpaTranscription`, `InlineIpa`, `useListenSpeech`, `PlayTextButton`, and `ListenControls`, where IPA appears automatically below every item and the learner chooses accent, voice and speed. The Conversation library uses a third engine of its own, `useConversationPractice`, because a dialogue needs a separate voice per speaker; it is deliberately not collapsed into either of the shared hooks. All three build their voice dropdowns through `speechVoices.ts`, so the accent filtering and the name-token gender label exist once.
+`src/features/practice/PracticeWorkspace.tsx` is the editable client island embedded by the Practice page. The advanced IPA and speech behavior lives in `useSpeechPractice.ts` and is rendered by `SpeechPracticeControls` and `IpaTranscriptionSection`; `src/features/presentation/PresentationPracticeWorkspace.tsx` reuses all three with saved text. The Sentence and Vocabulary libraries instead use the listen-only `useIpaTranscription`, `InlineIpa`, `useListenSpeech`, `PlayTextButton`, and `ListenControls`, where IPA appears automatically below every item and the learner chooses accent, voice and speed. The Conversation library uses a third engine of its own, `useConversationPractice`, because a dialogue needs a separate voice per speaker; it is deliberately not collapsed into either of the shared hooks. All three build their voice dropdowns through `speechVoices.ts`, so the accent filtering and the name-token gender label exist once.
 
-- **English text** — a textarea for the text to practice; speech and IPA both follow its current value. The presentation page instead shows the saved text in a scrollable read-only panel; the Sentence and Vocabulary libraries show saved items inside expanded rows.
+- **English text** — a textarea for the text to practice; speech and IPA both follow its current value. The presentation page instead shows the saved text in one read-only card that scrolls inside a fixed height.
 - **Accent dropdown** — British English (`en-GB`) or American English (`en-US`).
 - **Voice dropdown** — sits immediately after the accent and lists only that accent's voices, starting with `Automatic (best match)`, then e.g. `Microsoft David Desktop · male`. Automatic resolves to the best voice for the accent; a hand-picked voice is used verbatim. Changing it stops playback and asks you to start again, and changing the accent clears the pick because a voice belonged to the accent it was listed under. The choice is React state for the session only — never `localStorage`.
 - **Speed dropdown** — `0.5×` through `1.5×`, applied to the utterance's `rate`. Changing speed during playback stops speech and asks you to press Start again.
 - **Show IPA translation** — computes a dialect-aware IPA transcription. The `phonemize` package is loaded on demand, so its pronunciation data is not part of the initial page bundle.
-- **IPA view dropdown** — switches between *Sentence by sentence*, where each sentence is paired with its own IPA line in a separated card, and *Full translation*, a single continuous transcription block. Sentences are found with `Intl.Segmenter`, with abbreviation handling for forms such as `Mr.`, `Dr.`, and `Jan.`, so manual line breaks are not required.
+- **IPA transcription list** — one cardless section below the controls, separated by a hairline, that pairs every sentence with its own IPA line. Each row is the sentence, the transcription under it in the same 13 px mono style the libraries use, and a **Listen** button that speaks only that sentence; there is no per-sentence box and no second view to switch to. Sentences are found with `Intl.Segmenter`, with abbreviation handling for forms such as `Mr.`, `Dr.`, and `Jan.`, so manual line breaks are not required.
 - **Reset** — a `secondary` button that cancels playback and returns the row to its initial state, so the next Start speaks from the beginning. Disabled while nothing is playing or paused.
 - **Start / Pause** — one button that flips with playback. While idle or paused it reads **Start** with a play icon and either starts the text in the selected accent, voice and speed or resumes a paused utterance from where it stopped; while speaking it reads **Pause** with a pause icon and pauses without rewinding.
-- **Repeat** — the loop icon button after Start/Pause. It has no text of its own (the `RiLoopRightLine` icon, a **Repeat** tooltip and `aria-pressed` carry it) and toggles like a checkmark: white with a visible border while off, the dark `secondary` background while on. When on, the whole text starts again from the beginning the moment an utterance ends on its own, so a presentation plays on a loop; a single sentence card still stops after its sentence, and Reset still stops the loop.
+- **Repeat** — the third button in the action row. It shows the `RiLoopRightLine` icon **and** the word **Repeat**, like its two neighbours, with a **Repeat** tooltip and `aria-pressed` carrying the state, and it toggles like a checkmark: white with a visible border while off, the dark `secondary` background while on. When on, the whole text starts again from the beginning the moment an utterance ends on its own, so a presentation plays on a loop; a single sentence card still stops after its sentence, and Reset still stops the loop.
 
-The workspace uses a responsive card layout: controls and action buttons stack on phones, the advanced control grid becomes two columns on tablets (`sm`) and four on wide screens (`xl`), the inline `ListenControls` grid goes two-up at `sm` and three across at `lg` — or stays a single column where the panel is narrow — and nothing overflows horizontally at 390 px, 768 px, or 1440 px.
+The workspace uses a responsive layout: on a phone the advanced control grid puts two controls per row and the Reset / Start / Repeat row splits the width into three even halves at 12 px, then four controls sit side by side from `xl` and the buttons return to their auto width at 14 px, the inline `ListenControls` grid goes two-up at `sm` and three across at `lg` — or stays a single column where the panel is narrow — and nothing overflows horizontally at 390 px, 768 px, or 1440 px.
 
 Speech playback uses `window.speechSynthesis`. Available voices come from the operating system and browser, and every listen surface lets the learner pick one by hand with the **Voice** dropdown that follows the accent. If no voice matches the selected accent, the app falls back to the browser's default English voice and displays a notice. On the Practice page only, the text is saved to `localStorage` (`spoken-english-practice:text`) as you type and restored on reload; emptying the textarea removes the saved entry. IPA and audio remain session-only, audio never leaves the browser, and nothing is written to the database.
 
@@ -566,7 +568,7 @@ The following primitives are available in `src/components/ui` and ready for reus
 | `src/components/ui/stats/StatCard.tsx` | `StatCard` |
 | `src/components/ui/tables/DataTable.tsx` | `DataTable`, `Column` |
 
-`DataTable` also supports single-row expansion via optional `expandedRowId` and `renderExpandedRow` props (used by the Sentence and Vocabulary libraries). `Dropdown` portal-renders its menu into `document.body` with fixed, viewport-aware positioning so it is never clipped by table scroll containers. Modal footers keep their submit and cancel buttons at equal full width inside `flex items-center gap-3`, with Cancel as the `secondary` variant. `StatCard` powers the home totals, and its sub-`sm` sizes are tuned so a count stays readable on a phone.
+`DataTable` also supports single-row expansion via optional `expandedRowId` and `renderExpandedRow` props, which no table uses now that sentence and vocabulary have their own practice routes, and an optional `renderCard(item, index)` that swaps the table for one card per row below `sm` — vocabulary, sentence, conversation and presentation use it today. `Dropdown` portal-renders its menu into `document.body` with fixed, viewport-aware positioning so it is never clipped by table scroll containers. Modal footers keep their submit and cancel buttons at equal full width inside `flex items-center gap-3`, with Cancel as the `secondary` variant. `StatCard` powers the home totals, and its sub-`sm` sizes are tuned so a count stays readable on a phone.
 
 ---
 

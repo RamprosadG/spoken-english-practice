@@ -42,13 +42,18 @@ export function SpeechPracticeControls({
 
   return (
     <>
-      <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {/* The filter-bar parity rule sizes this field: four controls, so a phone
+          gets two per row rather than a stack, and `xl` brings all four back into
+          one row. The caller owns the top margin, because this row now sits below
+          a card on the presentation page instead of inside one. */}
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         <Dropdown
           label="Accent"
           value={accent}
           onChange={handleAccentChange}
           options={ACCENT_OPTIONS}
           hideOptionalText
+          className="max-sm:text-xs"
         />
 
         <Dropdown
@@ -58,6 +63,7 @@ export function SpeechPracticeControls({
           options={voiceOptions}
           placeholder="Automatic (best match)"
           hideOptionalText
+          className="max-sm:text-xs"
         />
 
         <Dropdown
@@ -66,14 +72,17 @@ export function SpeechPracticeControls({
           onChange={handleSpeedChange}
           options={SPEED_OPTIONS}
           hideOptionalText
+          className="max-sm:text-xs"
         />
 
         <div className="flex w-full flex-col gap-1">
-          <span className="text-sm font-medium text-slate-800">
+          <span className="text-sm font-medium text-slate-800 max-sm:text-xs">
             IPA translation
           </span>
           <label className="flex h-[38px] cursor-pointer items-center justify-between gap-3 rounded-lg border border-gray-300 bg-white px-3.5 shadow-xs transition-all duration-200 hover:border-indigo-400">
-            <span className="text-sm font-medium text-slate-900">Show IPA</span>
+            <span className="text-sm font-medium text-slate-900 max-sm:text-xs">
+              Show IPA
+            </span>
             <span className="relative inline-flex shrink-0">
               <input
                 type="checkbox"
@@ -92,14 +101,16 @@ export function SpeechPracticeControls({
 
       <div className="mt-5 border-t border-slate-100 pt-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:items-center">
+          {/* One row on a phone, three even halves of it, and Repeat carries its
+              label like its two neighbours instead of standing as an icon. */}
+          <div className="flex items-center gap-2">
             <Button
               type="button"
               variant="secondary"
               onClick={handleReset}
               disabled={speechStatus === "idle"}
               icon={<FiRotateCcw className="h-4 w-4" />}
-              className="w-full sm:w-auto"
+              className="max-sm:flex-1 max-sm:gap-1.5 max-sm:px-3 max-sm:py-1.5 max-sm:text-xs"
             >
               Reset
             </Button>
@@ -114,7 +125,7 @@ export function SpeechPracticeControls({
                   <FiPlay className="h-4 w-4" />
                 )
               }
-              className="w-full sm:w-auto"
+              className="max-sm:flex-1 max-sm:gap-1.5 max-sm:px-3 max-sm:py-1.5 max-sm:text-xs"
             >
               {isSpeaking ? "Pause" : "Start"}
             </Button>
@@ -123,11 +134,11 @@ export function SpeechPracticeControls({
               variant={repeat ? "secondary" : "white"}
               onClick={() => handleRepeatChange(!repeat)}
               aria-pressed={repeat}
-              aria-label="Repeat"
               title="Repeat"
-              className="h-9 w-full border-slate-400 sm:w-auto"
+              icon={<RiLoopRightLine className="h-4 w-4" />}
+              className="border-slate-400 max-sm:flex-1 max-sm:gap-1.5 max-sm:px-3 max-sm:py-1.5 max-sm:text-xs"
             >
-              <RiLoopRightLine className="h-4 w-4" />
+              Repeat
             </Button>
           </div>
 

@@ -42,6 +42,7 @@ export function PresentationFilters({
         value={category}
         onChange={onCategoryChange}
         hideOptionalText
+        className="max-sm:text-xs"
       />
       {user?.role === "admin" && (
         <Dropdown
@@ -49,6 +50,7 @@ export function PresentationFilters({
           value={status}
           onChange={onStatusChange}
           hideOptionalText
+          className="max-sm:text-xs"
         />
       )}
     </FilterBar>

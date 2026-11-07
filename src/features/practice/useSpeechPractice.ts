@@ -5,14 +5,12 @@ import { buildVoiceOptions, findPickedVoice } from "./speechVoices";
 
 export type Accent = "en-GB" | "en-US";
 export type Speed = "0.5" | "0.75" | "1" | "1.25" | "1.5";
-export type IpaMode = "sentence" | "full";
 export type SpeechStatus = "idle" | "speaking" | "paused";
 export type IpaStatus = "idle" | "loading" | "ready" | "error";
 
 export interface IpaPair {
   source: string;
   ipa: string;
-  isTitle?: boolean;
 }
 
 const ALWAYS_JOIN_ABBREVIATIONS = new Set([
@@ -103,11 +101,6 @@ export const SPEED_OPTIONS = [
   { value: "1.5", label: "1.5× (Fast)" },
 ];
 
-export const IPA_MODE_OPTIONS = [
-  { value: "sentence", label: "Sentence by sentence" },
-  { value: "full", label: "Full translation" },
-];
-
 const ACCENT_LABELS: Record<Accent, string> = {
   "en-GB": "British English",
   "en-US": "American English",
@@ -125,14 +118,12 @@ function findAccentVoice(
   );
 }
 
-export function useSpeechPractice(text: string, title = "") {
+export function useSpeechPractice(text: string) {
   const [accent, setAccent] = useState<Accent>("en-GB");
   const [voiceURI, setVoiceURI] = useState("");
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [speed, setSpeed] = useState<Speed>("1");
   const [showIpa, setShowIpa] = useState(false);
-  const [ipaMode, setIpaMode] = useState<IpaMode>("sentence");
-  const [ipa, setIpa] = useState("");
   const [ipaPairs, setIpaPairs] = useState<IpaPair[]>([]);
   const [ipaStatus, setIpaStatus] = useState<IpaStatus>("idle");
   const [ipaError, setIpaError] = useState<string | null>(null);
@@ -150,11 +141,7 @@ export function useSpeechPractice(text: string, title = "") {
   // the loop reads the checkbox through a ref and honours a mid-playback change.
   const repeatRef = useRef(repeat);
 
-  // A saved title is read aloud and transcribed ahead of the body, so Start,
-  // the IPA card and the empty-text guard all see one block of text.
-  const titleText = title.trim();
-  const bodyText = text.trim();
-  const speakableText = titleText ? `${titleText}\n${bodyText}` : bodyText;
+  const speakableText = text.trim();
 
   useEffect(() => {
     repeatRef.current = repeat;
@@ -187,7 +174,6 @@ export function useSpeechPractice(text: string, title = "") {
     const timer = setTimeout(async () => {
       if (!speakableText) {
         if (cancelled) return;
-        setIpa("");
         setIpaPairs([]);
         setIpaError(null);
         setIpaStatus("idle");
@@ -201,29 +187,19 @@ export function useSpeechPractice(text: string, title = "") {
 
       try {
         const { phonemize } = await import("phonemize");
-        const transcription = phonemize(speakableText, accent);
-        // Split title and body separately so a title is never merged into the
-        // first body sentence, then flag it for the IPA card.
-        const sentenceTranscriptions: IpaPair[] = [
-          ...splitIntoSentences(titleText).map((sentence) => ({
-            source: sentence,
-            ipa: phonemize(sentence, accent),
-            isTitle: true,
-          })),
-          ...splitIntoSentences(bodyText).map((sentence) => ({
-            source: sentence,
-            ipa: phonemize(sentence, accent),
-          })),
-        ];
+        const sentenceTranscriptions: IpaPair[] = splitIntoSentences(
+          speakableText,
+        ).map((sentence) => ({
+          source: sentence,
+          ipa: phonemize(sentence, accent),
+        }));
 
         if (!cancelled) {
-          setIpa(transcription);
           setIpaPairs(sentenceTranscriptions);
           setIpaStatus("ready");
         }
       } catch {
         if (!cancelled) {
-          setIpa("");
           setIpaPairs([]);
           setIpaStatus("error");
           setIpaError(
@@ -237,7 +213,7 @@ export function useSpeechPractice(text: string, title = "") {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [titleText, bodyText, speakableText, accent, showIpa]);
+  }, [speakableText, accent, showIpa]);
 
   const stopSpeech = () => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) {
@@ -371,7 +347,6 @@ export function useSpeechPractice(text: string, title = "") {
     setShowIpa(checked);
 
     if (!checked) {
-      setIpa("");
       setIpaPairs([]);
       setIpaStatus("idle");
       setIpaError(null);
@@ -466,9 +441,6 @@ export function useSpeechPractice(text: string, title = "") {
       : isPaused
         ? "bg-amber-500"
         : "bg-slate-400";
-  const accentLabel = accent === "en-GB" ? "British (RP)" : "American (GA)";
-  const ipaModeLabel =
-    ipaMode === "sentence" ? "Sentence by sentence" : "Full text";
 
   return {
     accent,
@@ -477,8 +449,6 @@ export function useSpeechPractice(text: string, title = "") {
     speed,
     showIpa,
     repeat,
-    ipaMode,
-    ipa,
     ipaPairs,
     ipaStatus,
     ipaError,
@@ -489,8 +459,6 @@ export function useSpeechPractice(text: string, title = "") {
     isSpeaking,
     speechLabel,
     statusDotClass,
-    accentLabel,
-    ipaModeLabel,
     hasText: speakableText.length > 0,
     handleTextEdited,
     handleAccentChange,
@@ -498,7 +466,6 @@ export function useSpeechPractice(text: string, title = "") {
     handleSpeedChange,
     handleShowIpaChange,
     handleRepeatChange,
-    handleIpaModeChange: (value: string) => setIpaMode(value as IpaMode),
     handlePlaySentence,
     handleStartPause,
     handleReset,

@@ -2,7 +2,7 @@
 
 import { useState, useSyncExternalStore } from "react";
 import { CopyTextButton } from "@/features/practice/CopyTextButton";
-import { IpaTranscriptionCard } from "@/features/practice/IpaTranscriptionCard";
+import { IpaTranscriptionSection } from "@/features/practice/IpaTranscriptionSection";
 import { SpeechPracticeControls } from "@/features/practice/SpeechPracticeControls";
 import { useSpeechPractice } from "@/features/practice/useSpeechPractice";
 
@@ -54,7 +54,7 @@ export function PracticeWorkspace() {
   };
 
   return (
-    <section className="flex w-full flex-col gap-6">
+    <section className="flex w-full flex-col">
       <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
         <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-6">
           <div>
@@ -83,11 +83,13 @@ export function PracticeWorkspace() {
             className="block min-h-[180px] w-full resize-y rounded-lg border border-gray-300 bg-white px-3.5 py-3 text-sm leading-6 text-slate-900 shadow-xs outline-none transition-all duration-200 placeholder:text-gray-400 hover:border-indigo-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500"
           />
 
-          <SpeechPracticeControls practice={practice} />
+          <div className="mt-5">
+            <SpeechPracticeControls practice={practice} />
+          </div>
         </div>
       </div>
 
-      {practice.showIpa && <IpaTranscriptionCard practice={practice} />}
+      {practice.showIpa && <IpaTranscriptionSection practice={practice} />}
     </section>
   );
 }

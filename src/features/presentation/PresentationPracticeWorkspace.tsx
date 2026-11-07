@@ -1,7 +1,7 @@
 "use client";
 
 import { CopyTextButton } from "@/features/practice/CopyTextButton";
-import { IpaTranscriptionCard } from "@/features/practice/IpaTranscriptionCard";
+import { IpaTranscriptionSection } from "@/features/practice/IpaTranscriptionSection";
 import { SpeechPracticeControls } from "@/features/practice/SpeechPracticeControls";
 import { useSpeechPractice } from "@/features/practice/useSpeechPractice";
 
@@ -15,9 +15,13 @@ export function PresentationPracticeWorkspace({
   const practice = useSpeechPractice(text);
 
   return (
-    <section className="flex w-full flex-col gap-6">
+    <section className="flex w-full flex-col">
+      {/* The material comes first, in one fixed-height card, so a long talk
+          scrolls inside it instead of pushing the controls off the screen. The
+          title is the page heading's job and is not repeated here, and only this
+          one box surrounds the text. */}
       <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-6">
+        <div className="flex flex-wrap items-start justify-between gap-2 border-b border-slate-100 px-5 py-4">
           <div>
             <h2 className="text-base font-semibold text-slate-900">
               Presentation text
@@ -31,21 +35,23 @@ export function PresentationPracticeWorkspace({
           <CopyTextButton text={text} subject="presentation text" />
         </div>
 
-        <div className="p-5 sm:p-6">
-          <div
-            tabIndex={0}
-            role="region"
-            aria-label="Presentation text"
-            className="max-h-96 overflow-y-auto break-words rounded-lg border border-gray-300 bg-white px-3.5 py-3 text-sm leading-6 text-slate-900 shadow-xs outline-none transition-all duration-200 focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500"
-          >
-            <p className="whitespace-pre-wrap">{text}</p>
-          </div>
-
-          <SpeechPracticeControls practice={practice} />
+        <div
+          tabIndex={0}
+          role="region"
+          aria-label="Presentation text"
+          className="max-h-96 overflow-y-auto px-5 py-4 outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+        >
+          <p className="break-words text-sm leading-6 whitespace-pre-wrap text-slate-900">
+            {text}
+          </p>
         </div>
       </div>
 
-      {practice.showIpa && <IpaTranscriptionCard practice={practice} />}
+      <div className="mt-6">
+        <SpeechPracticeControls practice={practice} />
+      </div>
+
+      {practice.showIpa && <IpaTranscriptionSection practice={practice} />}
     </section>
   );
 }
