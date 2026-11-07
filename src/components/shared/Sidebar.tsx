@@ -13,6 +13,7 @@ import {
   HiOutlineUserGroup,
   HiOutlineVolumeUp,
   HiOutlineClipboardCheck,
+  HiOutlineUsers,
 } from "react-icons/hi";
 import { IconType } from "react-icons";
 import { useAuth } from "@/features/auth/AuthProvider";
@@ -21,7 +22,7 @@ interface NavItem {
   name: string;
   href: string;
   icon: IconType;
-  /** The interview library is private, so a public reader never sees the link. */
+  /** A private page never shows its link to a reader it is closed to. */
   adminOnly?: boolean;
 }
 
@@ -33,6 +34,7 @@ const navItems: NavItem[] = [
   { name: "Daily Presentations", href: "/presentation", icon: HiOutlinePresentationChartBar },
   { name: "Listening practice", href: "/listenings", icon: HiOutlineVolumeUp },
   { name: "Interview questions", href: "/interview-questions", icon: HiOutlineClipboardCheck, adminOnly: true },
+  { name: "Active learners", href: "/learners", icon: HiOutlineUsers, adminOnly: true },
   { name: "Live practice", href: "/practice", icon: HiOutlineMicrophone },
 ];
 
