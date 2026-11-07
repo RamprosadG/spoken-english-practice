@@ -1,73 +1,70 @@
 "use client";
 
-import Badge from "@/components/ui/badges/Badge";
 import { InlineIpa } from "@/features/practice/InlineIpa";
 import { PlayTextButton } from "@/features/practice/PlayTextButton";
 import {
-  SPEAKER_BADGE_VARIANTS,
-  SPEAKER_ROW_CLASSES,
+  SPEAKER_NAME_TEXT_CLASSES,
+  SPEAKER_RULE_CLASSES,
 } from "./speakerStyles";
 import type { ConversationPractice } from "./useConversationPractice";
 
 interface ConversationIpaCardProps {
   practice: ConversationPractice;
-  title: string;
 }
 
 export function ConversationIpaCard({
   practice,
-  title,
 }: ConversationIpaCardProps) {
   const { accent, playingTurnIndex, handlePlayTurn, turns } = practice;
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-100 px-5 py-4 sm:px-6">
-        <h2 className="text-base font-semibold text-slate-900">
-          IPA transcription
-        </h2>
-        <p className="mt-0.5 text-xs font-medium uppercase tracking-wide text-gray-500">
-          Every turn uses the selected accent
-        </p>
-      </div>
+    <section
+      aria-labelledby="conversation-ipa"
+      className="mt-6 border-t border-slate-200 pt-6"
+    >
+      <h2
+        id="conversation-ipa"
+        className="text-xs font-semibold uppercase tracking-wider text-slate-500"
+      >
+        IPA transcription
+      </h2>
+      <p className="mt-1.5 text-sm text-slate-500">
+        Every turn uses the selected accent.
+      </p>
 
-      <div className="flex flex-col gap-4 p-5 sm:p-6">
-        <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-          <p className="mb-1.5">
-            <Badge variant="neutral" size="sm">
-              Title
-            </Badge>
-          </p>
-          <p className="text-sm font-semibold leading-6 text-slate-900">
-            {title}
-          </p>
-        </div>
-
+      {/* Same row shape as the turn list above, so the two read as one list
+          seen twice: the caption carries the voice, the rule keeps it, and the
+          only additions are the transcription and this turn's Listen button. */}
+      <ol className="mt-4 divide-y divide-slate-200">
         {turns.map((turn) => (
-          <div
-            key={turn.key}
-            className={`flex items-start justify-between gap-3 rounded-lg border px-4 py-3 ${SPEAKER_ROW_CLASSES[turn.speaker]}`}
-          >
-            <div className="min-w-0">
-              <p className="mb-1.5">
-                <Badge variant={SPEAKER_BADGE_VARIANTS[turn.speaker]} size="sm">
+          <li key={turn.key} className="py-5 first:pt-0 last:pb-0">
+            <div className="flex items-start justify-between gap-3">
+              <p className="flex flex-wrap items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider">
+                <span className={SPEAKER_NAME_TEXT_CLASSES[turn.speaker]}>
                   {turn.speakerName}
-                </Badge>
+                </span>
+                <span aria-hidden="true" className="text-slate-300">
+                  ·
+                </span>
+                <span className="text-slate-400">Turn {turn.index + 1}</span>
               </p>
-              <p className="text-sm leading-6 font-medium text-slate-900">
-                {turn.text}
-              </p>
-              <InlineIpa text={turn.text} accent={accent} />
+
+              <PlayTextButton
+                isPlaying={playingTurnIndex === turn.index}
+                onClick={() => handlePlayTurn(turn.index)}
+                ariaLabel={`Listen to turn ${turn.index + 1}, ${turn.speakerName}`}
+              />
             </div>
 
-            <PlayTextButton
-              isPlaying={playingTurnIndex === turn.index}
-              onClick={() => handlePlayTurn(turn.index)}
-              ariaLabel={`Listen to turn ${turn.index + 1}, ${turn.speakerName}`}
-            />
-          </div>
+            <p
+              className={`mt-1.5 max-w-prose break-words border-l-2 pl-3 text-sm leading-6 text-slate-900 ${SPEAKER_RULE_CLASSES[turn.speaker]}`}
+            >
+              {turn.text}
+            </p>
+            <InlineIpa text={turn.text} accent={accent} />
+          </li>
         ))}
-      </div>
-    </div>
+      </ol>
+    </section>
   );
 }

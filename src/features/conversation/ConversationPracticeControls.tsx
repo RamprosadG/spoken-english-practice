@@ -52,31 +52,43 @@ export function ConversationPracticeControls({
       "Speaker 2",
   };
 
+  // The filter-bar parity rule sizes the first row: Accent, Speed and the IPA
+  // switch, with Accent taking the whole phone row and the other two pairing
+  // under it. From sm all three sit side by side. The two Voice picks then take
+  // a row of their own at every width, each half of it.
   return (
     <>
-      <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <Dropdown
-          label="Accent (both speakers)"
-          value={accent}
-          onChange={handleAccentChange}
-          options={ACCENT_OPTIONS}
-          hideOptionalText
-        />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div className="col-span-2 sm:col-span-1">
+          <Dropdown
+            label="Accent (both speakers)"
+            value={accent}
+            onChange={handleAccentChange}
+            options={ACCENT_OPTIONS}
+            hideOptionalText
+            className="max-sm:text-xs"
+          />
+        </div>
 
-        <Dropdown
-          label="Speed"
-          value={speed}
-          onChange={handleSpeedChange}
-          options={SPEED_OPTIONS}
-          hideOptionalText
-        />
+        <div>
+          <Dropdown
+            label="Speed"
+            value={speed}
+            onChange={handleSpeedChange}
+            options={SPEED_OPTIONS}
+            hideOptionalText
+            className="max-sm:text-xs"
+          />
+        </div>
 
         <div className="flex w-full flex-col gap-1">
-          <span className="text-sm font-medium text-slate-800">
+          <span className="text-sm font-medium text-slate-800 max-sm:text-xs">
             IPA translation
           </span>
           <label className="flex h-[38px] cursor-pointer items-center justify-between gap-3 rounded-lg border border-gray-300 bg-white px-3.5 shadow-xs transition-all duration-200 hover:border-indigo-400">
-            <span className="text-sm font-medium text-slate-900">Show IPA</span>
+            <span className="text-sm font-medium text-slate-900 max-sm:text-xs">
+              Show IPA
+            </span>
             <span className="relative inline-flex shrink-0">
               <input
                 type="checkbox"
@@ -91,32 +103,39 @@ export function ConversationPracticeControls({
             </span>
           </label>
         </div>
-      </div>
 
-      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {SPEAKERS.map((speaker) => (
-          <Dropdown
-            key={speaker}
-            label={`Voice (${speakerNames[speaker]})`}
-            value={pickedVoices[speaker]}
-            onChange={(value) => handleVoiceChange(speaker, value)}
-            options={voiceOptions}
-            placeholder="Automatic (best match)"
-            hideOptionalText
-          />
-        ))}
+        {/* The two voices own a full-width row: Accent, Speed and the IPA switch
+            fill the three columns above them, so pairing the speakers underneath
+            leaves each picker half the row — wide enough for a long voice name on
+            a large screen instead of a third-width cell with a gap beside it. */}
+        <div className="col-span-2 grid grid-cols-2 gap-3 sm:col-span-3">
+          {SPEAKERS.map((speaker) => (
+            <Dropdown
+              key={speaker}
+              label={`Voice (${speakerNames[speaker]})`}
+              value={pickedVoices[speaker]}
+              onChange={(value) => handleVoiceChange(speaker, value)}
+              options={voiceOptions}
+              placeholder="Automatic (best match)"
+              hideOptionalText
+              className="max-sm:text-xs"
+            />
+          ))}
+        </div>
       </div>
 
       <div className="mt-5 border-t border-slate-100 pt-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:items-center">
+          {/* One row on a phone, three even halves of it, and Repeat carries its
+              label like its two neighbours instead of standing as an icon. */}
+          <div className="flex items-center gap-2">
             <Button
               type="button"
               variant="secondary"
               onClick={handleReset}
               disabled={speechStatus === "idle"}
               icon={<FiRotateCcw className="h-4 w-4" />}
-              className="w-full sm:w-auto"
+              className="max-sm:flex-1 max-sm:gap-1.5 max-sm:px-3 max-sm:py-1.5 max-sm:text-xs"
             >
               Reset
             </Button>
@@ -131,7 +150,7 @@ export function ConversationPracticeControls({
                   <FiPlay className="h-4 w-4" />
                 )
               }
-              className="w-full sm:w-auto"
+              className="max-sm:flex-1 max-sm:gap-1.5 max-sm:px-3 max-sm:py-1.5 max-sm:text-xs"
             >
               {isSpeaking ? "Pause" : "Start"}
             </Button>
@@ -140,11 +159,11 @@ export function ConversationPracticeControls({
               variant={repeat ? "secondary" : "white"}
               onClick={() => handleRepeatChange(!repeat)}
               aria-pressed={repeat}
-              aria-label="Repeat"
               title="Repeat"
-              className="h-9 w-full border-slate-400 sm:w-auto"
+              icon={<RiLoopRightLine className="h-4 w-4" />}
+              className="border-slate-400 max-sm:flex-1 max-sm:gap-1.5 max-sm:px-3 max-sm:py-1.5 max-sm:text-xs"
             >
-              <RiLoopRightLine className="h-4 w-4" />
+              Repeat
             </Button>
           </div>
 

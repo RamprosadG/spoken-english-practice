@@ -1,14 +1,13 @@
 "use client";
 
 import { useMemo } from "react";
-import Badge from "@/components/ui/badges/Badge";
 import { CopyTextButton } from "@/features/practice/CopyTextButton";
 import type { ConversationLineItem } from "@/types/conversation";
 import { ConversationIpaCard } from "./ConversationIpaCard";
 import { ConversationPracticeControls } from "./ConversationPracticeControls";
 import {
-  SPEAKER_BADGE_VARIANTS,
-  SPEAKER_ROW_CLASSES,
+  SPEAKER_NAME_TEXT_CLASSES,
+  SPEAKER_RULE_CLASSES,
 } from "./speakerStyles";
 import { useConversationPractice } from "./useConversationPractice";
 
@@ -43,12 +42,17 @@ export function ConversationPracticeWorkspace({
   );
 
   return (
-    <section className="flex w-full flex-col gap-6">
+    <section className="flex w-full flex-col">
+      {/* The material comes first, in one fixed-height card, so a long dialogue
+          scrolls inside it instead of pushing the controls off the screen. The
+          title is the page heading's job and is not repeated here; a turn row is
+          a divide-y line with a left rule in its speaker's colour rather than a
+          tinted box, and only this one box surrounds it. */}
       <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-6">
+        <div className="flex flex-wrap items-start justify-between gap-2 border-b border-slate-100 px-5 py-4">
           <div>
             <h2 className="text-base font-semibold text-slate-900">
-              Conversation text
+              Conversation turns
             </h2>
             <p className="mt-0.5 text-sm text-slate-500">
               Follow the turns in order, then listen with one voice per speaker
@@ -62,42 +66,40 @@ export function ConversationPracticeWorkspace({
           />
         </div>
 
-        <div className="p-5 sm:p-6">
-          <div
-            tabIndex={0}
-            role="region"
-            aria-label="Conversation title and turns"
-            className="flex max-h-96 flex-col gap-3 overflow-y-auto break-words rounded-lg border border-gray-300 bg-white px-3.5 py-3 text-sm leading-6 text-slate-900 shadow-xs outline-none transition-all duration-200 focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500"
-          >
-            <p className="text-base font-bold leading-7 text-slate-900">
-              {title}
-            </p>
-
+        <div
+          tabIndex={0}
+          role="region"
+          aria-label="Conversation turns"
+          className="max-h-96 overflow-y-auto px-5 py-4 outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+        >
+          <ol className="divide-y divide-slate-200">
             {lines.map((line, index) => (
-              <div
-                key={line.id}
-                className={`rounded-lg border px-3 py-2.5 ${SPEAKER_ROW_CLASSES[line.speaker]}`}
-              >
-                <div className="mb-1 flex items-center gap-2">
-                  <Badge variant={SPEAKER_BADGE_VARIANTS[line.speaker]} size="sm">
+              <li key={line.id} className="py-5 first:pt-0 last:pb-0">
+                <p className="flex flex-wrap items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider">
+                  <span className={SPEAKER_NAME_TEXT_CLASSES[line.speaker]}>
                     {speakerNames[line.speaker]}
-                  </Badge>
-                  <span className="text-xs font-medium text-slate-500">
-                    Turn {index + 1}
                   </span>
-                </div>
-                <p>{line.text}</p>
-              </div>
+                  <span aria-hidden="true" className="text-slate-300">
+                    ·
+                  </span>
+                  <span className="text-slate-400">Turn {index + 1}</span>
+                </p>
+                <p
+                  className={`mt-1.5 max-w-prose break-words border-l-2 pl-3 text-sm leading-6 text-slate-900 ${SPEAKER_RULE_CLASSES[line.speaker]}`}
+                >
+                  {line.text}
+                </p>
+              </li>
             ))}
-          </div>
-
-          <ConversationPracticeControls practice={practice} />
+          </ol>
         </div>
       </div>
 
-      {practice.showIpa && (
-        <ConversationIpaCard practice={practice} title={title} />
-      )}
+      <div className="mt-6">
+        <ConversationPracticeControls practice={practice} />
+      </div>
+
+      {practice.showIpa && <ConversationIpaCard practice={practice} />}
     </section>
   );
 }

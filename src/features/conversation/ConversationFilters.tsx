@@ -40,6 +40,7 @@ export function ConversationFilters({
         options={buildCategoryFilterOptions(categories)}
         value={category}
         onChange={onCategoryChange}
+        className="max-sm:text-xs"
         hideOptionalText
       />
       {user?.role === "admin" && (
@@ -47,6 +48,7 @@ export function ConversationFilters({
           options={PUBLICATION_FILTER_OPTIONS}
           value={status}
           onChange={onStatusChange}
+          className="max-sm:text-xs"
           hideOptionalText
         />
       )}

@@ -17,7 +17,8 @@ export function ConversationHeader({ actions }: ConversationHeaderProps) {
           conversation with a different voice for every speaker.
         </p>
       </div>
-      <div className="flex flex-wrap items-center gap-3 shrink-0 max-sm:w-full">
+      {/* Unwrapping lets two `w-full` buttons shrink to halves below sm. */}
+      <div className="flex items-center gap-3 shrink-0 max-sm:w-full">
         {actions}
       </div>
     </div>
