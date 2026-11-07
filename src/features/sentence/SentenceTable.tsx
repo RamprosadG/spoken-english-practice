@@ -1,19 +1,17 @@
 "use client";
 
-import { FiChevronUp, FiEdit, FiPlayCircle, FiTrash2 } from "react-icons/fi";
+import Link from "next/link";
+import { FiEdit, FiPlayCircle, FiTrash2 } from "react-icons/fi";
 import Badge from "@/components/ui/badges/Badge";
 import { TableActionButton } from "@/components/ui/buttons/TableActionButton";
 import DataTable, { type Column } from "@/components/ui/tables/DataTable";
 import { useAuth } from "@/features/auth/AuthProvider";
 import type { SentenceItem } from "@/types/sentence";
-import { SentencePracticePanel } from "./SentencePracticePanel";
 
 interface SentenceTableProps {
   sentences: SentenceItem[];
   isLoading: boolean;
   deletingId: string | null;
-  expandedId: string | null;
-  onTogglePractice: (sentence: SentenceItem) => void;
   onEdit: (sentence: SentenceItem) => void;
   onDelete: (sentence: SentenceItem) => void;
 }
@@ -22,8 +20,6 @@ export function SentenceTable({
   sentences,
   isLoading,
   deletingId,
-  expandedId,
-  onTogglePractice,
   onEdit,
   onDelete,
 }: SentenceTableProps) {
@@ -72,30 +68,15 @@ export function SentenceTable({
       header: "Practice",
       headerClassName: "max-sm:px-2",
       className: "max-sm:px-2",
-      render: (sentence) => {
-        const isExpanded = expandedId === sentence.id;
-
-        return (
-          <button
-            type="button"
-            onClick={() => onTogglePractice(sentence)}
-            aria-expanded={isExpanded}
-            aria-controls={`sentence-practice-${sentence.id}`}
-            className={`inline-flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
-              isExpanded
-                ? "bg-indigo-600 text-white hover:bg-indigo-700"
-                : "bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:text-indigo-700"
-            }`}
-          >
-            {isExpanded ? (
-              <FiChevronUp className="h-4 w-4" />
-            ) : (
-              <FiPlayCircle className="h-4 w-4" />
-            )}
-            {isExpanded ? "Hide" : "Practice"}
-          </button>
-        );
-      },
+      render: (sentence) => (
+        <Link
+          href={`/sentences/${sentence.id}`}
+          className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-600 transition-colors hover:bg-indigo-100 hover:text-indigo-700"
+        >
+          <FiPlayCircle className="h-4 w-4" />
+          Practice now
+        </Link>
+      ),
     },
   ];
 
@@ -133,13 +114,6 @@ export function SentenceTable({
       columns={columns}
       isLoading={isLoading}
       emptyMessage="No sentences found matching your search."
-      expandedRowId={expandedId}
-      renderExpandedRow={(sentence) => (
-        <SentencePracticePanel
-          key={sentence.updatedAt}
-          sentence={sentence}
-        />
-      )}
     />
   );
 }

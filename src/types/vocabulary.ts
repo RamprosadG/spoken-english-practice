@@ -53,6 +53,12 @@ export interface VocabularyFilters {
   page: number;
 }
 
+export interface VocabularyNavigation {
+  vocabulary: VocabularyItem;
+  previousId: string | null;
+  nextId: string | null;
+}
+
 export interface VocabularyListData {
   vocabularies: VocabularyItem[];
   pagination: PaginationMeta | null;

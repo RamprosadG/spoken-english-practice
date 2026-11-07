@@ -46,8 +46,6 @@ export function SentenceSection({
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
   const [, startRefresh] = useTransition();
-  // Only one row can be open at a time; a single id is the whole state.
-  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editingSentence, setEditingSentence] = useState<SentenceItem | null>(
     null,
   );
@@ -63,7 +61,6 @@ export function SentenceSection({
     if (query === requestedQuery.current) return;
     requestedQuery.current = query;
 
-    setExpandedId(null);
     startTransition(() => {
       router.replace(query ? `${pathname}?${query}` : pathname, {
         scroll: false,
@@ -72,12 +69,6 @@ export function SentenceSection({
   };
 
   const refresh = () => startRefresh(() => router.refresh());
-
-  function handleTogglePractice(sentence: SentenceItem) {
-    setExpandedId((current) =>
-      current === sentence.id ? null : sentence.id,
-    );
-  }
 
   async function handleDelete(sentence: SentenceItem) {
     const result = await Swal.fire({
@@ -99,9 +90,6 @@ export function SentenceSection({
       await sentenceRequest<null>(`/api/sentences/${sentence.id}`, {
         method: "DELETE",
       });
-      if (expandedId === sentence.id) {
-        setExpandedId(null);
-      }
       showSuccessAlert("Sentence deleted successfully.");
       refresh();
     } catch (error) {
@@ -131,8 +119,6 @@ export function SentenceSection({
         sentences={sentences}
         isLoading={isLoading || isPending}
         deletingId={deletingId}
-        expandedId={expandedId}
-        onTogglePractice={handleTogglePractice}
         onEdit={setEditingSentence}
         onDelete={handleDelete}
       />

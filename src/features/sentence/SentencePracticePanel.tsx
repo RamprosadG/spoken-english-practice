@@ -16,82 +16,74 @@ export function SentencePracticePanel({
   const speech = useListenSpeech();
 
   return (
-    <div
-      id={`sentence-practice-${sentence.id}`}
-      className="border-t border-slate-200 px-4 py-5 sm:px-6 sm:py-6"
-    >
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-        <ListenControls speech={speech} oneRow />
+    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+      <ListenControls speech={speech} oneRow />
 
-        <div className="mt-4 flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <p className="text-base font-medium leading-7 text-slate-900">
-              {sentence.text}
-            </p>
+      <div className="mt-4 flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-base font-medium leading-7 text-slate-900">
+            {sentence.text}
+          </p>
 
-            <InlineIpa text={sentence.text} accent={speech.accent} />
-          </div>
-
-          <PlayTextButton
-            isPlaying={speech.speakingKey === "sentence"}
-            onClick={() => speech.play("sentence", sentence.text)}
-            ariaLabel="Listen to the sentence"
-          />
+          <InlineIpa text={sentence.text} accent={speech.accent} />
         </div>
 
-        <div className="mt-3 rounded-lg border border-slate-100 bg-slate-50 px-3.5 py-3">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-            Meaning (বাংলা)
-          </p>
-          <p lang="bn" className="mt-1 text-sm leading-7 text-slate-700">
-            {sentence.meaning}
-          </p>
-        </div>
-
-        {sentence.whenToUse && (
-          <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3 text-sm leading-6 text-amber-800">
-            <span className="font-semibold text-amber-900">When to Use:</span>{" "}
-            {sentence.whenToUse}
-          </p>
-        )}
-
-        {sentence.alternates.length > 0 && (
-          <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-3">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-              Alternate expressions
-            </p>
-
-            <ul className="mt-2 flex flex-col gap-3">
-              {sentence.alternates.map((alternate) => (
-                <li
-                  key={alternate.id}
-                  className="flex items-start justify-between gap-3"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium leading-6 text-slate-900">
-                      {alternate.text}
-                    </p>
-                    <InlineIpa
-                      text={alternate.text}
-                      accent={speech.accent}
-                    />
-                  </div>
-
-                  <PlayTextButton
-                    isPlaying={
-                      speech.speakingKey === `alternate-${alternate.id}`
-                    }
-                    onClick={() =>
-                      speech.play(`alternate-${alternate.id}`, alternate.text)
-                    }
-                    ariaLabel={`Listen to alternate expression ${alternate.sequence}`}
-                  />
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+        <PlayTextButton
+          isPlaying={speech.speakingKey === "sentence"}
+          onClick={() => speech.play("sentence", sentence.text)}
+          ariaLabel="Listen to the sentence"
+        />
       </div>
+
+      <div className="mt-3 rounded-lg border border-slate-100 bg-slate-50 px-3.5 py-3">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+          Meaning (বাংলা)
+        </p>
+        <p lang="bn" className="mt-1 text-sm leading-7 text-slate-700">
+          {sentence.meaning}
+        </p>
+      </div>
+
+      {sentence.whenToUse && (
+        <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3 text-sm leading-6 text-amber-800">
+          <span className="font-semibold text-amber-900">When to Use:</span>{" "}
+          {sentence.whenToUse}
+        </p>
+      )}
+
+      {sentence.alternates.length > 0 && (
+        <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+            Alternate expressions
+          </p>
+
+          <ul className="mt-2 flex flex-col gap-3">
+            {sentence.alternates.map((alternate) => (
+              <li
+                key={alternate.id}
+                className="flex items-start justify-between gap-3"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium leading-6 text-slate-900">
+                    {alternate.text}
+                  </p>
+                  <InlineIpa text={alternate.text} accent={speech.accent} />
+                </div>
+
+                <PlayTextButton
+                  isPlaying={
+                    speech.speakingKey === `alternate-${alternate.id}`
+                  }
+                  onClick={() =>
+                    speech.play(`alternate-${alternate.id}`, alternate.text)
+                  }
+                  ariaLabel={`Listen to alternate expression ${alternate.sequence}`}
+                />
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

@@ -39,3 +39,8 @@ export interface SentencePageResult extends SentenceListResult {
   categories: CategoryOption[];
   categoryRows: CategoryRow[];
 }
+
+export interface SentenceNeighbors {
+  previousId: string | null;
+  nextId: string | null;
+}

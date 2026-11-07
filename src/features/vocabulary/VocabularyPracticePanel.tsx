@@ -17,17 +17,25 @@ interface PracticeEntryProps {
   bengali: string | null;
   entryKey: string;
   speech: ListenSpeech;
+  className?: string;
 }
 
+/**
+ * One dictionary entry: caption and Listen on the first line, then the English
+ * text, its IPA and its Bengali meaning. It owns no box — a nested card would
+ * spend two paddings and two borders on decoration and take them straight off
+ * the line length a learner has to read.
+ */
 function PracticeEntry({
   label,
   english,
   bengali,
   entryKey,
   speech,
+  className = "",
 }: PracticeEntryProps) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-slate-50 p-3.5">
+    <div className={className}>
       <div className="flex items-start justify-between gap-2">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
           {label}
@@ -39,13 +47,16 @@ function PracticeEntry({
         />
       </div>
 
-      <p className="mt-2 text-sm font-medium leading-6 text-slate-900">
+      <p className="mt-2 break-words text-sm font-medium leading-6 text-slate-900 max-w-prose">
         {english}
       </p>
-      <InlineIpa text={english} accent={speech.accent} />
+      <InlineIpa text={english} accent={speech.accent} className="max-w-prose" />
 
       {bengali && (
-        <p lang="bn" className="mt-2 text-sm leading-6 text-slate-600">
+        <p
+          lang="bn"
+          className="mt-1.5 break-words text-sm leading-6 text-slate-600 max-w-prose"
+        >
           {bengali}
         </p>
       )}
@@ -61,10 +72,7 @@ interface RelatedWordEntryProps {
   speech: ListenSpeech;
 }
 
-/**
- * One line of a synonym or antonym subsection: the text, its IPA and its own
- * Listen button — the same row shape an alternate expression uses.
- */
+/** One line of an entry: the text, its IPA and its own Listen button. */
 function RelatedWordEntry({
   text,
   entryKey,
@@ -78,13 +86,13 @@ function RelatedWordEntry({
         <p
           className={
             tone === "strong"
-              ? "text-sm font-medium leading-6 break-words text-slate-900"
-              : "text-sm leading-6 break-words text-slate-700"
+              ? "max-w-prose text-sm font-medium leading-6 break-words text-slate-900"
+              : "max-w-prose text-sm leading-6 break-words text-slate-700"
           }
         >
           {text}
         </p>
-        <InlineIpa text={text} accent={speech.accent} />
+        <InlineIpa text={text} accent={speech.accent} className="max-w-prose" />
       </div>
       <PlayTextButton
         isPlaying={speech.speakingKey === entryKey}
@@ -96,26 +104,26 @@ function RelatedWordEntry({
 }
 
 interface RelatedWordSectionProps {
-  vocabularyId: string;
   singular: string;
   words: VocabularyRelatedWord[];
   speech: ListenSpeech;
 }
 
+/**
+ * Synonyms and antonyms as a numbered list, not a grid of boxes. Hairlines
+ * between entries and a left rule on each example sentence carry the structure
+ * that the removed cards used to, at zero horizontal cost.
+ */
 function RelatedWordSection({
-  vocabularyId,
   singular,
   words,
   speech,
 }: RelatedWordSectionProps) {
   const lower = singular.toLowerCase();
-  const headingId = `vocabulary-${lower}s-${vocabularyId}`;
+  const headingId = `vocabulary-${lower}s`;
 
   return (
-    <section
-      aria-labelledby={headingId}
-      className="rounded-xl border border-slate-200 bg-slate-50 p-3.5 sm:p-4"
-    >
+    <section aria-labelledby={headingId} className="mt-6 border-t border-slate-200 pt-6">
       <h3
         id={headingId}
         className="text-xs font-semibold uppercase tracking-wider text-slate-600"
@@ -123,12 +131,9 @@ function RelatedWordSection({
         {`${singular}s`}
       </h3>
 
-      <ul className="mt-3 flex flex-col gap-3">
+      <ul className="mt-4 divide-y divide-slate-200">
         {words.map((word, index) => (
-          <li
-            key={word.id}
-            className="rounded-lg border border-slate-200 bg-white p-3.5"
-          >
+          <li key={word.id} className="py-5 first:pt-0 last:pb-0">
             <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
               {`${lower} ${index + 1}`}
             </p>
@@ -141,7 +146,7 @@ function RelatedWordSection({
               speech={speech}
             />
 
-            <div className="mt-3 border-t border-slate-100 pt-3">
+            <div className="mt-3 border-l border-slate-200 pl-3">
               <RelatedWordEntry
                 text={word.sentence}
                 entryKey={`${lower}-${word.id}-sentence`}
@@ -163,57 +168,43 @@ export function VocabularyPracticePanel({
   const speech = useListenSpeech();
 
   return (
-    <div
-      id={`vocabulary-practice-${vocabulary.id}`}
-      className="border-t border-slate-200 px-4 py-5 sm:px-6 sm:py-6"
-    >
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-        <p className="break-words text-2xl font-bold leading-tight text-slate-900 sm:text-3xl">
-          {vocabulary.text}
-        </p>
+    <div>
+      <ListenControls speech={speech} oneRow />
 
-        <ListenControls speech={speech} oneRow className="mt-4" />
+      <div className="mt-6 border-t border-slate-200 pt-6">
+        <PracticeEntry
+          label="Word"
+          english={vocabulary.text}
+          bengali={vocabulary.meaning}
+          entryKey="word"
+          speech={speech}
+        />
 
-        <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          <PracticeEntry
-            label="Word"
-            english={vocabulary.text}
-            bengali={vocabulary.meaning}
-            entryKey="word"
-            speech={speech}
-          />
-
-          <PracticeEntry
-            label="Example sentence"
-            english={vocabulary.sentence}
-            bengali={vocabulary.sentenceMeaning}
-            entryKey="sentence"
-            speech={speech}
-          />
-        </div>
-
-        {(vocabulary.synonyms.length > 0 || vocabulary.antonyms.length > 0) && (
-          <div className="mt-4 flex flex-col gap-4">
-            {vocabulary.synonyms.length > 0 && (
-              <RelatedWordSection
-                vocabularyId={vocabulary.id}
-                singular="Synonym"
-                words={vocabulary.synonyms}
-                speech={speech}
-              />
-            )}
-
-            {vocabulary.antonyms.length > 0 && (
-              <RelatedWordSection
-                vocabularyId={vocabulary.id}
-                singular="Antonym"
-                words={vocabulary.antonyms}
-                speech={speech}
-              />
-            )}
-          </div>
-        )}
+        <PracticeEntry
+          label="Example sentence"
+          english={vocabulary.sentence}
+          bengali={vocabulary.sentenceMeaning}
+          entryKey="sentence"
+          speech={speech}
+          className="mt-5 border-t border-slate-200 pt-5"
+        />
       </div>
+
+      {vocabulary.synonyms.length > 0 && (
+        <RelatedWordSection
+          singular="Synonym"
+          words={vocabulary.synonyms}
+          speech={speech}
+        />
+      )}
+
+      {vocabulary.antonyms.length > 0 && (
+        <RelatedWordSection
+          singular="Antonym"
+          words={vocabulary.antonyms}
+          speech={speech}
+        />
+      )}
     </div>
   );
 }

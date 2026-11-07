@@ -1,6 +1,7 @@
 "use client";
 
 import Dropdown from "@/components/ui/dropdowns/Dropdown";
+import { FilterBar } from "@/components/ui/filters/FilterBar";
 import SearchInput from "@/components/ui/inputs/SearchInput";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { buildCategoryFilterOptions } from "@/lib/categories";
@@ -30,32 +31,26 @@ export function PresentationFilters({
   const categoryOptions = buildCategoryFilterOptions(categories);
 
   return (
-    <div className="w-full flex flex-col md:flex-row mt-3 gap-4 items-center">
-      <div className="flex-1 w-full min-w-0">
-        <SearchInput
-          value={search}
-          onDebouncedChange={onSearchChange}
-          placeholder="Search by presentation title..."
-        />
-      </div>
-      <div className="w-full md:w-40 shrink-0">
+    <FilterBar>
+      <SearchInput
+        value={search}
+        onDebouncedChange={onSearchChange}
+        placeholder="Search by presentation title..."
+      />
+      <Dropdown
+        options={categoryOptions}
+        value={category}
+        onChange={onCategoryChange}
+        hideOptionalText
+      />
+      {user?.role === "admin" && (
         <Dropdown
-          options={categoryOptions}
-          value={category}
-          onChange={onCategoryChange}
+          options={PUBLICATION_FILTER_OPTIONS}
+          value={status}
+          onChange={onStatusChange}
           hideOptionalText
         />
-      </div>
-      {user?.role === "admin" && (
-        <div className="w-full md:w-40 shrink-0">
-          <Dropdown
-            options={PUBLICATION_FILTER_OPTIONS}
-            value={status}
-            onChange={onStatusChange}
-            hideOptionalText
-          />
-        </div>
       )}
-    </div>
+    </FilterBar>
   );
 }

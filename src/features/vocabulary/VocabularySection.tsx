@@ -47,8 +47,6 @@ export function VocabularySection({
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
   const [, startRefresh] = useTransition();
-  // Only one row can be open at a time; a single id is the whole state.
-  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editingVocabulary, setEditingVocabulary] =
     useState<VocabularyItem | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -63,7 +61,6 @@ export function VocabularySection({
     if (query === requestedQuery.current) return;
     requestedQuery.current = query;
 
-    setExpandedId(null);
     startTransition(() => {
       router.replace(query ? `${pathname}?${query}` : pathname, {
         scroll: false,
@@ -72,12 +69,6 @@ export function VocabularySection({
   };
 
   const refresh = () => startRefresh(() => router.refresh());
-
-  function handleTogglePractice(vocabulary: VocabularyItem) {
-    setExpandedId((current) =>
-      current === vocabulary.id ? null : vocabulary.id,
-    );
-  }
 
   async function handleDelete(vocabulary: VocabularyItem) {
     const result = await Swal.fire({
@@ -99,9 +90,6 @@ export function VocabularySection({
       await vocabularyRequest<null>(`/api/vocabulary/${vocabulary.id}`, {
         method: "DELETE",
       });
-      if (expandedId === vocabulary.id) {
-        setExpandedId(null);
-      }
       showSuccessAlert("Vocabulary deleted successfully.");
       refresh();
     } catch (error) {
@@ -133,8 +121,6 @@ export function VocabularySection({
         vocabularies={vocabularies}
         isLoading={isLoading || isPending}
         deletingId={deletingId}
-        expandedId={expandedId}
-        onTogglePractice={handleTogglePractice}
         onEdit={setEditingVocabulary}
         onDelete={handleDelete}
       />

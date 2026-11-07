@@ -46,3 +46,8 @@ export interface VocabularyPageResult extends VocabularyListResult {
   categories: CategoryOption[];
   categoryRows: CategoryRow[];
 }
+
+export interface VocabularyNeighbors {
+  previousId: string | null;
+  nextId: string | null;
+}

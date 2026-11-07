@@ -28,6 +28,12 @@ export interface SentenceFilters {
   page: number;
 }
 
+export interface SentenceNavigation {
+  sentence: SentenceItem;
+  previousId: string | null;
+  nextId: string | null;
+}
+
 export interface SentenceListData {
   sentences: SentenceItem[];
   pagination: PaginationMeta | null;

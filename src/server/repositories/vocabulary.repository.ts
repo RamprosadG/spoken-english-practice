@@ -1,11 +1,12 @@
 import prisma from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
-import { publicationWhere } from "@/lib/publishing";
+import { publicationWhere, type PublicationView } from "@/lib/publishing";
 import { DEFAULT_PAGE_SIZE, buildPaginationMeta } from "@/lib/utils";
 import type { VocabularyPartsOfSpeech } from "@/types/vocabulary";
 import type {
   VocabularyFilterParams,
   VocabularyListResult,
+  VocabularyNeighbors,
   VocabularyRow,
 } from "@/server/types/vocabulary";
 
@@ -27,6 +28,11 @@ interface VocabularyWriteData {
   antonyms: RelatedWordInput[];
 }
 
+interface VocabularyCursor {
+  sequence: number;
+  createdAt: Date;
+}
+
 const RELATIVE_WORD_SELECT = {
   id: true,
   word: true,
@@ -36,8 +42,8 @@ const RELATIVE_WORD_SELECT = {
 
 /**
  * Every read that reaches the browser carries the category name and both related
- * word lists with it: the inline practice panel plays them, so the page must
- * have them and no detail route exists to fetch them later.
+ * word lists with it: the edit modal and the practice page are both seeded
+ * straight from the row, so neither needs a second fetch.
  */
 const VOCABULARY_SELECT = {
   id: true,
@@ -144,6 +150,46 @@ export function findVocabularyById(id: string) {
 
 export function countVocabulary() {
   return prisma.vocabulary.count();
+}
+
+/**
+ * Neighbours are the closest rows on each side of this cursor in the list
+ * order (sequence, then createdAt), so the walk matches the library table and
+ * never steps a learner into a draft.
+ */
+export async function findVocabularyNeighbors(
+  cursor: VocabularyCursor,
+  view: PublicationView,
+): Promise<VocabularyNeighbors> {
+  const [previous, next] = await Promise.all([
+    prisma.vocabulary.findFirst({
+      where: {
+        ...publicationWhere(view),
+        OR: [
+          { sequence: { lt: cursor.sequence } },
+          { sequence: cursor.sequence, createdAt: { lt: cursor.createdAt } },
+        ],
+      },
+      orderBy: [{ sequence: "desc" }, { createdAt: "desc" }],
+      select: { id: true },
+    }),
+    prisma.vocabulary.findFirst({
+      where: {
+        ...publicationWhere(view),
+        OR: [
+          { sequence: { gt: cursor.sequence } },
+          { sequence: cursor.sequence, createdAt: { gt: cursor.createdAt } },
+        ],
+      },
+      orderBy: [{ sequence: "asc" }, { createdAt: "asc" }],
+      select: { id: true },
+    }),
+  ]);
+
+  return {
+    previousId: previous?.id ?? null,
+    nextId: next?.id ?? null,
+  };
 }
 
 export function createVocabulary(data: VocabularyWriteData) {

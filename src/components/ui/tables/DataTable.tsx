@@ -19,6 +19,7 @@ interface DataTableProps<T> {
   rowClassName?: string | ((item: T, index: number) => string);
   expandedRowId?: string | null;
   renderExpandedRow?: (item: T, index: number) => React.ReactNode;
+  renderCard?: (item: T, index: number) => React.ReactNode;
 }
 
 function DataTable<T extends { id?: string }>({
@@ -31,6 +32,7 @@ function DataTable<T extends { id?: string }>({
   rowClassName = "",
   expandedRowId = null,
   renderExpandedRow,
+  renderCard,
 }: DataTableProps<T>) {
   if (isLoading) {
     return (
@@ -63,7 +65,23 @@ function DataTable<T extends { id?: string }>({
     <div
       className={`w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm ${className}`}
     >
-      <div className="w-full overflow-x-auto">
+      {renderCard && (
+        <ul className="divide-y divide-slate-200 sm:hidden">
+          {data.map((item, index) => (
+            <li key={item.id ?? index} className="px-4 py-4">
+              {renderCard(item, index)}
+            </li>
+          ))}
+        </ul>
+      )}
+      {/* A card list owns the phone width, so the table stops at the sm edge. */}
+      <div
+        className={
+          renderCard
+            ? "hidden w-full overflow-x-auto sm:block"
+            : "w-full overflow-x-auto"
+        }
+      >
         <table className="w-full min-w-full divide-y divide-slate-200 text-left">
           <thead>
             <tr className="bg-slate-100">

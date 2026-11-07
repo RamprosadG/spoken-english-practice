@@ -1,10 +1,11 @@
 import prisma from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
-import { publicationWhere } from "@/lib/publishing";
+import { publicationWhere, type PublicationView } from "@/lib/publishing";
 import { DEFAULT_PAGE_SIZE, buildPaginationMeta } from "@/lib/utils";
 import type {
   SentenceFilterParams,
   SentenceListResult,
+  SentenceNeighbors,
   SentenceRow,
 } from "@/server/types/sentence";
 
@@ -18,7 +19,16 @@ interface SentenceWriteData {
   alternates: string[];
 }
 
-/** Every read that reaches the browser carries the category name with it. */
+interface SentenceCursor {
+  sequence: number;
+  createdAt: Date;
+}
+
+/**
+ * Every read that reaches the browser carries the category name and the
+ * alternates with it: the edit modal and the practice page are both seeded
+ * straight from the row, so neither needs a second fetch.
+ */
 const SENTENCE_SELECT = {
   id: true,
   text: true,
@@ -30,7 +40,7 @@ const SENTENCE_SELECT = {
   createdAt: true,
   updatedAt: true,
   category: { select: { name: true } },
-  // The inline practice panel plays the alternates, so the page carries them.
+  // The edit modal is seeded from the list row, so the alternates ride along.
   alternates: {
     orderBy: { sequence: "asc" },
     select: { id: true, text: true, sequence: true },
@@ -117,6 +127,46 @@ export function findSentenceById(id: string) {
 
 export function countSentences() {
   return prisma.sentence.count();
+}
+
+/**
+ * Neighbours are the closest rows on each side of this cursor in the list
+ * order (sequence, then createdAt), so the walk matches the library table and
+ * never steps a learner into a draft.
+ */
+export async function findSentenceNeighbors(
+  cursor: SentenceCursor,
+  view: PublicationView,
+): Promise<SentenceNeighbors> {
+  const [previous, next] = await Promise.all([
+    prisma.sentence.findFirst({
+      where: {
+        ...publicationWhere(view),
+        OR: [
+          { sequence: { lt: cursor.sequence } },
+          { sequence: cursor.sequence, createdAt: { lt: cursor.createdAt } },
+        ],
+      },
+      orderBy: [{ sequence: "desc" }, { createdAt: "desc" }],
+      select: { id: true },
+    }),
+    prisma.sentence.findFirst({
+      where: {
+        ...publicationWhere(view),
+        OR: [
+          { sequence: { gt: cursor.sequence } },
+          { sequence: cursor.sequence, createdAt: { gt: cursor.createdAt } },
+        ],
+      },
+      orderBy: [{ sequence: "asc" }, { createdAt: "asc" }],
+      select: { id: true },
+    }),
+  ]);
+
+  return {
+    previousId: previous?.id ?? null,
+    nextId: next?.id ?? null,
+  };
 }
 
 export function createSentence(data: SentenceWriteData) {

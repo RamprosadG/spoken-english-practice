@@ -1,6 +1,7 @@
 "use client";
 
 import Dropdown from "@/components/ui/dropdowns/Dropdown";
+import { FilterBar } from "@/components/ui/filters/FilterBar";
 import SearchInput from "@/components/ui/inputs/SearchInput";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { buildCategoryFilterOptions } from "@/lib/categories";
@@ -41,40 +42,35 @@ export function VocabularyFilters({
   const { user } = useAuth();
 
   return (
-    <div className="w-full flex flex-col md:flex-row mt-3 gap-4 items-stretch md:items-center">
-      <div className="flex-1 w-full min-w-0">
-        <SearchInput
-          value={search}
-          onDebouncedChange={onSearchChange}
-          placeholder="Search words or example sentences..."
-        />
-      </div>
-      <div className="w-full md:w-40 shrink-0">
-        <Dropdown
-          options={buildCategoryFilterOptions(categories)}
-          value={category}
-          onChange={onCategoryChange}
-          hideOptionalText
-        />
-      </div>
-      <div className="w-full md:w-40 shrink-0">
-        <Dropdown
-          options={LETTER_OPTIONS}
-          value={letter}
-          onChange={onLetterChange}
-          hideOptionalText
-        />
-      </div>
+    <FilterBar>
+      <SearchInput
+        value={search}
+        onDebouncedChange={onSearchChange}
+        placeholder="Search words or example sentences..."
+      />
+      <Dropdown
+        options={buildCategoryFilterOptions(categories)}
+        value={category}
+        onChange={onCategoryChange}
+        className="max-sm:text-xs"
+        hideOptionalText
+      />
+      <Dropdown
+        options={LETTER_OPTIONS}
+        value={letter}
+        onChange={onLetterChange}
+        className="max-sm:text-xs"
+        hideOptionalText
+      />
       {user?.role === "admin" && (
-        <div className="w-full md:w-40 shrink-0">
-          <Dropdown
-            options={PUBLICATION_FILTER_OPTIONS}
-            value={status}
-            onChange={onStatusChange}
-            hideOptionalText
-          />
-        </div>
+        <Dropdown
+          options={PUBLICATION_FILTER_OPTIONS}
+          value={status}
+          onChange={onStatusChange}
+          className="max-sm:text-xs"
+          hideOptionalText
+        />
       )}
-    </div>
+    </FilterBar>
   );
 }

@@ -6,6 +6,7 @@ import {
   deleteSentence as deleteSentenceRecord,
   findNextSentenceSequence,
   findSentenceById,
+  findSentenceNeighbors,
   findSentencePage,
   updateSentence as updateSentenceRecord,
   type SentenceSelected,
@@ -20,7 +21,7 @@ import type {
   SentenceFilterParams,
   SentencePageResult,
 } from "@/server/types/sentence";
-import type { SentenceItem } from "@/types/sentence";
+import type { SentenceItem, SentenceNavigation } from "@/types/sentence";
 
 export const SENTENCE_PAGE_SIZE = 20;
 
@@ -65,6 +66,38 @@ export async function listSentences(
   ]);
 
   return { ...list, nextSequence, categories, categoryRows };
+}
+
+export async function getSentenceWithNavigation(
+  id: string,
+): Promise<SentenceNavigation | null> {
+  // Neighbours move with every saved row, so never prerender this.
+  await connection();
+
+  const canViewUnpublished = await canViewUnpublishedContent();
+
+  const sentence = await findSentenceById(id);
+  if (!sentence) {
+    return null;
+  }
+
+  if (!canViewUnpublished && !sentence.isPublished) {
+    return null;
+  }
+
+  const neighbors = await findSentenceNeighbors(
+    {
+      sequence: sentence.sequence,
+      createdAt: sentence.createdAt,
+    },
+    { canViewUnpublished },
+  );
+
+  return {
+    sentence: toSentenceItem(sentence),
+    previousId: neighbors.previousId,
+    nextId: neighbors.nextId,
+  };
 }
 
 export async function createSentence(

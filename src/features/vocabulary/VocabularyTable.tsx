@@ -1,75 +1,158 @@
 "use client";
 
-import { FiChevronUp, FiEdit, FiPlayCircle, FiTrash2 } from "react-icons/fi";
+import Link from "next/link";
+import { FiEdit, FiPlayCircle, FiTrash2 } from "react-icons/fi";
 import Badge from "@/components/ui/badges/Badge";
 import { TableActionButton } from "@/components/ui/buttons/TableActionButton";
 import DataTable, { type Column } from "@/components/ui/tables/DataTable";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { InlineIpa } from "@/features/practice/InlineIpa";
 import type { VocabularyItem } from "@/types/vocabulary";
-import { VocabularyPracticePanel } from "./VocabularyPracticePanel";
 
 interface VocabularyTableProps {
   vocabularies: VocabularyItem[];
   isLoading: boolean;
   deletingId: string | null;
-  expandedId: string | null;
-  onTogglePractice: (vocabulary: VocabularyItem) => void;
   onEdit: (vocabulary: VocabularyItem) => void;
   onDelete: (vocabulary: VocabularyItem) => void;
+}
+
+interface VocabularyCardProps {
+  vocabulary: VocabularyItem;
+  canManage: boolean;
+  isDeleting: boolean;
+  onEdit: (vocabulary: VocabularyItem) => void;
+  onDelete: (vocabulary: VocabularyItem) => void;
+}
+
+/**
+ * Dictionary-style part-of-speech label. It sits beside the word as quiet text
+ * rather than another chip, so the only badge left in a row is the one that
+ * describes a state the reader has to notice — Draft.
+ */
+function PartOfSpeech({ text }: { text: string }) {
+  return (
+    <span className="ml-2 align-middle text-xs font-medium italic text-slate-500">
+      {text}
+    </span>
+  );
+}
+
+/** One row of the vocabulary list, redrawn as a card for the phone width. */
+function VocabularyCard({
+  vocabulary,
+  canManage,
+  isDeleting,
+  onEdit,
+  onDelete,
+}: VocabularyCardProps) {
+  return (
+    <div>
+      <div className="flex items-center justify-between gap-2">
+        <p className="truncate text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+          {vocabulary.categoryName}
+        </p>
+        {canManage && !vocabulary.isPublished && (
+          <Badge variant="warning" size="sm" className="shrink-0">
+            Draft
+          </Badge>
+        )}
+      </div>
+
+      <p className="mt-2 break-words text-lg font-semibold leading-7 text-slate-900">
+        {vocabulary.text}
+        <PartOfSpeech text={vocabulary.partsOfSpeech} />
+      </p>
+
+      <InlineIpa text={vocabulary.text} accent="en-GB" />
+
+      <p
+        lang="bn"
+        className="mt-1.5 break-words text-sm leading-6 text-slate-700"
+      >
+        {vocabulary.meaning}
+      </p>
+
+      <div className="mt-3 flex flex-col gap-3">
+        <Link
+          href={`/vocabulary/${vocabulary.id}`}
+          className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-indigo-50 px-3 py-3.5 text-xs font-semibold text-indigo-600 transition-colors hover:bg-indigo-100 hover:text-indigo-700"
+        >
+          <FiPlayCircle className="h-4 w-4" />
+          Practice now
+        </Link>
+        {canManage && (
+          <div className="flex items-center gap-2 border-t border-slate-100 pt-3">
+            <TableActionButton
+              tooltip="Update vocabulary"
+              color="blue"
+              className="h-11 flex-1 gap-1.5 text-xs font-semibold"
+              onClick={() => onEdit(vocabulary)}
+            >
+              <FiEdit className="h-4 w-4" />
+              Update
+            </TableActionButton>
+            <TableActionButton
+              tooltip="Delete vocabulary"
+              color="rose"
+              isLoading={isDeleting}
+              className="h-11 flex-1 gap-1.5 text-xs font-semibold"
+              onClick={() => onDelete(vocabulary)}
+            >
+              <FiTrash2 className="h-4 w-4" />
+              Delete
+            </TableActionButton>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export function VocabularyTable({
   vocabularies,
   isLoading,
   deletingId,
-  expandedId,
-  onTogglePractice,
   onEdit,
   onDelete,
 }: VocabularyTableProps) {
   const { user } = useAuth();
   const canManage = user?.role === "admin";
 
+  // renderCard moves the phone width to the card list, so this table only ever
+  // renders from sm up and carries no max-sm overrides. The Word cell is a
+  // three-line dictionary entry — word with its part of speech beside it, the
+  // IPA under the word, the meaning under that — because a word needs no
+  // column of its own for either.
   const columns: Column<VocabularyItem>[] = [
     {
       key: "word",
       header: "Word",
-      className: "whitespace-normal max-sm:px-2",
+      className: "whitespace-normal",
       render: (vocabulary) => (
-        <div className="min-w-[140px] max-w-[260px] whitespace-normal break-words sm:max-w-md">
-          <p className="line-clamp-2 font-semibold leading-6 text-slate-900">
+        <div className="max-w-sm min-w-[200px] whitespace-normal">
+          <p className="break-words text-base font-semibold leading-6 text-slate-900">
             {vocabulary.text}
-          </p>
-          <div className="mt-1 flex flex-wrap items-center gap-1.5">
-            <Badge variant="neutral" size="sm">
-              {vocabulary.partsOfSpeech}
-            </Badge>
+            <PartOfSpeech text={vocabulary.partsOfSpeech} />
             {canManage && !vocabulary.isPublished && (
-              <Badge variant="warning" size="sm">
+              <Badge variant="warning" size="sm" className="ml-2 align-middle">
                 Draft
               </Badge>
             )}
-          </div>
+          </p>
+          <InlineIpa text={vocabulary.text} accent="en-GB" />
           <p
             lang="bn"
-            className="mt-1 line-clamp-2 text-sm leading-6 text-slate-600"
+            className="mt-1 break-words text-sm leading-6 text-slate-600"
           >
             {vocabulary.meaning}
           </p>
-          <InlineIpa
-            text={vocabulary.text}
-            accent="en-GB"
-            className="sm:hidden"
-          />
         </div>
       ),
     },
     {
       key: "category",
       header: "Category",
-      headerClassName: "max-sm:px-2",
-      className: "max-sm:px-2",
       render: (vocabulary) => (
         <Badge variant="neutral" size="sm">
           {vocabulary.categoryName}
@@ -77,45 +160,17 @@ export function VocabularyTable({
       ),
     },
     {
-      key: "ipa",
-      header: "IPA",
-      headerClassName: "max-sm:hidden",
-      className: "whitespace-normal max-sm:hidden",
-      render: (vocabulary) => (
-        <div className="max-w-[190px]">
-          <InlineIpa text={vocabulary.text} accent="en-GB" />
-        </div>
-      ),
-    },
-    {
       key: "practice",
       header: "Practice",
-      headerClassName: "max-sm:px-2",
-      className: "max-sm:px-2",
-      render: (vocabulary) => {
-        const isExpanded = expandedId === vocabulary.id;
-
-        return (
-          <button
-            type="button"
-            onClick={() => onTogglePractice(vocabulary)}
-            aria-expanded={isExpanded}
-            aria-controls={`vocabulary-practice-${vocabulary.id}`}
-            className={`inline-flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
-              isExpanded
-                ? "bg-indigo-600 text-white hover:bg-indigo-700"
-                : "bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:text-indigo-700"
-            }`}
-          >
-            {isExpanded ? (
-              <FiChevronUp className="h-4 w-4" />
-            ) : (
-              <FiPlayCircle className="h-4 w-4" />
-            )}
-            {isExpanded ? "Hide" : "Practice"}
-          </button>
-        );
-      },
+      render: (vocabulary) => (
+        <Link
+          href={`/vocabulary/${vocabulary.id}`}
+          className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-600 transition-colors hover:bg-indigo-100 hover:text-indigo-700"
+        >
+          <FiPlayCircle className="h-4 w-4" />
+          Practice now
+        </Link>
+      ),
     },
   ];
 
@@ -123,8 +178,8 @@ export function VocabularyTable({
     columns.push({
       key: "actions",
       header: "Actions",
-      headerClassName: "text-right max-sm:px-2",
-      className: "text-right max-sm:px-2",
+      headerClassName: "text-right",
+      className: "text-right",
       render: (vocabulary) => (
         <div className="flex items-center justify-end gap-1">
           <TableActionButton
@@ -153,11 +208,13 @@ export function VocabularyTable({
       columns={columns}
       isLoading={isLoading}
       emptyMessage="No vocabulary found matching your filters."
-      expandedRowId={expandedId}
-      renderExpandedRow={(vocabulary) => (
-        <VocabularyPracticePanel
-          key={vocabulary.updatedAt}
+      renderCard={(vocabulary) => (
+        <VocabularyCard
           vocabulary={vocabulary}
+          canManage={canManage}
+          isDeleting={deletingId === vocabulary.id}
+          onEdit={onEdit}
+          onDelete={onDelete}
         />
       )}
     />

@@ -6,6 +6,7 @@ import {
   deleteVocabulary as deleteVocabularyRecord,
   findNextVocabularySequence,
   findVocabularyById,
+  findVocabularyNeighbors,
   findVocabularyPage,
   updateVocabulary as updateVocabularyRecord,
   type VocabularySelected,
@@ -20,7 +21,10 @@ import type {
   VocabularyFilterParams,
   VocabularyPageResult,
 } from "@/server/types/vocabulary";
-import type { VocabularyItem } from "@/types/vocabulary";
+import type {
+  VocabularyItem,
+  VocabularyNavigation,
+} from "@/types/vocabulary";
 
 export const VOCABULARY_PAGE_SIZE = 20;
 
@@ -71,6 +75,38 @@ export async function listVocabulary(
   ]);
 
   return { ...list, nextSequence, categories, categoryRows };
+}
+
+export async function getVocabularyWithNavigation(
+  id: string,
+): Promise<VocabularyNavigation | null> {
+  // Neighbours move with every saved row, so never prerender this.
+  await connection();
+
+  const canViewUnpublished = await canViewUnpublishedContent();
+
+  const vocabulary = await findVocabularyById(id);
+  if (!vocabulary) {
+    return null;
+  }
+
+  if (!canViewUnpublished && !vocabulary.isPublished) {
+    return null;
+  }
+
+  const neighbors = await findVocabularyNeighbors(
+    {
+      sequence: vocabulary.sequence,
+      createdAt: vocabulary.createdAt,
+    },
+    { canViewUnpublished },
+  );
+
+  return {
+    vocabulary: toVocabularyItem(vocabulary),
+    previousId: neighbors.previousId,
+    nextId: neighbors.nextId,
+  };
 }
 
 export async function createVocabulary(

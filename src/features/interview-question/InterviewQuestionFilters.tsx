@@ -1,6 +1,7 @@
 "use client";
 
 import Dropdown from "@/components/ui/dropdowns/Dropdown";
+import { FilterBar } from "@/components/ui/filters/FilterBar";
 import SearchInput from "@/components/ui/inputs/SearchInput";
 import {
   ALL_TOPICS_LABEL,
@@ -40,49 +41,36 @@ export function InterviewQuestionFilters({
   onStatusChange,
 }: InterviewQuestionFiltersProps) {
   return (
-    <div className="w-full flex flex-col gap-4 mt-3 xl:flex-row xl:items-center">
-      <div className="w-full min-w-0 xl:flex-1">
-        <SearchInput
-          value={search}
-          onDebouncedChange={onSearchChange}
-          placeholder="Search by question or answer..."
-        />
-      </div>
-
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:w-auto">
-        <div className="min-w-0">
-          <Dropdown
-            options={buildCategoryFilterOptions(categories)}
-            value={category}
-            onChange={onCategoryChange}
-            hideOptionalText
-          />
-        </div>
-        <div className="min-w-0">
-          <Dropdown
-            options={buildCategoryFilterOptions(topics, ALL_TOPICS_LABEL)}
-            value={topic}
-            onChange={onTopicChange}
-            hideOptionalText
-          />
-        </div>
-        <div className="min-w-0">
-          <Dropdown
-            options={INTERVIEW_DIFFICULTY_FILTER_OPTIONS}
-            value={difficulty}
-            onChange={onDifficultyChange}
-            hideOptionalText
-          />
-        </div>
-        <div className="min-w-0">
-          <Dropdown
-            options={PUBLICATION_FILTER_OPTIONS}
-            value={status}
-            onChange={onStatusChange}
-            hideOptionalText
-          />
-        </div>
-      </div>
-    </div>
+    <FilterBar rowFrom="xl">
+      <SearchInput
+        value={search}
+        onDebouncedChange={onSearchChange}
+        placeholder="Search by question or answer..."
+      />
+      <Dropdown
+        options={buildCategoryFilterOptions(categories)}
+        value={category}
+        onChange={onCategoryChange}
+        hideOptionalText
+      />
+      <Dropdown
+        options={buildCategoryFilterOptions(topics, ALL_TOPICS_LABEL)}
+        value={topic}
+        onChange={onTopicChange}
+        hideOptionalText
+      />
+      <Dropdown
+        options={INTERVIEW_DIFFICULTY_FILTER_OPTIONS}
+        value={difficulty}
+        onChange={onDifficultyChange}
+        hideOptionalText
+      />
+      <Dropdown
+        options={PUBLICATION_FILTER_OPTIONS}
+        value={status}
+        onChange={onStatusChange}
+        hideOptionalText
+      />
+    </FilterBar>
   );
 }
