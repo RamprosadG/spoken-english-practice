@@ -7,9 +7,11 @@ interface InterviewQuestionPracticeNavProps {
 }
 
 // Mirrors the secondary `Button` recipe so the link and disabled states match
-// every other control in the workspace.
+// every other control in the workspace. Below `sm` the same string takes the
+// 12 px / 28 px recipe the **Listen** pills already use, because two 14 px
+// pills crowd a phone-width row.
 const navButtonClass =
-  "inline-flex items-center justify-center gap-2 rounded-lg bg-slate-700 px-4 py-2 text-sm font-medium text-white shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 transition-all duration-200";
+  "inline-flex items-center justify-center gap-2 max-sm:gap-1.5 rounded-lg bg-slate-700 px-4 py-2 max-sm:px-3 max-sm:py-1.5 text-sm max-sm:text-xs font-medium text-white shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 transition-all duration-200";
 
 export function InterviewQuestionPracticeNav({
   previousId,

@@ -38,6 +38,29 @@ function PartOfSpeech({ text }: { text: string }) {
   );
 }
 
+/**
+ * The saved sequence as a dictionary entry number. It rides the first line of
+ * the Word cell instead of a column of its own because it is not a fact about
+ * the word — it is the word's position in the admin's ordering, and a fourth
+ * header would ask every reader to give a number a column it only skims.
+ * `tabular-nums` keeps the digits aligned so the column reads as a ladder.
+ */
+function SequenceLabel({
+  sequence,
+  className = "",
+}: {
+  sequence: number;
+  className?: string;
+}) {
+  return (
+    <span
+      className={`text-[11px] font-semibold tracking-wider text-slate-400 tabular-nums ${className}`}
+    >
+      {`#${sequence}`}
+    </span>
+  );
+}
+
 /** One row of the vocabulary list, redrawn as a card for the phone width. */
 function VocabularyCard({
   vocabulary,
@@ -49,8 +72,12 @@ function VocabularyCard({
   return (
     <div>
       <div className="flex items-center justify-between gap-2">
-        <p className="truncate text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-          {vocabulary.categoryName}
+        <p className="flex min-w-0 items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+          <SequenceLabel sequence={vocabulary.sequence} />
+          <span aria-hidden="true" className="shrink-0 text-slate-300">
+            ·
+          </span>
+          <span className="truncate">{vocabulary.categoryName}</span>
         </p>
         {canManage && !vocabulary.isPublished && (
           <Badge variant="warning" size="sm" className="shrink-0">
@@ -121,9 +148,9 @@ export function VocabularyTable({
 
   // renderCard moves the phone width to the card list, so this table only ever
   // renders from sm up and carries no max-sm overrides. The Word cell is a
-  // three-line dictionary entry — word with its part of speech beside it, the
-  // IPA under the word, the meaning under that — because a word needs no
-  // column of its own for either.
+  // dictionary entry — its sequence number, then the word with its part of
+  // speech beside it, the IPA under the word, the meaning under that — because
+  // a word needs no column of its own for any of those four.
   const columns: Column<VocabularyItem>[] = [
     {
       key: "word",
@@ -131,6 +158,7 @@ export function VocabularyTable({
       className: "whitespace-normal",
       render: (vocabulary) => (
         <div className="max-w-sm min-w-[200px] whitespace-normal">
+          <SequenceLabel sequence={vocabulary.sequence} className="mb-1 block" />
           <p className="break-words text-base font-semibold leading-6 text-slate-900">
             {vocabulary.text}
             <PartOfSpeech text={vocabulary.partsOfSpeech} />
