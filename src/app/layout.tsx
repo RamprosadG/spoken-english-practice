@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "animate.css";
 import { AppLayoutShell } from "@/components/shared/AppLayoutShell";
 import { AuthProvider } from "@/features/auth/AuthProvider";
 import { GoogleAuthProvider } from "@/features/auth/GoogleAuthProvider";

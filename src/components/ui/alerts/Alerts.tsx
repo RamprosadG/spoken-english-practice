@@ -5,8 +5,8 @@ import Swal, {
 
 const themeColors = {
   background: "#ffffff",
-  titleColor: "#0f172a",
-  confirmButtonColor: "#4f46e5",
+  titleColor: "#1f2937",
+  confirmButtonColor: "#2563eb",
   cancelButtonColor: "#dc2626",
   successBackground: "#f0fdf4",
   successText: "#166534",
@@ -17,6 +17,8 @@ const themeColors = {
   warningBackground: "#fffbeb",
   warningText: "#92400e",
   warningIcon: "#f59e0b",
+  borderColor: "#e5e7eb",
+  mutedText: "#6b7280",
 };
 
 const showAlert = (options: SweetAlertOptions): Promise<SweetAlertResult> => {
@@ -26,37 +28,67 @@ const showAlert = (options: SweetAlertOptions): Promise<SweetAlertResult> => {
     confirmButtonColor: themeColors.confirmButtonColor,
     cancelButtonColor: themeColors.cancelButtonColor,
     toast: true,
-    position: "top-end",
-    showConfirmButton: false,
-    timer: 3500,
-    timerProgressBar: true,
+    position: "top",
+    showClass: {
+      popup: "animate__animated animate__fadeInDown",
+    },
+    hideClass: {
+      popup: "animate__animated animate__fadeOutUp",
+    },
     ...options,
   });
 };
 
-export const showSuccessAlert = (text: string): void => {
-  showAlert({
+export const showSuccessAlert = (
+  text: string,
+  showIcon: boolean = false,
+): void => {
+  const alertOptions: SweetAlertOptions = {
     text,
-    icon: "success",
-    iconColor: themeColors.successIcon,
+    timer: 3000,
+    showConfirmButton: false,
     background: themeColors.successBackground,
     color: themeColors.successText,
+    width: "400px",
+    padding: "5px",
     customClass: {
-      popup: "rounded-lg border shadow-lg border-green-200 text-sm font-medium",
+      popup: "rounded-lg border shadow-lg border-green-100",
+      title: "font-semibold text-green-800",
+      htmlContainer: "text-green-700",
     },
-  });
+  };
+
+  if (showIcon) {
+    alertOptions.icon = "success";
+    alertOptions.iconColor = themeColors.successIcon;
+  }
+
+  showAlert(alertOptions);
 };
 
-export const showErrorAlert = (text: string): void => {
-  showAlert({
+export const showErrorAlert = (
+  text: string,
+  showIcon: boolean = false,
+): void => {
+  const alertOptions: SweetAlertOptions = {
     text,
-    icon: "error",
-    iconColor: themeColors.errorIcon,
+    timer: 3000,
+    showConfirmButton: false,
     background: themeColors.errorBackground,
     color: themeColors.errorText,
+    width: "400px",
+    padding: "5px",
     customClass: {
-      popup: "rounded-lg border shadow-lg border-red-200 text-sm font-medium",
+      popup: "rounded-lg border shadow-lg border-red-100",
+      title: "font-semibold text-red-800",
+      htmlContainer: "text-red-700",
     },
-  });
-};
+  };
 
+  if (showIcon) {
+    alertOptions.icon = "error";
+    alertOptions.iconColor = themeColors.errorIcon;
+  }
+
+  showAlert(alertOptions);
+};
