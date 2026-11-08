@@ -97,7 +97,7 @@ export function ConversationSection({
 
   async function handleDelete(conversation: ConversationItem) {
     const result = await Swal.fire({
-      title: "Delete conversation?",
+      title: "Delete Conversation?",
       text: `"${conversation.title}" and all of its turns will be permanently removed.`,
       icon: "warning",
       showCancelButton: true,

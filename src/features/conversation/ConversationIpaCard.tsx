@@ -26,7 +26,7 @@ export function ConversationIpaCard({
         id="conversation-ipa"
         className="text-xs font-semibold uppercase tracking-wider text-slate-500"
       >
-        IPA transcription
+        IPA Transcription
       </h2>
       <p className="mt-1.5 text-sm text-slate-500">
         Every turn uses the selected accent.
@@ -52,7 +52,7 @@ export function ConversationIpaCard({
               <PlayTextButton
                 isPlaying={playingTurnIndex === turn.index}
                 onClick={() => handlePlayTurn(turn.index)}
-                ariaLabel={`Listen to turn ${turn.index + 1}, ${turn.speakerName}`}
+                ariaLabel={`Listen To Turn ${turn.index + 1}, ${turn.speakerName}`}
               />
             </div>
 

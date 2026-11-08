@@ -62,7 +62,7 @@ export function PracticeWorkspace() {
         <div className="flex flex-wrap items-start justify-between gap-2 border-b border-slate-100 px-5 py-4">
           <div>
             <h2 className="text-base font-semibold text-slate-900">
-              Practice text
+              Practice Text
             </h2>
             <p className="mt-0.5 text-sm text-slate-500">
               Type or paste English text, then read its IPA or listen to it in
@@ -70,7 +70,7 @@ export function PracticeWorkspace() {
             </p>
           </div>
 
-          <CopyTextButton text={text} subject="practice text" />
+          <CopyTextButton text={text} subject="Practice Text" />
         </div>
 
         {/* The field is the card body itself, so it carries no inset of its own:
@@ -78,7 +78,7 @@ export function PracticeWorkspace() {
             sides. The only chrome left is the house field recipe — the indigo
             hover and focus border — drawn on the field edge inside the card. */}
         <label htmlFor="practice-text" className="sr-only">
-          English text
+          English Text
         </label>
         <textarea
           id="practice-text"

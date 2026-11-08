@@ -63,13 +63,13 @@ export const CATEGORY_NOUNS: Record<CategoryKind, CategoryNouns> = {
 };
 
 export const CATEGORY_MANAGE_TITLES: Record<CategoryKind, string> = {
-  presentation: "Presentation categories",
-  sentence: "Sentence categories",
-  conversation: "Conversation categories",
-  listening: "Listening categories",
-  vocabulary: "Vocabulary categories",
-  interview: "Interview categories",
-  topic: "Interview topics",
+  presentation: "Presentation Categories",
+  sentence: "Sentence Categories",
+  conversation: "Conversation Categories",
+  listening: "Listening Categories",
+  vocabulary: "Vocabulary Categories",
+  interview: "Interview Categories",
+  topic: "Interview Topics",
 };
 
 /**
@@ -86,8 +86,8 @@ export const CATEGORY_DUPLICATE_MESSAGES: Record<CategoryKind, string> = {
   topic: "An interview topic with this name already exists.",
 };
 
-export const ALL_CATEGORIES_LABEL = "All categories";
-export const ALL_TOPICS_LABEL = "All topics";
+export const ALL_CATEGORIES_LABEL = "All Categories";
+export const ALL_TOPICS_LABEL = "All Topics";
 
 export interface CategoryOptionSource {
   id: string;

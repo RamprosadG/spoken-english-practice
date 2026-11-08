@@ -170,7 +170,7 @@ export function SentenceFormModal({
     <Modal
       isOpen
       onClose={handleClose}
-      title={isEditing ? "Edit sentence" : "New sentence"}
+      title={isEditing ? "Edit Sentence" : "New Sentence"}
       className="max-w-2xl"
     >
       {apiError && (
@@ -186,7 +186,7 @@ export function SentenceFormModal({
               htmlFor="sentence-text"
               className="text-sm font-medium text-slate-800"
             >
-              English sentence
+              English Sentence
             </label>
             <IoIosStar className="h-2 w-2 text-red-500" />
           </div>
@@ -224,7 +224,7 @@ export function SentenceFormModal({
               htmlFor="sentence-meaning"
               className="text-sm font-medium text-slate-800"
             >
-              Bengali meaning
+              Bengali Meaning
             </label>
             <IoIosStar className="h-2 w-2 text-red-500" />
           </div>
@@ -258,7 +258,7 @@ export function SentenceFormModal({
         </div>
 
         <Input
-          label="When to use"
+          label="When To Use"
           type="text"
           name="whenToUse"
           id="sentence-when-to-use"
@@ -339,7 +339,7 @@ export function SentenceFormModal({
             disabled={isSubmitting}
             className="w-full"
           >
-            {isEditing ? "Save changes" : "Create sentence"}
+            {isEditing ? "Save Changes" : "Create Sentence"}
           </Button>
         </div>
       </form>

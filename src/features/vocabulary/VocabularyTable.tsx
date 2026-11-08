@@ -106,12 +106,12 @@ function VocabularyCard({
           className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-indigo-50 px-3 py-3.5 text-xs font-semibold text-indigo-600 transition-colors hover:bg-indigo-100 hover:text-indigo-700"
         >
           <FiPlayCircle className="h-4 w-4" />
-          Practice now
+          Practice Now
         </Link>
         {canManage && (
           <div className="flex items-center gap-2 border-t border-slate-100 pt-3">
             <TableActionButton
-              tooltip="Update vocabulary"
+              tooltip="Update Vocabulary"
               color="blue"
               className="h-11 flex-1 gap-1.5 text-xs font-semibold"
               onClick={() => onEdit(vocabulary)}
@@ -120,7 +120,7 @@ function VocabularyCard({
               Update
             </TableActionButton>
             <TableActionButton
-              tooltip="Delete vocabulary"
+              tooltip="Delete Vocabulary"
               color="rose"
               isLoading={isDeleting}
               className="h-11 flex-1 gap-1.5 text-xs font-semibold"
@@ -196,7 +196,7 @@ export function VocabularyTable({
           className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-600 transition-colors hover:bg-indigo-100 hover:text-indigo-700"
         >
           <FiPlayCircle className="h-4 w-4" />
-          Practice now
+          Practice Now
         </Link>
       ),
     },
@@ -211,14 +211,14 @@ export function VocabularyTable({
       render: (vocabulary) => (
         <div className="flex items-center justify-end gap-1">
           <TableActionButton
-            tooltip="Edit vocabulary"
+            tooltip="Edit Vocabulary"
             color="blue"
             onClick={() => onEdit(vocabulary)}
           >
             <FiEdit className="w-4 h-4" />
           </TableActionButton>
           <TableActionButton
-            tooltip="Delete vocabulary"
+            tooltip="Delete Vocabulary"
             color="rose"
             isLoading={deletingId === vocabulary.id}
             onClick={() => onDelete(vocabulary)}

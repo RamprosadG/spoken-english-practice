@@ -46,7 +46,7 @@ const Dropdown: React.FC<DropdownProps> = ({
   className = "",
   error,
   required = false,
-  placeholder = "Select an option",
+  placeholder = "Select An Option",
   name,
   id,
   hideOptionalText = false,

@@ -19,7 +19,7 @@ export function SentencePracticeNav({
 }: SentencePracticeNavProps) {
   return (
     <nav
-      aria-label="Sentence navigation"
+      aria-label="Sentence Navigation"
       className="flex items-center justify-between gap-3"
     >
       {previousId ? (

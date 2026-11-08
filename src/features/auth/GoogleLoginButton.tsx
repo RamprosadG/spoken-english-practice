@@ -50,7 +50,7 @@ export function GoogleLoginButton({
       disabled={isLoading || !scriptLoadedSuccessfully}
       className="w-full"
     >
-      Continue with Google
+      Continue With Google
     </Button>
   );
 }

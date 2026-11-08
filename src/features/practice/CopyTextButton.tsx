@@ -51,11 +51,11 @@ export function CopyTextButton({ text, subject }: CopyTextButtonProps) {
       variant={status === "failed" ? "danger" : "secondary"}
       onClick={handleCopy}
       disabled={!text.trim()}
-      aria-label={`Copy ${subject} to clipboard`}
+      aria-label={`Copy ${subject} To Clipboard`}
       icon={icon}
       className="w-full shrink-0 sm:w-auto"
     >
-      {isCopied ? "Copied" : status === "failed" ? "Couldn't copy" : "Copy"}
+      {isCopied ? "Copied" : status === "failed" ? "Couldn't Copy" : "Copy"}
     </Button>
   );
 }

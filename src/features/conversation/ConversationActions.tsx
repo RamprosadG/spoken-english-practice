@@ -37,7 +37,7 @@ export function ConversationActions({
         onClick={() => setIsCreateOpen(true)}
         className="w-full whitespace-nowrap sm:w-auto max-sm:text-xs max-sm:px-2 max-sm:gap-1.5"
       >
-        New conversation
+        New Conversation
       </Button>
 
       <CategoryManageButton kind="conversation" categories={categoryRows} />

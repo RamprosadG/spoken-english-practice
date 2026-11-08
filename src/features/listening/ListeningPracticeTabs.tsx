@@ -9,7 +9,7 @@ type ListeningTab = "dictation" | "transcription";
 
 const TABS: { id: ListeningTab; label: string }[] = [
   { id: "dictation", label: "Dictation" },
-  { id: "transcription", label: "Full transcription" },
+  { id: "transcription", label: "Full Transcription" },
 ];
 
 interface ListeningPracticeTabsProps {
@@ -56,7 +56,7 @@ export function ListeningPracticeTabs({
     <section className="flex w-full flex-col gap-6">
       <div
         role="tablist"
-        aria-label="Listening practice mode"
+        aria-label="Listening Practice Mode"
         className="flex items-center gap-1 border-b border-slate-200"
       >
         {TABS.map(({ id, label }) => {

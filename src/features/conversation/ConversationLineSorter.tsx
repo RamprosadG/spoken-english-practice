@@ -101,8 +101,8 @@ function SortableTurn({
       >
         <button
           type="button"
-          aria-label={`Reorder turn ${index + 1}, ${label}`}
-          title="Drag to reorder"
+          aria-label={`Reorder Turn ${index + 1}, ${label}`}
+          title="Drag To Reorder"
           className="mt-1 cursor-grab touch-none rounded-md p-1 text-slate-400 transition-colors hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 active:cursor-grabbing"
           {...attributes}
           {...listeners}
@@ -126,7 +126,7 @@ function SortableTurn({
             rows={2}
             maxLength={LINE_MAX_LENGTH}
             placeholder="Type what this speaker says"
-            aria-label={`Turn ${index + 1} text for ${label}`}
+            aria-label={`Turn ${index + 1} Text For ${label}`}
             value={draft.text}
             onChange={(event) => onChange(draft.key, event.target.value)}
             className={`w-full resize-y rounded-lg border bg-white px-3.5 py-2 text-sm text-slate-900 shadow-xs outline-none transition-all duration-200 placeholder:text-gray-400 hover:border-indigo-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 ${
@@ -144,7 +144,7 @@ function SortableTurn({
         </div>
 
         <TableActionButton
-          tooltip={`Remove turn ${index + 1}`}
+          tooltip={`Remove Turn ${index + 1}`}
           color="rose"
           disabled={!canRemove}
           onClick={() => onRemove(draft.key)}
@@ -171,7 +171,7 @@ function TurnDragPreview({ draft, ...turn }: TurnProps & { draft: ConversationLi
           </Badge>
         </p>
         <p className="truncate text-sm text-slate-900">
-          {draft.text.trim() || "Empty turn"}
+          {draft.text.trim() || "Empty Turn"}
         </p>
       </div>
     </div>
@@ -244,7 +244,7 @@ export function ConversationLineSorter({
   return (
     <fieldset className="rounded-lg border border-slate-200 p-4">
       <legend className="px-1 text-sm font-semibold text-slate-800">
-        Conversation turns
+        Conversation Turns
       </legend>
       <p className="text-xs text-slate-500">
         Turns alternate between the two speakers. Drag the handle — or focus it
@@ -294,7 +294,7 @@ export function ConversationLineSorter({
         icon={<FiPlus className="h-4 w-4" />}
         className="mt-4 w-full sm:w-auto"
       >
-        Add turn
+        Add Turn
       </Button>
     </fieldset>
   );

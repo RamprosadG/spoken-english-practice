@@ -155,7 +155,7 @@ export function ListeningFormModal({
     <Modal
       isOpen
       onClose={handleClose}
-      title={isEditing ? "Edit listening" : "New listening"}
+      title={isEditing ? "Edit Listening" : "New Listening"}
       className="max-w-2xl"
     >
       {apiError && (
@@ -252,7 +252,7 @@ export function ListeningFormModal({
             disabled={isSubmitting}
             className="w-full"
           >
-            {isEditing ? "Save changes" : "Create listening"}
+            {isEditing ? "Save Changes" : "Create Listening"}
           </Button>
         </div>
       </form>

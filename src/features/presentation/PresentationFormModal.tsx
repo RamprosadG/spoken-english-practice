@@ -128,7 +128,7 @@ export function PresentationFormModal({
     <Modal
       isOpen
       onClose={handleClose}
-      title={isEditing ? "Edit presentation" : "New presentation"}
+      title={isEditing ? "Edit Presentation" : "New Presentation"}
       className="max-w-2xl"
     >
       {apiError && (
@@ -257,7 +257,7 @@ export function PresentationFormModal({
             disabled={isSubmitting}
             className="w-full"
           >
-            {isEditing ? "Save changes" : "Create presentation"}
+            {isEditing ? "Save Changes" : "Create Presentation"}
           </Button>
         </div>
       </form>

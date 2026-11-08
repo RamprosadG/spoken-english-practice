@@ -37,7 +37,7 @@ export function ListeningActions({
         onClick={() => setIsCreateOpen(true)}
         className="w-full whitespace-nowrap sm:w-auto max-sm:text-xs max-sm:px-2 max-sm:gap-1.5"
       >
-        New listening
+        New Listening
       </Button>
 
       <CategoryManageButton kind="listening" categories={categoryRows} />

@@ -19,7 +19,7 @@ export const INTERVIEW_DIFFICULTY_OPTIONS = INTERVIEW_DIFFICULTIES.map(
 );
 
 export const INTERVIEW_DIFFICULTY_FILTER_OPTIONS = [
-  { value: "", label: "All difficulties" },
+  { value: "", label: "All Difficulties" },
   ...INTERVIEW_DIFFICULTY_OPTIONS,
 ];
 

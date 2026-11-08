@@ -61,7 +61,7 @@ export function SpeechPracticeControls({
           value={voice}
           onChange={handleVoiceChange}
           options={voiceOptions}
-          placeholder="Automatic (best match)"
+          placeholder="Automatic (Best Match)"
           hideOptionalText
           className="max-sm:text-xs"
         />
@@ -77,7 +77,7 @@ export function SpeechPracticeControls({
 
         <div className="flex w-full flex-col gap-1">
           <span className="text-sm font-medium text-slate-800 max-sm:text-xs">
-            IPA translation
+            IPA Translation
           </span>
           <label className="flex h-[38px] cursor-pointer items-center justify-between gap-3 rounded-lg border border-gray-300 bg-white px-3.5 shadow-xs transition-all duration-200 hover:border-indigo-400">
             <span className="text-sm font-medium text-slate-900 max-sm:text-xs">

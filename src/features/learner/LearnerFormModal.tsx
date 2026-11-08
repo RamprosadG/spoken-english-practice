@@ -131,7 +131,7 @@ export function LearnerFormModal({
     <Modal
       isOpen
       onClose={handleClose}
-      title={isEditing ? "Edit learner" : "New learner"}
+      title={isEditing ? "Edit Learner" : "New Learner"}
       className="max-w-2xl"
     >
       {apiError && (
@@ -238,7 +238,7 @@ export function LearnerFormModal({
             disabled={isSubmitting}
             className="w-full"
           >
-            {isEditing ? "Save changes" : "Create learner"}
+            {isEditing ? "Save Changes" : "Create Learner"}
           </Button>
         </div>
       </form>

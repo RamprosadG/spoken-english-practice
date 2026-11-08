@@ -208,14 +208,14 @@ export function InterviewQuestionFormModal({
   }
 
   const saveLabel = isEditing
-    ? "Save changes"
-    : "Create interview question";
+    ? "Save Changes"
+    : "Create Interview Question";
 
   return (
     <Modal
       isOpen
       onClose={handleClose}
-      title={isEditing ? "Edit interview question" : "New interview question"}
+      title={isEditing ? "Edit Interview Question" : "New Interview Question"}
       className="max-w-2xl"
     >
       {apiError && (

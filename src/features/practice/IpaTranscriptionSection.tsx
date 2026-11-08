@@ -43,7 +43,7 @@ export function IpaTranscriptionSection({
         id="ipa-transcription"
         className="text-xs font-semibold uppercase tracking-wider text-slate-500"
       >
-        IPA transcription
+        IPA Transcription
       </h2>
       <p className="mt-1.5 text-sm text-slate-500" aria-live="polite">
         {notice}
@@ -71,7 +71,7 @@ export function IpaTranscriptionSection({
                 <PlayTextButton
                   isPlaying={playingSentenceIndex === index}
                   onClick={() => handlePlaySentence(index)}
-                  ariaLabel={`Listen to sentence ${index + 1}`}
+                  ariaLabel={`Listen To Sentence ${index + 1}`}
                 />
               </div>
             </li>

@@ -69,7 +69,7 @@ export function LearnerSection({
 
   async function handleDelete(learner: LearnerItem) {
     const result = await Swal.fire({
-      title: "Delete learner?",
+      title: "Delete Learner?",
       text: `"${learner.name}" will lose access to the app and their account will be permanently removed.`,
       icon: "warning",
       showCancelButton: true,

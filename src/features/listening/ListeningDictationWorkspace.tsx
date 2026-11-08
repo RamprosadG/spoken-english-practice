@@ -137,8 +137,8 @@ export function ListeningDictationWorkspace({
               type="button"
               onClick={() => goToItem(itemNumber - 1)}
               disabled={!hasPrevious}
-              aria-label="Previous sentence"
-              title="Previous sentence"
+              aria-label="Previous Sentence"
+              title="Previous Sentence"
               className={sentenceStepClass}
             >
               <FaArrowLeft className="h-4 w-4" />
@@ -148,8 +148,8 @@ export function ListeningDictationWorkspace({
               type="button"
               onClick={() => goToItem(itemNumber + 1)}
               disabled={!hasNext}
-              aria-label="Next sentence"
-              title="Next sentence"
+              aria-label="Next Sentence"
+              title="Next Sentence"
               className={sentenceStepClass}
             >
               Next
@@ -158,7 +158,7 @@ export function ListeningDictationWorkspace({
             <PlayTextButton
               isPlaying={speech.speakingKey === "sentence"}
               onClick={() => speech.play("sentence", item.text)}
-              ariaLabel="Listen to the sentence"
+              ariaLabel="Listen To The Sentence"
               label="Listen"
               className="max-sm:flex-1 max-sm:justify-center"
             />
@@ -201,7 +201,7 @@ export function ListeningDictationWorkspace({
               className="mt-4 border-l-2 border-amber-300 pl-3"
             >
               <p className="text-[11px] font-semibold uppercase tracking-wider text-amber-700">
-                Fix these words
+                Fix These Words
               </p>
               {check.typedCount !== words.length && (
                 <p className="mt-1 text-sm text-amber-800">
@@ -265,7 +265,7 @@ export function ListeningDictationWorkspace({
               className="max-sm:flex-1 max-sm:gap-1.5 max-sm:px-3 max-sm:py-1.5 max-sm:text-xs"
               disabled={isBlank || completed}
             >
-              Check answer
+              Check Answer
             </Button>
             <Button
               type="button"
@@ -275,7 +275,7 @@ export function ListeningDictationWorkspace({
               className="max-sm:flex-1 max-sm:gap-1.5 max-sm:px-3 max-sm:py-1.5 max-sm:text-xs"
               disabled={isBlank && !check}
             >
-              Clear all
+              Clear All
             </Button>
           </div>
         </form>

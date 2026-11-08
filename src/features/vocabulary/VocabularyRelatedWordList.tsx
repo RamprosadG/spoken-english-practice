@@ -48,8 +48,8 @@ export function VocabularyRelatedWordList({
   onChange,
 }: VocabularyRelatedWordListProps) {
   const lower = singular.toLowerCase();
-  const wordLabel = `${singular} word`;
-  const sentenceLabel = `${singular} sentence`;
+  const wordLabel = `${singular} Word`;
+  const sentenceLabel = `${singular} Sentence`;
 
   const handleChange = (
     key: string,
@@ -109,7 +109,7 @@ export function VocabularyRelatedWordList({
                       rows={2}
                       maxLength={SENTENCE_MAX_LENGTH}
                       placeholder={`Write an example with the ${lower}`}
-                      aria-label={`${singular} ${index + 1} sentence`}
+                      aria-label={`${singular} ${index + 1} Sentence`}
                       value={word.sentence}
                       onChange={(event) =>
                         handleChange(word.key, "sentence", event.target.value)
@@ -129,7 +129,7 @@ export function VocabularyRelatedWordList({
                 </div>
 
                 <TableActionButton
-                  tooltip={`Remove ${lower} ${index + 1}`}
+                  tooltip={`Remove ${singular} ${index + 1}`}
                   color="rose"
                   onClick={() =>
                     onChange(words.filter((item) => item.key !== word.key))
@@ -153,7 +153,7 @@ export function VocabularyRelatedWordList({
         icon={<FiPlus className="h-4 w-4" />}
         className="mt-4 w-full sm:w-auto"
       >
-        {`Add ${lower}`}
+        {`Add ${singular}`}
       </Button>
     </fieldset>
   );

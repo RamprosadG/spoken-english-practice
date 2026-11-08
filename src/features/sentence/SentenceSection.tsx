@@ -72,7 +72,7 @@ export function SentenceSection({
 
   async function handleDelete(sentence: SentenceItem) {
     const result = await Swal.fire({
-      title: "Delete sentence?",
+      title: "Delete Sentence?",
       text: `"${sentence.text}" will be permanently removed.`,
       icon: "warning",
       showCancelButton: true,

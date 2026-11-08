@@ -67,7 +67,7 @@ export function InterviewQuestionPracticeWorkspace({
         <div className="flex flex-wrap items-start justify-between gap-2 border-b border-slate-100 px-5 py-4">
           <div>
             <h2 className="text-base font-semibold text-slate-900">
-              Question and answer
+              Question And Answer
             </h2>
             <p className="mt-0.5 text-sm text-slate-500">
               Hear the question in the interviewer&apos;s voice, say your own
@@ -75,13 +75,13 @@ export function InterviewQuestionPracticeWorkspace({
             </p>
           </div>
 
-          <CopyTextButton text={copyText} subject="question and answer" />
+          <CopyTextButton text={copyText} subject="Question And Answer" />
         </div>
 
         <div
           tabIndex={0}
           role="region"
-          aria-label="Question and answer"
+          aria-label="Question And Answer"
           className="max-h-96 overflow-y-auto px-5 py-4 outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
         >
           <ol className="divide-y divide-slate-200">

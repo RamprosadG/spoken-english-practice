@@ -43,7 +43,7 @@ function PracticeEntry({
         <PlayTextButton
           isPlaying={speech.speakingKey === entryKey}
           onClick={() => speech.play(entryKey, english)}
-          ariaLabel={`Listen to the ${label.toLowerCase()}`}
+          ariaLabel={`Listen To The ${label}`}
         />
       </div>
 
@@ -135,13 +135,13 @@ function RelatedWordSection({
         {words.map((word, index) => (
           <li key={word.id} className="py-5 first:pt-0 last:pb-0">
             <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-              {`${lower} ${index + 1}`}
+              {`${singular} ${index + 1}`}
             </p>
 
             <RelatedWordEntry
               text={word.word}
               entryKey={`${lower}-${word.id}-word`}
-              ariaLabel={`Listen to the ${lower} ${index + 1}`}
+              ariaLabel={`Listen To The ${singular} ${index + 1}`}
               tone="strong"
               speech={speech}
             />
@@ -150,7 +150,7 @@ function RelatedWordSection({
               <RelatedWordEntry
                 text={word.sentence}
                 entryKey={`${lower}-${word.id}-sentence`}
-                ariaLabel={`Listen to the ${lower} ${index + 1} example sentence`}
+                ariaLabel={`Listen To The ${singular} ${index + 1} Example Sentence`}
                 tone="plain"
                 speech={speech}
               />
@@ -181,7 +181,7 @@ export function VocabularyPracticePanel({
         />
 
         <PracticeEntry
-          label="Example sentence"
+          label="Example Sentence"
           english={vocabulary.sentence}
           bengali={vocabulary.sentenceMeaning}
           entryKey="sentence"

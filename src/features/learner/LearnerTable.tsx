@@ -58,7 +58,7 @@ function LearnerCard({
           straight under the data and keeps the chrome apart from it. */}
       <div className="mt-3 flex items-center gap-2 border-t border-slate-100 pt-3">
         <TableActionButton
-          tooltip="Update learner"
+          tooltip="Update Learner"
           color="blue"
           className="h-11 flex-1 gap-1.5 text-xs font-semibold"
           onClick={() => onEdit(learner)}
@@ -67,7 +67,7 @@ function LearnerCard({
           Update
         </TableActionButton>
         <TableActionButton
-          tooltip="Delete learner"
+          tooltip="Delete Learner"
           color="rose"
           className="h-11 flex-1 gap-1.5 text-xs font-semibold"
           isLoading={isDeleting}
@@ -123,14 +123,14 @@ export function LearnerTable({
       render: (learner) => (
         <div className="flex items-center justify-end gap-1">
           <TableActionButton
-            tooltip="Edit learner"
+            tooltip="Edit Learner"
             color="blue"
             onClick={() => onEdit(learner)}
           >
             <FiEdit className="w-4 h-4" />
           </TableActionButton>
           <TableActionButton
-            tooltip="Delete learner"
+            tooltip="Delete Learner"
             color="rose"
             isLoading={deletingId === learner.id}
             onClick={() => onDelete(learner)}

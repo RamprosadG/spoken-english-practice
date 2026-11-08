@@ -19,7 +19,7 @@ export function PresentationPracticeNav({
 }: PresentationPracticeNavProps) {
   return (
     <nav
-      aria-label="Presentation navigation"
+      aria-label="Presentation Navigation"
       className="flex items-center justify-between gap-3"
     >
       {previousId ? (

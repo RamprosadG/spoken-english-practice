@@ -45,7 +45,7 @@ export function SentenceAlternateList({
   return (
     <fieldset className="rounded-lg border border-slate-200 p-4">
       <legend className="px-1 text-sm font-semibold text-slate-800">
-        Alternate expressions
+        Alternate Expressions
       </legend>
       <p className="text-xs text-slate-500">
         Other ways to say the same thing. Each saved expression gets its own
@@ -70,7 +70,7 @@ export function SentenceAlternateList({
                   rows={2}
                   maxLength={ALTERNATE_MAX_LENGTH}
                   placeholder="Type another way to say it"
-                  aria-label={`Alternate expression ${index + 1} text`}
+                  aria-label={`Alternate Expression ${index + 1} Text`}
                   value={alternate.text}
                   onChange={(event) =>
                     handleTextChange(alternate.key, event.target.value)
@@ -90,7 +90,7 @@ export function SentenceAlternateList({
               </div>
 
               <TableActionButton
-                tooltip={`Remove expression ${index + 1}`}
+                tooltip={`Remove Expression ${index + 1}`}
                 color="rose"
                 onClick={() =>
                   onChange(alternates.filter((item) => item.key !== alternate.key))
@@ -113,7 +113,7 @@ export function SentenceAlternateList({
         icon={<FiPlus className="h-4 w-4" />}
         className="mt-4 w-full sm:w-auto"
       >
-        Add expression
+        Add Expression
       </Button>
     </fieldset>
   );

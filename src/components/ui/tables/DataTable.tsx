@@ -42,7 +42,7 @@ function DataTable<T extends { id?: string }>({
         <div className="p-12 text-center">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-[3px] border-indigo-600 border-t-transparent" />
           <p className="mt-3 text-sm text-slate-500">
-            Loading records...
+            Loading Records...
           </p>
         </div>
       </div>

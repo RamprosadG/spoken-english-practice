@@ -110,12 +110,12 @@ function InterviewQuestionCard({
           className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-indigo-50 px-3 py-3.5 text-xs font-semibold text-indigo-600 transition-colors hover:bg-indigo-100 hover:text-indigo-700"
         >
           <FiPlayCircle className="h-4 w-4" />
-          Practice now
+          Practice Now
         </Link>
         {canManage && (
           <div className="flex items-center gap-2 border-t border-slate-100 pt-3">
             <TableActionButton
-              tooltip="Update question"
+              tooltip="Update Question"
               color="blue"
               className="h-11 flex-1 gap-1.5 text-xs font-semibold"
               onClick={() => onEdit(question)}
@@ -124,7 +124,7 @@ function InterviewQuestionCard({
               Update
             </TableActionButton>
             <TableActionButton
-              tooltip="Delete question"
+              tooltip="Delete Question"
               color="rose"
               className="h-11 flex-1 gap-1.5 text-xs font-semibold"
               isLoading={isDeleting}
@@ -208,7 +208,7 @@ export function InterviewQuestionTable({
           className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-600 transition-colors hover:bg-indigo-100 hover:text-indigo-700"
         >
           <FiPlayCircle className="h-4 w-4" />
-          Practice now
+          Practice Now
         </Link>
       ),
     },
@@ -223,14 +223,14 @@ export function InterviewQuestionTable({
       render: (question) => (
         <div className="flex items-center justify-end gap-1">
           <TableActionButton
-            tooltip="Edit question"
+            tooltip="Edit Question"
             color="blue"
             onClick={() => onEdit(question)}
           >
             <FiEdit className="w-4 h-4" />
           </TableActionButton>
           <TableActionButton
-            tooltip="Delete question"
+            tooltip="Delete Question"
             color="rose"
             isLoading={deletingId === question.id}
             onClick={() => onDelete(question)}

@@ -19,7 +19,7 @@ export function VocabularyPracticeNav({
 }: VocabularyPracticeNavProps) {
   return (
     <nav
-      aria-label="Vocabulary navigation"
+      aria-label="Vocabulary Navigation"
       className="flex items-center justify-between gap-3"
     >
       {previousId ? (

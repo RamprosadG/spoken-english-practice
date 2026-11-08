@@ -29,13 +29,13 @@ interface NavItem {
 const navItems: NavItem[] = [
   { name: "Home", href: "/", icon: HiOutlineHome },
   { name: "Important Vocabularies", href: "/vocabulary", icon: HiOutlineBookOpen },
-  { name: "Common sentences", href: "/sentences", icon: HiOutlineChatAlt2 },
-  { name: "Regular conversation", href: "/conversations", icon: HiOutlineUserGroup },
+  { name: "Common Sentences", href: "/sentences", icon: HiOutlineChatAlt2 },
+  { name: "Regular Conversation", href: "/conversations", icon: HiOutlineUserGroup },
   { name: "Daily Presentations", href: "/presentation", icon: HiOutlinePresentationChartBar },
-  { name: "Listening practice", href: "/listenings", icon: HiOutlineVolumeUp },
-  { name: "Interview questions", href: "/interview-questions", icon: HiOutlineClipboardCheck, adminOnly: true },
-  { name: "Active learners", href: "/learners", icon: HiOutlineUsers, adminOnly: true },
-  { name: "Live practice", href: "/practice", icon: HiOutlineMicrophone },
+  { name: "Listening Practice", href: "/listenings", icon: HiOutlineVolumeUp },
+  { name: "Interview Questions", href: "/interview-questions", icon: HiOutlineClipboardCheck, adminOnly: true },
+  { name: "Active Learners", href: "/learners", icon: HiOutlineUsers, adminOnly: true },
+  { name: "Live Practice", href: "/practice", icon: HiOutlineMicrophone },
 ];
 
 interface SidebarProps {
@@ -141,7 +141,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           <button
             onClick={onClose}
             className="p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-            aria-label="Close sidebar"
+            aria-label="Close Sidebar"
           >
             <FiX className="w-5 h-5 text-gray-600" />
           </button>

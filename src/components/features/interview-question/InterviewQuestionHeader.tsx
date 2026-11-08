@@ -11,7 +11,7 @@ export function InterviewQuestionHeader({
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-200 pb-5">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 max-sm:text-lg">
-          Interview questions
+          Interview Questions
         </h1>
         <p className="mt-1 text-sm text-gray-500">
           Save the questions you are likely to be asked and the answers you want

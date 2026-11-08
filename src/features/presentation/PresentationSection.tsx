@@ -73,7 +73,7 @@ export function PresentationSection({
 
   async function handleDelete(presentation: PresentationItem) {
     const result = await Swal.fire({
-      title: "Delete presentation?",
+      title: "Delete Presentation?",
       text: `"${presentation.title}" will be permanently removed.`,
       icon: "warning",
       showCancelButton: true,

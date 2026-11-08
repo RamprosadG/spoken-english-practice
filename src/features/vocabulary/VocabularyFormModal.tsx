@@ -297,7 +297,7 @@ export function VocabularyFormModal({
     <Modal
       isOpen
       onClose={handleClose}
-      title={isEditing ? "Edit vocabulary" : "New vocabulary"}
+      title={isEditing ? "Edit Vocabulary" : "New Vocabulary"}
       className="max-w-3xl"
     >
       {apiError && (
@@ -320,7 +320,7 @@ export function VocabularyFormModal({
             onChange={(event) => setField("text", event.target.value)}
           />
           <Input
-            label="Bengali meaning"
+            label="Bengali Meaning"
             id="vocabulary-meaning"
             name="meaning"
             required
@@ -335,7 +335,7 @@ export function VocabularyFormModal({
 
         <TextAreaField
           id="vocabulary-sentence"
-          label="Example sentence"
+          label="Example Sentence"
           required
           rows={3}
           placeholder="Write an example sentence using the word"
@@ -346,7 +346,7 @@ export function VocabularyFormModal({
 
         <TextAreaField
           id="vocabulary-sentence-meaning"
-          label="Example sentence meaning (বাংলা)"
+          label="Example Sentence Meaning (বাংলা)"
           required
           lang="bn"
           rows={3}
@@ -393,7 +393,7 @@ export function VocabularyFormModal({
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Dropdown
-            label="Part of speech"
+            label="Part Of Speech"
             id="vocabulary-parts-of-speech"
             name="partsOfSpeech"
             options={PARTS_OF_SPEECH_OPTIONS}
@@ -441,7 +441,7 @@ export function VocabularyFormModal({
             disabled={isSubmitting}
             className="w-full"
           >
-            {isEditing ? "Save changes" : "Create vocabulary"}
+            {isEditing ? "Save Changes" : "Create Vocabulary"}
           </Button>
         </div>
       </form>

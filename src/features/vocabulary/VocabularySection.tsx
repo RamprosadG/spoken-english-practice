@@ -72,7 +72,7 @@ export function VocabularySection({
 
   async function handleDelete(vocabulary: VocabularyItem) {
     const result = await Swal.fire({
-      title: "Delete vocabulary?",
+      title: "Delete Vocabulary?",
       text: `"${vocabulary.text}" and all of its synonyms and antonyms will be permanently removed.`,
       icon: "warning",
       showCancelButton: true,

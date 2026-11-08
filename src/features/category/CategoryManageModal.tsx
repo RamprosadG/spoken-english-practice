@@ -121,7 +121,7 @@ export function CategoryManageModal({
 
   async function handleDelete(category: CategoryRow) {
     const result = await Swal.fire({
-      title: `Delete ${noun.singular}?`,
+      title: `Delete ${nounLabel}?`,
       text: `"${category.name}" will be permanently removed.`,
       icon: "warning",
       showCancelButton: true,
@@ -166,7 +166,7 @@ export function CategoryManageModal({
       <form onSubmit={handleCreate} className="flex flex-col gap-3">
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_8rem]">
           <Input
-            label={`New ${noun.singular}`}
+            label={`New ${nounLabel}`}
             type="text"
             name="category-name"
             id={`category-${kind}-name`}
@@ -201,7 +201,7 @@ export function CategoryManageModal({
           isLoading={isSubmitting}
           disabled={isBusy}
         >
-          Add {noun.singular}
+          Add {nounLabel}
         </Button>
       </form>
 
@@ -267,7 +267,7 @@ export function CategoryManageModal({
                       disabled={isBusy}
                       className="w-full"
                     >
-                      Save changes
+                      Save Changes
                     </Button>
                   </div>
                 </form>

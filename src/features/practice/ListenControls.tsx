@@ -45,7 +45,7 @@ export function ListenControls({
             value={speech.voice}
             onChange={speech.handleVoiceChange}
             options={speech.voiceOptions}
-            placeholder="Automatic (best match)"
+            placeholder="Automatic (Best Match)"
             hideOptionalText
             className="max-sm:text-xs"
           />

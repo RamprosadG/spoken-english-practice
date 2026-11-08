@@ -107,12 +107,12 @@ function ListeningCard({
           className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-indigo-50 px-3 py-3.5 text-xs font-semibold text-indigo-600 transition-colors hover:bg-indigo-100 hover:text-indigo-700"
         >
           <FiPlayCircle className="h-4 w-4" />
-          Practice now
+          Practice Now
         </Link>
         {canManage && (
           <div className="flex items-center gap-2 border-t border-slate-100 pt-3">
             <TableActionButton
-              tooltip="Update listening"
+              tooltip="Update Listening"
               color="blue"
               className="h-11 flex-1 gap-1.5 text-xs font-semibold"
               isLoading={loadingEditId === listening.id}
@@ -122,7 +122,7 @@ function ListeningCard({
               Update
             </TableActionButton>
             <TableActionButton
-              tooltip="Delete listening"
+              tooltip="Delete Listening"
               color="rose"
               className="h-11 flex-1 gap-1.5 text-xs font-semibold"
               isLoading={isDeleting}
@@ -194,7 +194,7 @@ export function ListeningTable({
           className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-600 transition-colors hover:bg-indigo-100 hover:text-indigo-700"
         >
           <FiPlayCircle className="h-4 w-4" />
-          Practice now
+          Practice Now
         </Link>
       ),
     },
@@ -209,7 +209,7 @@ export function ListeningTable({
       render: (listening) => (
         <div className="flex items-center justify-end gap-1">
           <TableActionButton
-            tooltip="Edit listening"
+            tooltip="Edit Listening"
             color="blue"
             isLoading={loadingEditId === listening.id}
             onClick={() => onEdit(listening)}
@@ -217,7 +217,7 @@ export function ListeningTable({
             <FiEdit className="w-4 h-4" />
           </TableActionButton>
           <TableActionButton
-            tooltip="Delete listening"
+            tooltip="Delete Listening"
             color="rose"
             isLoading={deletingId === listening.id}
             onClick={() => onDelete(listening)}

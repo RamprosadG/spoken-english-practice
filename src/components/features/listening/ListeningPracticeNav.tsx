@@ -23,7 +23,7 @@ export function ListeningPracticeNav({
 }: ListeningPracticeNavProps) {
   return (
     <nav
-      aria-label="Listening navigation"
+      aria-label="Listening Navigation"
       className="flex items-center justify-between gap-3"
     >
       {previousId ? (

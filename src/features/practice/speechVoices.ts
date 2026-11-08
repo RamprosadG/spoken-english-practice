@@ -1,3 +1,4 @@
+import { capitalize } from "@/lib/categories";
 import type { Accent } from "./useSpeechPractice";
 
 export interface VoiceOption {
@@ -122,12 +123,12 @@ export function buildVoiceOptions(
   accent: Accent,
 ): VoiceOption[] {
   return [
-    { value: "", label: "Automatic (best match)" },
+    { value: "", label: "Automatic (Best Match)" },
     ...voicesForAccent(voices, accent).map((voice) => {
       const gender = guessVoiceGender(voice);
       return {
         value: voice.voiceURI,
-        label: gender ? `${voice.name} · ${gender}` : voice.name,
+        label: gender ? `${voice.name} · ${capitalize(gender)}` : voice.name,
       };
     }),
   ];

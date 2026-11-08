@@ -22,7 +22,7 @@ export function Navbar({ onOpenSidebar }: NavbarProps) {
               <button
                 onClick={onOpenSidebar}
                 className="lg:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
-                aria-label="Open menu"
+                aria-label="Open Menu"
               >
                 <FiMenu className="w-6 h-6" />
               </button>

@@ -52,7 +52,7 @@ export function ConversationPracticeWorkspace({
         <div className="flex flex-wrap items-start justify-between gap-2 border-b border-slate-100 px-5 py-4">
           <div>
             <h2 className="text-base font-semibold text-slate-900">
-              Conversation turns
+              Conversation Turns
             </h2>
             <p className="mt-0.5 text-sm text-slate-500">
               Follow the turns in order, then listen with one voice per speaker
@@ -62,14 +62,14 @@ export function ConversationPracticeWorkspace({
 
           <CopyTextButton
             text={copyText}
-            subject="conversation title and turns"
+            subject="Conversation Title And Turns"
           />
         </div>
 
         <div
           tabIndex={0}
           role="region"
-          aria-label="Conversation turns"
+          aria-label="Conversation Turns"
           className="max-h-96 overflow-y-auto px-5 py-4 outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
         >
           <ol className="divide-y divide-slate-200">

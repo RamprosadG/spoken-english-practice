@@ -80,7 +80,7 @@ export function InterviewQuestionSection({
 
   async function handleDelete(question: InterviewQuestionItem) {
     const result = await Swal.fire({
-      title: "Delete interview question?",
+      title: "Delete Interview Question?",
       text: `"${question.question}" will be permanently removed.`,
       icon: "warning",
       showCancelButton: true,

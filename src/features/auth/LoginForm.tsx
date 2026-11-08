@@ -182,7 +182,7 @@ export function LoginForm() {
             disabled
             className="w-full"
           >
-            Continue with Google
+            Continue With Google
           </Button>
           <p className="mt-2 text-center text-xs text-slate-500">
             Google sign-in is not configured yet. Set{" "}

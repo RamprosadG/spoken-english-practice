@@ -24,7 +24,7 @@ export function PresentationPracticeWorkspace({
         <div className="flex flex-wrap items-start justify-between gap-2 border-b border-slate-100 px-5 py-4">
           <div>
             <h2 className="text-base font-semibold text-slate-900">
-              Presentation text
+              Presentation Text
             </h2>
             <p className="mt-0.5 text-sm text-slate-500">
               Read the saved text, then view its IPA transcription or listen to
@@ -32,13 +32,13 @@ export function PresentationPracticeWorkspace({
             </p>
           </div>
 
-          <CopyTextButton text={text} subject="presentation text" />
+          <CopyTextButton text={text} subject="Presentation Text" />
         </div>
 
         <div
           tabIndex={0}
           role="region"
-          aria-label="Presentation text"
+          aria-label="Presentation Text"
           className="max-h-96 overflow-y-auto px-5 py-4 outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
         >
           <p className="break-words text-sm leading-6 whitespace-pre-wrap text-slate-900">

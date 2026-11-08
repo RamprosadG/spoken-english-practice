@@ -19,7 +19,7 @@ export function ConversationPracticeNav({
 }: ConversationPracticeNavProps) {
   return (
     <nav
-      aria-label="Conversation navigation"
+      aria-label="Conversation Navigation"
       className="flex items-center justify-between gap-3"
     >
       {previousId ? (

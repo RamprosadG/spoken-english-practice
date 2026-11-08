@@ -46,25 +46,25 @@ const destinations: HomeCard[] = [
     href: "/vocabulary",
     description:
       "Words with meaning, example, synonym, and antonym — each with its own IPA and audio.",
-    action: "Open vocabulary",
+    action: "Open Vocabulary",
     icon: HiOutlineBookOpen,
     tint: "bg-violet-50 text-violet-600",
   },
   {
-    title: "Common sentences",
+    title: "Common Sentences",
     href: "/sentences",
     description:
       "Daily-use English lines with Bengali meanings. Expand any row and listen as many times as you need.",
-    action: "Open sentences",
+    action: "Open Sentences",
     icon: HiOutlineChatAlt2,
     tint: "bg-sky-50 text-sky-600",
   },
   {
-    title: "Regular conversation",
+    title: "Regular Conversation",
     href: "/conversations",
     description:
       "Two-speaker dialogues with a separate voice for each side, so you can rehearse a real exchange turn by turn.",
-    action: "Open conversations",
+    action: "Open Conversations",
     icon: HiOutlineUserGroup,
     tint: "bg-teal-50 text-teal-600",
   },
@@ -73,45 +73,45 @@ const destinations: HomeCard[] = [
     href: "/presentation",
     description:
       "Full passages to rehearse aloud, with a read-only practice workspace for every saved text.",
-    action: "Open presentations",
+    action: "Open Presentations",
     icon: HiOutlinePresentationChartBar,
     tint: "bg-indigo-50 text-indigo-600",
   },
   {
-    title: "Listening practice",
+    title: "Listening Practice",
     href: "/listenings",
     description:
       "Play one hidden sentence at a time, type what you hear, and fix only the words you missed.",
-    action: "Start a dictation",
+    action: "Start A Dictation",
     icon: HiOutlineVolumeUp,
     tint: "bg-amber-50 text-amber-600",
   },
   {
-    title: "Interview questions",
+    title: "Interview Questions",
     href: "/interview-questions",
     description:
       "Saved questions with a model answer, grouped by category and topic and set to a difficulty.",
-    action: "Open questions",
+    action: "Open Questions",
     icon: HiOutlineClipboardCheck,
     tint: "bg-rose-50 text-rose-600",
     adminOnly: true,
   },
   {
-    title: "Active learners",
+    title: "Active Learners",
     href: "/learners",
     description:
       "Every account that can sign in, with its role, ready to add, edit, or remove.",
-    action: "Manage learners",
+    action: "Manage Learners",
     icon: HiOutlineUsers,
     tint: "bg-blue-50 text-blue-600",
     adminOnly: true,
   },
   {
-    title: "Live practice",
+    title: "Live Practice",
     href: "/practice",
     description:
       "Paste your own text, pick an accent and speed, then play it back sentence by sentence.",
-    action: "Start practicing",
+    action: "Start Practicing",
     icon: HiOutlineMicrophone,
     tint: "bg-emerald-50 text-emerald-600",
   },
@@ -122,7 +122,7 @@ interface HomeViewProps {
 }
 
 function categoryLabel(count: number): string {
-  return `${numberFormatter.format(count)} ${count === 1 ? "category" : "categories"}`;
+  return `${numberFormatter.format(count)} ${count === 1 ? "Category" : "Categories"}`;
 }
 
 /**
@@ -151,7 +151,7 @@ export function HomeView({ summary }: HomeViewProps) {
       iconColor: "text-violet-600",
     },
     {
-      title: "Common sentences",
+      title: "Common Sentences",
       value: summary.sentences,
       subtitle: "Lines with audio",
       meta: categoryLabel(summary.categories.sentence),
@@ -160,7 +160,7 @@ export function HomeView({ summary }: HomeViewProps) {
       iconColor: "text-sky-600",
     },
     {
-      title: "Regular conversation",
+      title: "Regular Conversation",
       value: summary.conversations,
       subtitle: "Dialogues with two voices",
       meta: categoryLabel(summary.categories.conversation),
@@ -178,7 +178,7 @@ export function HomeView({ summary }: HomeViewProps) {
       iconColor: "text-indigo-600",
     },
     {
-      title: "Listening practice",
+      title: "Listening Practice",
       value: summary.listenings,
       subtitle: "Sentences to dictate",
       meta: categoryLabel(summary.categories.listening),
@@ -187,7 +187,7 @@ export function HomeView({ summary }: HomeViewProps) {
       iconColor: "text-amber-600",
     },
     {
-      title: "Interview questions",
+      title: "Interview Questions",
       value: summary.interview?.questions ?? 0,
       subtitle: "Questions with model answers",
       meta: categoryLabel(summary.interview?.categories ?? 0),
@@ -218,7 +218,7 @@ export function HomeView({ summary }: HomeViewProps) {
           id="home-overview-heading"
           className="text-lg font-semibold tracking-tight text-slate-900"
         >
-          What is inside today
+          What Is Inside Today
         </h2>
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-12">
           {visibleStats.map((stat, index) => {
@@ -247,7 +247,7 @@ export function HomeView({ summary }: HomeViewProps) {
             id="home-destinations-heading"
             className="text-lg font-semibold tracking-tight text-slate-900"
           >
-            Choose where to practise
+            Choose Where To Practise
           </h2>
           <p className="text-sm text-slate-500">
             Every page plays real audio in the browser — no download, no setup.

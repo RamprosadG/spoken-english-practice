@@ -59,7 +59,7 @@ export function InterviewQuestionIpaSection({
         id="interview-ipa"
         className="text-xs font-semibold uppercase tracking-wider text-slate-500"
       >
-        IPA transcription
+        IPA Transcription
       </h2>
       <p className="mt-1.5 text-sm text-slate-500">
         Every sentence uses the selected accent, in the voice of the side that
@@ -80,7 +80,7 @@ export function InterviewQuestionIpaSection({
                   </span>
                   <span className="text-slate-400">
                     {TURN_LABELS[row.speaker]}
-                    {row.total > 1 ? ` sentence ${row.index + 1}` : ""}
+                    {row.total > 1 ? ` Sentence ${row.index + 1}` : ""}
                   </span>
                 </p>
 
@@ -97,8 +97,8 @@ export function InterviewQuestionIpaSection({
                 onClick={() =>
                   handlePlaySentence(row.turnIndex, row.sentence, row.key)
                 }
-                ariaLabel={`Listen to ${TURN_LABELS[row.speaker].toLowerCase()}${
-                  row.total > 1 ? ` sentence ${row.index + 1}` : ""
+                ariaLabel={`Listen To ${TURN_LABELS[row.speaker]}${
+                  row.total > 1 ? ` Sentence ${row.index + 1}` : ""
                 }`}
               />
             </div>

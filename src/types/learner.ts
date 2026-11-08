@@ -29,7 +29,7 @@ export const LEARNER_ROLE_OPTIONS = LEARNER_ROLES.map((role) => ({
 }));
 
 export const LEARNER_ROLE_FILTER_OPTIONS = [
-  { value: "", label: "All roles" },
+  { value: "", label: "All Roles" },
   ...LEARNER_ROLE_OPTIONS,
 ];
 

@@ -170,7 +170,7 @@ export function ConversationFormModal({
     <Modal
       isOpen
       onClose={handleClose}
-      title={isEditing ? "Edit conversation" : "New conversation"}
+      title={isEditing ? "Edit Conversation" : "New Conversation"}
       className="max-w-2xl"
     >
       {apiError && (
@@ -239,7 +239,7 @@ export function ConversationFormModal({
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Input
-            label="Speaker 1 name"
+            label="Speaker 1 Name"
             type="text"
             name="speaker1"
             id="conversation-speaker1"
@@ -257,7 +257,7 @@ export function ConversationFormModal({
             }}
           />
           <Input
-            label="Speaker 2 name"
+            label="Speaker 2 Name"
             type="text"
             name="speaker2"
             id="conversation-speaker2"
@@ -346,7 +346,7 @@ export function ConversationFormModal({
             disabled={isSubmitting}
             className="w-full"
           >
-            {isEditing ? "Save changes" : "Create conversation"}
+            {isEditing ? "Save Changes" : "Create Conversation"}
           </Button>
         </div>
       </form>

@@ -19,7 +19,7 @@ export function InterviewQuestionPracticeNav({
 }: InterviewQuestionPracticeNavProps) {
   return (
     <nav
-      aria-label="Interview question navigation"
+      aria-label="Interview Question Navigation"
       className="flex items-center justify-between gap-3"
     >
       {previousId ? (

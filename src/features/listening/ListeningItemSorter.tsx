@@ -79,8 +79,8 @@ function SortableSentence({
       <div className="flex items-start gap-2 rounded-lg border border-slate-200 bg-white px-3 py-3">
         <button
           type="button"
-          aria-label={`Reorder sentence ${index + 1}`}
-          title="Drag to reorder"
+          aria-label={`Reorder Sentence ${index + 1}`}
+          title="Drag To Reorder"
           className="mt-1 cursor-grab touch-none rounded-md p-1 text-slate-400 transition-colors hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 active:cursor-grabbing"
           {...attributes}
           {...listeners}
@@ -99,7 +99,7 @@ function SortableSentence({
             rows={2}
             maxLength={ITEM_MAX_LENGTH}
             placeholder="Type the sentence the learner will dictate"
-            aria-label={`Sentence ${index + 1} text`}
+            aria-label={`Sentence ${index + 1} Text`}
             value={draft.text}
             onChange={(event) => onChange(draft.key, event.target.value)}
             className={`w-full resize-y rounded-lg border bg-white px-3.5 py-2 text-sm text-slate-900 shadow-xs outline-none transition-all duration-200 placeholder:text-gray-400 hover:border-indigo-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 ${
@@ -117,7 +117,7 @@ function SortableSentence({
         </div>
 
         <TableActionButton
-          tooltip={`Remove sentence ${index + 1}`}
+          tooltip={`Remove Sentence ${index + 1}`}
           color="rose"
           disabled={!canRemove}
           onClick={() => onRemove(draft.key)}
@@ -140,7 +140,7 @@ function SentenceDragPreview({ draft, index }: { draft: ListeningItemDraft; inde
           Sentence {index + 1}
         </p>
         <p className="truncate text-sm text-slate-900">
-          {draft.text.trim() || "Empty sentence"}
+          {draft.text.trim() || "Empty Sentence"}
         </p>
       </div>
     </div>
@@ -203,7 +203,7 @@ export function ListeningItemSorter({
   return (
     <fieldset className="rounded-lg border border-slate-200 p-4">
       <legend className="px-1 text-sm font-semibold text-slate-800">
-        Listening sentences
+        Listening Sentences
       </legend>
       <p className="text-xs text-slate-500">
         Sentences are practised in this order. Drag the handle — or focus it and
@@ -253,7 +253,7 @@ export function ListeningItemSorter({
         icon={<FiPlus className="h-4 w-4" />}
         className="mt-4 w-full sm:w-auto"
       >
-        Add sentence
+        Add Sentence
       </Button>
     </fieldset>
   );

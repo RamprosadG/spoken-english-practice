@@ -65,7 +65,7 @@ export function UserMenu() {
         type="button"
         onClick={() => setIsOpen((current) => !current)}
         className="flex cursor-pointer items-center gap-2 rounded-full border border-slate-200 bg-white py-1 pl-1 pr-2 text-slate-700 shadow-sm transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-        aria-label="User menu"
+        aria-label="User Menu"
         aria-expanded={isOpen}
         aria-haspopup="menu"
       >
@@ -94,7 +94,7 @@ export function UserMenu() {
             <p className="truncate text-xs text-slate-500">{user.email}</p>
             {!user.isComplete && (
               <span className="mt-2 inline-flex rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
-                Profile incomplete
+                Profile Incomplete
               </span>
             )}
           </div>
@@ -110,7 +110,7 @@ export function UserMenu() {
               className="flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-left text-sm text-slate-700 transition-colors hover:bg-slate-100"
             >
               <FiUserCheck className="h-4 w-4" />
-              Complete your profile
+              Complete Your Profile
             </button>
           )}
 
@@ -124,7 +124,7 @@ export function UserMenu() {
             className="flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-left text-sm text-slate-700 transition-colors hover:bg-slate-100"
           >
             <FiEdit className="h-4 w-4" />
-            Update profile
+            Update Profile
           </button>
 
           <button
@@ -137,7 +137,7 @@ export function UserMenu() {
             className="flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-left text-sm text-slate-700 transition-colors hover:bg-slate-100"
           >
             <FiKey className="h-4 w-4" />
-            Update password
+            Update Password
           </button>
 
           <button
@@ -148,7 +148,7 @@ export function UserMenu() {
             className="flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-left text-sm text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <FiLogOut className="h-4 w-4" />
-            {isLoggingOut ? "Logging out..." : "Logout"}
+            {isLoggingOut ? "Logging Out..." : "Logout"}
           </button>
         </div>
       )}

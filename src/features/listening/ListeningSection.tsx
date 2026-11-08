@@ -97,7 +97,7 @@ export function ListeningSection({
 
   async function handleDelete(listening: Listening) {
     const result = await Swal.fire({
-      title: "Delete listening?",
+      title: "Delete Listening?",
       text: `"${listening.title}" and all of its sentences will be permanently removed.`,
       icon: "warning",
       showCancelButton: true,

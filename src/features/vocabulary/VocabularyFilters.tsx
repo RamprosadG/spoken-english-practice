@@ -9,7 +9,7 @@ import { PUBLICATION_FILTER_OPTIONS } from "@/lib/publishing";
 import type { CategoryOption } from "@/types/category";
 
 const LETTER_OPTIONS = [
-  { value: "", label: "All letters" },
+  { value: "", label: "All Letters" },
   ...Array.from({ length: 26 }, (_, index) => {
     const letter = String.fromCharCode(65 + index);
     return { value: letter, label: letter };

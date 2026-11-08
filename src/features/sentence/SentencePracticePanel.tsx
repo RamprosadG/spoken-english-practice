@@ -33,7 +33,7 @@ export function SentencePracticePanel({
           <PlayTextButton
             isPlaying={speech.speakingKey === "sentence"}
             onClick={() => speech.play("sentence", sentence.text)}
-            ariaLabel="Listen to the sentence"
+            ariaLabel="Listen To The Sentence"
           />
         </div>
 
@@ -51,7 +51,7 @@ export function SentencePracticePanel({
 
         {sentence.whenToUse && (
           <p className="mt-4 max-w-prose border-l-2 border-amber-300 pl-3 text-sm leading-6 text-amber-800">
-            <span className="font-semibold text-amber-900">When to Use:</span>{" "}
+            <span className="font-semibold text-amber-900">When To Use:</span>{" "}
             {sentence.whenToUse}
           </p>
         )}
@@ -66,7 +66,7 @@ export function SentencePracticePanel({
             id="sentence-alternates"
             className="text-xs font-semibold uppercase tracking-wider text-slate-600"
           >
-            Alternate expressions
+            Alternate Expressions
           </h3>
 
           {/* Hairlines between entries carry the separation the removed slab
@@ -97,7 +97,7 @@ export function SentencePracticePanel({
                     onClick={() =>
                       speech.play(`alternate-${alternate.id}`, alternate.text)
                     }
-                    ariaLabel={`Listen to alternate expression ${alternate.sequence}`}
+                    ariaLabel={`Listen To Alternate Expression ${alternate.sequence}`}
                   />
                 </div>
               </li>

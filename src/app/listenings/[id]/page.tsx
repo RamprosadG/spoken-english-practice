@@ -62,7 +62,7 @@ export default async function ListeningPracticePage({
           className="inline-flex items-center gap-1.5 self-start text-sm font-medium text-indigo-600 transition-colors hover:text-indigo-700"
         >
           <FiArrowLeft className="h-4 w-4" />
-          Back to listenings
+          Back To Listenings
         </Link>
         <ListeningPracticeNav previousId={previousId} nextId={nextId} />
       </div>
