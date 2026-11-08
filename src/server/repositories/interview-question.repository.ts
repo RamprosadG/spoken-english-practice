@@ -111,6 +111,10 @@ export async function findInterviewQuestionPage(
   return { items: questions.map(toRow), pagination };
 }
 
+export function countInterviewQuestions() {
+  return prisma.interviewQuestion.count();
+}
+
 export async function findNextInterviewQuestionSequence(): Promise<number> {
   const latest = await prisma.interviewQuestion.findFirst({
     orderBy: { sequence: "desc" },

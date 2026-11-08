@@ -9,7 +9,12 @@ export interface HomeSummary {
   listenings: number;
   /**
    * Only the five kinds Home links to. The interview kinds belong to a private
-   * library, so neither is counted here.
+   * library, so they are counted in `interview` instead of widening this record.
    */
   categories: Record<HomeCategoryKind, number>;
+  /**
+   * Totals of the admin-only interview library. `null` for every other reader:
+   * a private library is not counted at all, not even as a number.
+   */
+  interview: { questions: number; categories: number } | null;
 }

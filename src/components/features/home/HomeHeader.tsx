@@ -27,20 +27,20 @@ export function HomeHeader() {
         audio, so you can hear it, read it, and say it out loud.
       </p>
 
-      <div className="relative mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="relative mt-7 flex items-center gap-2 sm:gap-3">
         <Link
           href="/practice"
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-indigo-700 shadow-xs transition-colors hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-indigo-700"
+          className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-indigo-700 shadow-xs transition-colors hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-indigo-700 sm:flex-none max-sm:min-w-0 max-sm:gap-1.5 max-sm:px-2.5 max-sm:text-xs max-sm:leading-5"
         >
-          <FiPlayCircle className="h-4 w-4" />
-          Start practicing free
+          <FiPlayCircle className="h-4 w-4 shrink-0" />
+          Start practicing
         </Link>
         <Link
           href="/vocabulary"
-          className="inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold text-white ring-1 ring-white/45 transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-indigo-700"
+          className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold text-white ring-1 ring-white/45 transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-indigo-700 sm:flex-none max-sm:min-w-0 max-sm:gap-1.5 max-sm:px-2.5 max-sm:text-xs max-sm:leading-5"
         >
-          Explore the library
-          <FiArrowRight className="h-4 w-4" />
+          Explore library
+          <FiArrowRight className="h-4 w-4 shrink-0" />
         </Link>
       </div>
     </section>
