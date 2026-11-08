@@ -2,7 +2,6 @@ import { connection } from "next/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FiArrowLeft } from "react-icons/fi";
-import Badge from "@/components/ui/badges/Badge";
 import { SentencePracticeNav } from "@/components/features/sentence/SentencePracticeNav";
 import { SentencePracticePanel } from "@/features/sentence/SentencePracticePanel";
 import { getSentenceWithNavigation } from "@/server/services/sentence.service";
@@ -47,9 +46,6 @@ export default async function SentencePracticePage({
           <h1 className="break-words text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl max-sm:text-lg">
             {sentence.text}
           </h1>
-          <Badge variant="neutral" size="sm">
-            {sentence.categoryName}
-          </Badge>
         </div>
         <p className="mt-1 text-sm text-slate-500">
           Pick your accent, voice and speed, then listen and say the sentence out
