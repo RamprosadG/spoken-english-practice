@@ -63,7 +63,7 @@ export function VocabularyRelatedWordList({
 
   return (
     <fieldset className="rounded-lg border border-slate-200 p-4">
-      <legend className="px-1 text-sm font-semibold text-slate-800">
+      <legend className="px-1 text-sm font-semibold text-slate-800 max-sm:text-xs">
         {singular}s <span className="font-normal text-slate-400">(optional)</span>
       </legend>
       <p className="text-xs text-slate-500">{hint}</p>
@@ -99,7 +99,7 @@ export function VocabularyRelatedWordList({
                   <div className="flex w-full flex-col gap-1">
                     <label
                       htmlFor={`vocabulary-${lower}-${word.key}-sentence`}
-                      className="text-sm font-medium text-slate-800"
+                      className="text-sm font-medium text-slate-800 max-sm:text-xs"
                     >
                       {sentenceLabel}
                     </label>
@@ -145,13 +145,13 @@ export function VocabularyRelatedWordList({
 
       <Button
         type="button"
-        variant="white"
+        variant="secondary"
         onClick={() =>
           onChange([...words, { key: createRelatedWordKey(), word: "", sentence: "" }])
         }
         disabled={words.length >= MAX_RELATED_WORDS}
         icon={<FiPlus className="h-4 w-4" />}
-        className="mt-4 w-full sm:w-auto"
+        className="mt-4 w-full sm:w-auto max-sm:px-2 max-sm:gap-1.5 max-sm:text-xs"
       >
         {`Add ${singular}`}
       </Button>

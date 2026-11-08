@@ -104,7 +104,10 @@ function TextAreaField({
   return (
     <div className="flex w-full flex-col gap-1">
       <div className="flex items-center gap-1">
-        <label htmlFor={id} className="text-sm font-medium text-slate-800">
+        <label
+          htmlFor={id}
+          className="text-sm font-medium text-slate-800 max-sm:text-xs"
+        >
           {label}
         </label>
         {required && <IoIosStar className="h-2 w-2 text-red-500" />}
@@ -388,6 +391,7 @@ export function VocabularyFormModal({
           value={form.categoryId}
           error={errors.categoryId}
           onChange={(value) => setField("categoryId", value)}
+          className="max-sm:text-xs"
           required
         />
 
@@ -399,6 +403,7 @@ export function VocabularyFormModal({
             options={PARTS_OF_SPEECH_OPTIONS}
             value={form.partsOfSpeech}
             onChange={(value) => setField("partsOfSpeech", value)}
+            className="max-sm:text-xs"
             required
           />
           <Dropdown
@@ -408,6 +413,7 @@ export function VocabularyFormModal({
             options={PUBLICATION_FORM_OPTIONS}
             value={form.status}
             onChange={(value) => setField("status", value)}
+            className="max-sm:text-xs"
             required
           />
         </div>
@@ -431,7 +437,7 @@ export function VocabularyFormModal({
             variant="secondary"
             onClick={handleClose}
             disabled={isSubmitting}
-            className="w-full"
+            className="w-full max-sm:px-2 max-sm:gap-1.5 max-sm:text-xs"
           >
             Cancel
           </Button>
@@ -439,9 +445,9 @@ export function VocabularyFormModal({
             type="submit"
             isLoading={isSubmitting}
             disabled={isSubmitting}
-            className="w-full"
+            className="w-full max-sm:px-2 max-sm:gap-1.5 max-sm:text-xs"
           >
-            {isEditing ? "Save Changes" : "Create Vocabulary"}
+            {isEditing ? "Save Changes" : "Create New"}
           </Button>
         </div>
       </form>

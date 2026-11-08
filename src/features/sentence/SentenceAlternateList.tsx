@@ -44,7 +44,7 @@ export function SentenceAlternateList({
 
   return (
     <fieldset className="rounded-lg border border-slate-200 p-4">
-      <legend className="px-1 text-sm font-semibold text-slate-800">
+      <legend className="px-1 text-sm font-semibold text-slate-800 max-sm:text-xs">
         Alternate Expressions
       </legend>
       <p className="text-xs text-slate-500">
@@ -105,13 +105,13 @@ export function SentenceAlternateList({
 
       <Button
         type="button"
-        variant="white"
+        variant="secondary"
         onClick={() =>
           onChange([...alternates, { key: createAlternateKey(), text: "" }])
         }
         disabled={alternates.length >= MAX_ALTERNATES}
         icon={<FiPlus className="h-4 w-4" />}
-        className="mt-4 w-full sm:w-auto"
+        className="mt-4 w-full sm:w-auto max-sm:px-2 max-sm:gap-1.5 max-sm:text-xs"
       >
         Add Expression
       </Button>

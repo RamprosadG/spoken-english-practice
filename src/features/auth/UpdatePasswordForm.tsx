@@ -155,7 +155,7 @@ export function UpdatePasswordForm({ onClose }: UpdatePasswordFormProps) {
             variant="secondary"
             onClick={onClose}
             disabled={isLoading}
-            className="w-full"
+            className="w-full max-sm:px-2 max-sm:gap-1.5 max-sm:text-xs"
           >
             Cancel
           </Button>
@@ -163,9 +163,9 @@ export function UpdatePasswordForm({ onClose }: UpdatePasswordFormProps) {
             type="submit"
             isLoading={isLoading}
             disabled={isLoading}
-            className="w-full"
+            className="w-full max-sm:px-2 max-sm:gap-1.5 max-sm:text-xs"
           >
-            Update
+            Save Changes
           </Button>
         </div>
       </form>

@@ -172,7 +172,7 @@ const Dropdown: React.FC<DropdownProps> = ({
         <div className="flex items-center gap-1">
           <label
             htmlFor={name || id}
-            className="text-sm font-medium text-slate-800"
+            className="text-sm font-medium text-slate-800 max-sm:text-xs"
             onClick={() => buttonRef.current?.focus()}
           >
             {label}

@@ -70,7 +70,7 @@ function TextAreaField({
       <div className="flex items-center gap-1">
         <label
           htmlFor={id}
-          className="text-sm font-medium text-slate-800"
+          className="text-sm font-medium text-slate-800 max-sm:text-xs"
         >
           {label}
         </label>
@@ -207,9 +207,7 @@ export function InterviewQuestionFormModal({
     }
   }
 
-  const saveLabel = isEditing
-    ? "Save Changes"
-    : "Create Interview Question";
+  const saveLabel = isEditing ? "Save Changes" : "Create New";
 
   return (
     <Modal
@@ -269,6 +267,7 @@ export function InterviewQuestionFormModal({
             clearError("category");
             if (apiError) setApiError("");
           }}
+          className="max-sm:text-xs"
           required
         />
 
@@ -284,6 +283,7 @@ export function InterviewQuestionFormModal({
             clearError("topic");
             if (apiError) setApiError("");
           }}
+          className="max-sm:text-xs"
           required
         />
 
@@ -297,6 +297,7 @@ export function InterviewQuestionFormModal({
             setDifficulty(parseInterviewDifficulty(value) ?? difficulty);
             if (apiError) setApiError("");
           }}
+          className="max-sm:text-xs"
           required
         />
 
@@ -307,6 +308,7 @@ export function InterviewQuestionFormModal({
           options={PUBLICATION_FORM_OPTIONS}
           value={status}
           onChange={setStatus}
+          className="max-sm:text-xs"
           required
         />
 
@@ -333,7 +335,7 @@ export function InterviewQuestionFormModal({
             variant="secondary"
             onClick={handleClose}
             disabled={isSubmitting}
-            className="w-full"
+            className="w-full max-sm:px-2 max-sm:gap-1.5 max-sm:text-xs"
           >
             Cancel
           </Button>
@@ -341,7 +343,7 @@ export function InterviewQuestionFormModal({
             type="submit"
             isLoading={isSubmitting}
             disabled={isSubmitting}
-            className="w-full"
+            className="w-full max-sm:px-2 max-sm:gap-1.5 max-sm:text-xs"
           >
             {saveLabel}
           </Button>

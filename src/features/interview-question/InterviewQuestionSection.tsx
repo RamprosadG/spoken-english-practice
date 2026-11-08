@@ -2,11 +2,8 @@
 
 import { useRef, useState, useTransition } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import Swal from "sweetalert2";
-import {
-  showErrorAlert,
-  showSuccessAlert,
-} from "@/components/ui/alerts/Alerts";
+import { confirmDelete } from "@/components/ui/modals/ConfirmModal";
+import { showErrorAlert, showSuccessAlert } from "@/components/ui/alerts/Alerts";
 import Pagination from "@/components/ui/pagination/Pagination";
 import type { PaginationMeta } from "@/server/types/pagination";
 import type { CategoryOption } from "@/types/category";
@@ -79,19 +76,12 @@ export function InterviewQuestionSection({
   const refresh = () => startRefresh(() => router.refresh());
 
   async function handleDelete(question: InterviewQuestionItem) {
-    const result = await Swal.fire({
-      title: "Delete Interview Question?",
+    const isConfirmed = await confirmDelete({
+      title: "Delete Question?",
       text: `"${question.question}" will be permanently removed.`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Delete",
-      cancelButtonText: "Cancel",
-      confirmButtonColor: "#dc2626",
-      cancelButtonColor: "#475569",
-      reverseButtons: true,
     });
 
-    if (!result.isConfirmed) return;
+    if (!isConfirmed) return;
 
     setDeletingId(question.id);
     try {

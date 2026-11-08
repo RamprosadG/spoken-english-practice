@@ -184,7 +184,7 @@ export function SentenceFormModal({
           <div className="flex items-center gap-1">
             <label
               htmlFor="sentence-text"
-              className="text-sm font-medium text-slate-800"
+              className="text-sm font-medium text-slate-800 max-sm:text-xs"
             >
               English Sentence
             </label>
@@ -222,7 +222,7 @@ export function SentenceFormModal({
           <div className="flex items-center gap-1">
             <label
               htmlFor="sentence-meaning"
-              className="text-sm font-medium text-slate-800"
+              className="text-sm font-medium text-slate-800 max-sm:text-xs"
             >
               Bengali Meaning
             </label>
@@ -291,6 +291,7 @@ export function SentenceFormModal({
             }
             if (apiError) setApiError("");
           }}
+          className="max-sm:text-xs"
           required
         />
 
@@ -301,6 +302,7 @@ export function SentenceFormModal({
           options={PUBLICATION_FORM_OPTIONS}
           value={status}
           onChange={setStatus}
+          className="max-sm:text-xs"
           required
         />
 
@@ -329,7 +331,7 @@ export function SentenceFormModal({
             variant="secondary"
             onClick={handleClose}
             disabled={isSubmitting}
-            className="w-full"
+            className="w-full max-sm:px-2 max-sm:gap-1.5 max-sm:text-xs"
           >
             Cancel
           </Button>
@@ -337,9 +339,9 @@ export function SentenceFormModal({
             type="submit"
             isLoading={isSubmitting}
             disabled={isSubmitting}
-            className="w-full"
+            className="w-full max-sm:px-2 max-sm:gap-1.5 max-sm:text-xs"
           >
-            {isEditing ? "Save Changes" : "Create Sentence"}
+            {isEditing ? "Save Changes" : "Create New"}
           </Button>
         </div>
       </form>

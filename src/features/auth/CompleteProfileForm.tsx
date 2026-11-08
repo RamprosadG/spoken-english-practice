@@ -167,7 +167,7 @@ export function CompleteProfileForm() {
 
         <Button
           type="submit"
-          className="mt-1 w-full"
+          className="mt-1 w-full max-sm:px-2 max-sm:gap-1.5 max-sm:text-xs"
           isLoading={isLoading}
           disabled={isLoading}
         >

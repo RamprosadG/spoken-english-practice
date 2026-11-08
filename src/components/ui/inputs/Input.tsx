@@ -32,7 +32,7 @@ const Input: React.FC<InputProps> = ({
         <div className="flex items-center gap-1">
           <label
             htmlFor={props.id || props.name}
-            className="text-sm font-medium text-slate-800"
+            className="text-sm font-medium text-slate-800 max-sm:text-xs"
           >
             {label}
           </label>

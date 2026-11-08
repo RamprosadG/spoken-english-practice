@@ -203,7 +203,7 @@ export function ConversationFormModal({
           <div className="flex items-center gap-1">
             <label
               htmlFor="conversation-description"
-              className="text-sm font-medium text-slate-800"
+              className="text-sm font-medium text-slate-800 max-sm:text-xs"
             >
               Description
             </label>
@@ -298,6 +298,7 @@ export function ConversationFormModal({
             }
             if (apiError) setApiError("");
           }}
+          className="max-sm:text-xs"
           required
         />
 
@@ -308,6 +309,7 @@ export function ConversationFormModal({
           options={PUBLICATION_FORM_OPTIONS}
           value={status}
           onChange={setStatus}
+          className="max-sm:text-xs"
           required
         />
 
@@ -336,7 +338,7 @@ export function ConversationFormModal({
             variant="secondary"
             onClick={handleClose}
             disabled={isSubmitting}
-            className="w-full"
+            className="w-full max-sm:px-2 max-sm:gap-1.5 max-sm:text-xs"
           >
             Cancel
           </Button>
@@ -344,9 +346,9 @@ export function ConversationFormModal({
             type="submit"
             isLoading={isSubmitting}
             disabled={isSubmitting}
-            className="w-full"
+            className="w-full max-sm:px-2 max-sm:gap-1.5 max-sm:text-xs"
           >
-            {isEditing ? "Save Changes" : "Create Conversation"}
+            {isEditing ? "Save Changes" : "Create New"}
           </Button>
         </div>
       </form>

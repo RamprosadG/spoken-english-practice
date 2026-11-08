@@ -204,6 +204,7 @@ export function ListeningFormModal({
             }
             if (apiError) setApiError("");
           }}
+          className="max-sm:text-xs"
           required
         />
 
@@ -214,6 +215,7 @@ export function ListeningFormModal({
           options={PUBLICATION_FORM_OPTIONS}
           value={status}
           onChange={setStatus}
+          className="max-sm:text-xs"
           required
         />
 
@@ -242,7 +244,7 @@ export function ListeningFormModal({
             variant="secondary"
             onClick={handleClose}
             disabled={isSubmitting}
-            className="w-full"
+            className="w-full max-sm:px-2 max-sm:gap-1.5 max-sm:text-xs"
           >
             Cancel
           </Button>
@@ -250,9 +252,9 @@ export function ListeningFormModal({
             type="submit"
             isLoading={isSubmitting}
             disabled={isSubmitting}
-            className="w-full"
+            className="w-full max-sm:px-2 max-sm:gap-1.5 max-sm:text-xs"
           >
-            {isEditing ? "Save Changes" : "Create Listening"}
+            {isEditing ? "Save Changes" : "Create New"}
           </Button>
         </div>
       </form>

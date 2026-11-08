@@ -153,7 +153,7 @@ export function LoginForm() {
 
         <Button
           type="submit"
-          className="mt-1 w-full"
+          className="mt-1 w-full max-sm:px-2 max-sm:gap-1.5 max-sm:text-xs"
           isLoading={isLoading}
           disabled={isLoading}
         >
@@ -180,7 +180,7 @@ export function LoginForm() {
             variant="secondary"
             icon={<FaGoogle />}
             disabled
-            className="w-full"
+            className="w-full max-sm:px-2 max-sm:gap-1.5 max-sm:text-xs"
           >
             Continue With Google
           </Button>

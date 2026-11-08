@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import type { FormEvent } from "react";
-import Swal from "sweetalert2";
 import { FiCheck, FiEdit, FiPlus, FiTrash2 } from "react-icons/fi";
+import { confirmDelete } from "@/components/ui/modals/ConfirmModal";
 import Button from "@/components/ui/buttons/Button";
 import Input from "@/components/ui/inputs/Input";
 import Modal from "@/components/ui/modals/Modal";
@@ -120,19 +120,12 @@ export function CategoryManageModal({
   }
 
   async function handleDelete(category: CategoryRow) {
-    const result = await Swal.fire({
+    const isConfirmed = await confirmDelete({
       title: `Delete ${nounLabel}?`,
       text: `"${category.name}" will be permanently removed.`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Delete",
-      cancelButtonText: "Cancel",
-      confirmButtonColor: "#dc2626",
-      cancelButtonColor: "#475569",
-      reverseButtons: true,
     });
 
-    if (!result.isConfirmed) return;
+    if (!isConfirmed) return;
 
     setDeletingId(category.id);
     setApiError("");
@@ -200,6 +193,7 @@ export function CategoryManageModal({
           icon={<FiPlus className="h-4 w-4" />}
           isLoading={isSubmitting}
           disabled={isBusy}
+          className="w-full max-sm:px-2 max-sm:gap-1.5 max-sm:text-xs"
         >
           Add {nounLabel}
         </Button>
@@ -256,7 +250,7 @@ export function CategoryManageModal({
                       variant="secondary"
                       onClick={() => setEditing(null)}
                       disabled={isBusy}
-                      className="w-full"
+                      className="w-full max-sm:px-2 max-sm:gap-1.5 max-sm:text-xs"
                     >
                       Cancel
                     </Button>
@@ -265,7 +259,7 @@ export function CategoryManageModal({
                       icon={<FiCheck className="h-4 w-4" />}
                       isLoading={isSubmitting}
                       disabled={isBusy}
-                      className="w-full"
+                      className="w-full max-sm:px-2 max-sm:gap-1.5 max-sm:text-xs"
                     >
                       Save Changes
                     </Button>

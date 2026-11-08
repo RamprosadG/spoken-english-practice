@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import Swal from "sweetalert2";
+import { confirmDelete } from "@/components/ui/modals/ConfirmModal";
 import { showErrorAlert, showSuccessAlert } from "@/components/ui/alerts/Alerts";
 import Pagination from "@/components/ui/pagination/Pagination";
 import type { PaginationMeta } from "@/server/types/pagination";
@@ -96,19 +96,12 @@ export function ConversationSection({
   }
 
   async function handleDelete(conversation: ConversationItem) {
-    const result = await Swal.fire({
+    const isConfirmed = await confirmDelete({
       title: "Delete Conversation?",
       text: `"${conversation.title}" and all of its turns will be permanently removed.`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Delete",
-      cancelButtonText: "Cancel",
-      confirmButtonColor: "#dc2626",
-      cancelButtonColor: "#475569",
-      reverseButtons: true,
     });
 
-    if (!result.isConfirmed) return;
+    if (!isConfirmed) return;
 
     setDeletingId(conversation.id);
     try {

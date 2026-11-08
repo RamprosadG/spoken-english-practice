@@ -25,6 +25,7 @@ const Button: React.FC<ButtonProps> = ({
   icon,
   iconPosition = "left",
   size = "md",
+  type = "button",
   ...props
 }) => {
   const baseStyles = `
@@ -111,6 +112,8 @@ const Button: React.FC<ButtonProps> = ({
 
   return (
     <button
+      // HTML defaults an omitted type to "submit", which would send the enclosing modal form.
+      type={type}
       className={`${variantStyles[variant]} ${sizeStyles[size]} ${baseStyles}`}
       disabled={isLoading || props.disabled}
       {...props}

@@ -183,6 +183,7 @@ export function LearnerFormModal({
             setRole(value === "admin" ? "admin" : "public");
             if (apiError) setApiError("");
           }}
+          className="max-sm:text-xs"
           required
         />
 
@@ -228,7 +229,7 @@ export function LearnerFormModal({
             variant="secondary"
             onClick={handleClose}
             disabled={isSubmitting}
-            className="w-full"
+            className="w-full max-sm:px-2 max-sm:gap-1.5 max-sm:text-xs"
           >
             Cancel
           </Button>
@@ -236,9 +237,9 @@ export function LearnerFormModal({
             type="submit"
             isLoading={isSubmitting}
             disabled={isSubmitting}
-            className="w-full"
+            className="w-full max-sm:px-2 max-sm:gap-1.5 max-sm:text-xs"
           >
-            {isEditing ? "Save Changes" : "Create Learner"}
+            {isEditing ? "Save Changes" : "Create New"}
           </Button>
         </div>
       </form>

@@ -161,7 +161,7 @@ export function PresentationFormModal({
           <div className="flex items-center gap-1">
             <label
               htmlFor="presentation-text"
-              className="text-sm font-medium text-slate-800"
+              className="text-sm font-medium text-slate-800 max-sm:text-xs"
             >
               Text
             </label>
@@ -209,6 +209,7 @@ export function PresentationFormModal({
             }
             if (apiError) setApiError("");
           }}
+          className="max-sm:text-xs"
           required
         />
 
@@ -219,6 +220,7 @@ export function PresentationFormModal({
           options={PUBLICATION_FORM_OPTIONS}
           value={status}
           onChange={setStatus}
+          className="max-sm:text-xs"
           required
         />
 
@@ -247,7 +249,7 @@ export function PresentationFormModal({
             variant="secondary"
             onClick={handleClose}
             disabled={isSubmitting}
-            className="w-full"
+            className="w-full max-sm:px-2 max-sm:gap-1.5 max-sm:text-xs"
           >
             Cancel
           </Button>
@@ -255,9 +257,9 @@ export function PresentationFormModal({
             type="submit"
             isLoading={isSubmitting}
             disabled={isSubmitting}
-            className="w-full"
+            className="w-full max-sm:px-2 max-sm:gap-1.5 max-sm:text-xs"
           >
-            {isEditing ? "Save Changes" : "Create Presentation"}
+            {isEditing ? "Save Changes" : "Create New"}
           </Button>
         </div>
       </form>

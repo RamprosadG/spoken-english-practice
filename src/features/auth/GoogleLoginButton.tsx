@@ -48,7 +48,7 @@ export function GoogleLoginButton({
       onClick={() => login()}
       isLoading={isLoading}
       disabled={isLoading || !scriptLoadedSuccessfully}
-      className="w-full"
+      className="w-full max-sm:px-2 max-sm:gap-1.5 max-sm:text-xs"
     >
       Continue With Google
     </Button>
