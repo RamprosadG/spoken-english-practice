@@ -24,7 +24,7 @@ export function SentencePracticeNav({
     >
       {previousId ? (
         <Link
-          href={`/sentences/${previousId}`}
+          href={`/sentence/${previousId}`}
           className={`${navButtonClass} cursor-pointer hover:bg-slate-800 active:bg-slate-900 hover:shadow-md`}
         >
           <FiChevronLeft className="h-4 w-4" />
@@ -44,7 +44,7 @@ export function SentencePracticeNav({
 
       {nextId ? (
         <Link
-          href={`/sentences/${nextId}`}
+          href={`/sentence/${nextId}`}
           className={`${navButtonClass} cursor-pointer hover:bg-slate-800 active:bg-slate-900 hover:shadow-md`}
         >
           Next

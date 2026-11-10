@@ -1,5 +1,5 @@
-import { LearnerActions } from "@/features/learner/LearnerActions";
-import { LearnerSection } from "@/features/learner/LearnerSection";
+import { LearnerActions } from "@/components/features/learner/LearnerActions";
+import { LearnerSection } from "@/components/features/learner/LearnerSection";
 import type { LearnerListData } from "@/types/learner";
 import { LearnerHeader } from "./LearnerHeader";
 

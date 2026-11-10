@@ -9,7 +9,7 @@ export interface CategoryWriteData {
 /**
  * Each library has its own category table, so every read and write dispatches on
  * the kind instead of sharing one table with a type column. The shapes are
- * normalised here so callers never see which Prisma model answered. The interview
+ * normalised here so callers never see which Prisma model answered. The question
  * library is the only one with two lookup tables — categories and topics — and the
  * topic picker is managed through this same module.
  */
@@ -56,14 +56,14 @@ export async function findCategoryOptions(
     });
   }
 
-  if (kind === "interview") {
-    return prisma.interviewCategory.findMany({
+  if (kind === "question") {
+    return prisma.questionCategory.findMany({
       orderBy: CATEGORY_LIST_ORDER,
       select: { id: true, name: true },
     });
   }
 
-  return prisma.interviewTopic.findMany({
+  return prisma.questionTopic.findMany({
     orderBy: CATEGORY_LIST_ORDER,
     select: { id: true, name: true },
   });
@@ -165,14 +165,14 @@ export async function findCategoryRows(kind: CategoryKind): Promise<CategoryRow[
     }));
   }
 
-  if (kind === "interview") {
-    const rows = await prisma.interviewCategory.findMany({
+  if (kind === "question") {
+    const rows = await prisma.questionCategory.findMany({
       orderBy: CATEGORY_LIST_ORDER,
       select: {
         id: true,
         name: true,
         sequence: true,
-        _count: { select: { interviewQuestions: true } },
+        _count: { select: { questions: true } },
       },
     });
 
@@ -180,17 +180,17 @@ export async function findCategoryRows(kind: CategoryKind): Promise<CategoryRow[
       id: row.id,
       name: row.name,
       sequence: row.sequence,
-      usageCount: row._count.interviewQuestions,
+      usageCount: row._count.questions,
     }));
   }
 
-  const rows = await prisma.interviewTopic.findMany({
+  const rows = await prisma.questionTopic.findMany({
     orderBy: CATEGORY_LIST_ORDER,
     select: {
       id: true,
       name: true,
       sequence: true,
-      _count: { select: { interviewQuestions: true } },
+      _count: { select: { questions: true } },
     },
   });
 
@@ -198,7 +198,7 @@ export async function findCategoryRows(kind: CategoryKind): Promise<CategoryRow[
     id: row.id,
     name: row.name,
     sequence: row.sequence,
-    usageCount: row._count.interviewQuestions,
+    usageCount: row._count.questions,
   }));
 }
 
@@ -228,11 +228,11 @@ export async function findCategoryById(
     return prisma.vocabularyCategory.findUnique({ where: { id }, select });
   }
 
-  if (kind === "interview") {
-    return prisma.interviewCategory.findUnique({ where: { id }, select });
+  if (kind === "question") {
+    return prisma.questionCategory.findUnique({ where: { id }, select });
   }
 
-  return prisma.interviewTopic.findUnique({ where: { id }, select });
+  return prisma.questionTopic.findUnique({ where: { id }, select });
 }
 
 export async function countCategoryUsage(
@@ -259,11 +259,11 @@ export async function countCategoryUsage(
     return prisma.vocabulary.count({ where: { categoryId: id } });
   }
 
-  if (kind === "interview") {
-    return prisma.interviewQuestion.count({ where: { categoryId: id } });
+  if (kind === "question") {
+    return prisma.question.count({ where: { categoryId: id } });
   }
 
-  return prisma.interviewQuestion.count({ where: { topicId: id } });
+  return prisma.question.count({ where: { topicId: id } });
 }
 
 export function countCategories(kind: CategoryKind): Promise<number> {
@@ -287,11 +287,11 @@ export function countCategories(kind: CategoryKind): Promise<number> {
     return prisma.vocabularyCategory.count();
   }
 
-  if (kind === "interview") {
-    return prisma.interviewCategory.count();
+  if (kind === "question") {
+    return prisma.questionCategory.count();
   }
 
-  return prisma.interviewTopic.count();
+  return prisma.questionTopic.count();
 }
 
 function nextSequenceOf(latest: { sequence: number } | null): number {
@@ -334,14 +334,14 @@ export async function findNextCategorySequence(
     );
   }
 
-  if (kind === "interview") {
+  if (kind === "question") {
     return nextSequenceOf(
-      await prisma.interviewCategory.findFirst({ orderBy, select }),
+      await prisma.questionCategory.findFirst({ orderBy, select }),
     );
   }
 
   return nextSequenceOf(
-    await prisma.interviewTopic.findFirst({ orderBy, select }),
+    await prisma.questionTopic.findFirst({ orderBy, select }),
   );
 }
 
@@ -444,14 +444,14 @@ export async function createCategory(
     };
   }
 
-  if (kind === "interview") {
-    const row = await prisma.interviewCategory.create({
+  if (kind === "question") {
+    const row = await prisma.questionCategory.create({
       data,
       select: {
         id: true,
         name: true,
         sequence: true,
-        _count: { select: { interviewQuestions: true } },
+        _count: { select: { questions: true } },
       },
     });
 
@@ -459,17 +459,17 @@ export async function createCategory(
       id: row.id,
       name: row.name,
       sequence: row.sequence,
-      usageCount: row._count.interviewQuestions,
+      usageCount: row._count.questions,
     };
   }
 
-  const row = await prisma.interviewTopic.create({
+  const row = await prisma.questionTopic.create({
     data,
     select: {
       id: true,
       name: true,
       sequence: true,
-      _count: { select: { interviewQuestions: true } },
+      _count: { select: { questions: true } },
     },
   });
 
@@ -477,7 +477,7 @@ export async function createCategory(
     id: row.id,
     name: row.name,
     sequence: row.sequence,
-    usageCount: row._count.interviewQuestions,
+    usageCount: row._count.questions,
   };
 }
 
@@ -586,15 +586,15 @@ export async function updateCategory(
     };
   }
 
-  if (kind === "interview") {
-    const row = await prisma.interviewCategory.update({
+  if (kind === "question") {
+    const row = await prisma.questionCategory.update({
       where: { id },
       data,
       select: {
         id: true,
         name: true,
         sequence: true,
-        _count: { select: { interviewQuestions: true } },
+        _count: { select: { questions: true } },
       },
     });
 
@@ -602,18 +602,18 @@ export async function updateCategory(
       id: row.id,
       name: row.name,
       sequence: row.sequence,
-      usageCount: row._count.interviewQuestions,
+      usageCount: row._count.questions,
     };
   }
 
-  const row = await prisma.interviewTopic.update({
+  const row = await prisma.questionTopic.update({
     where: { id },
     data,
     select: {
       id: true,
       name: true,
       sequence: true,
-      _count: { select: { interviewQuestions: true } },
+      _count: { select: { questions: true } },
     },
   });
 
@@ -621,7 +621,7 @@ export async function updateCategory(
     id: row.id,
     name: row.name,
     sequence: row.sequence,
-    usageCount: row._count.interviewQuestions,
+    usageCount: row._count.questions,
   };
 }
 
@@ -646,9 +646,9 @@ export function deleteCategory(kind: CategoryKind, id: string): Promise<unknown>
     return prisma.vocabularyCategory.delete({ where: { id } });
   }
 
-  if (kind === "interview") {
-    return prisma.interviewCategory.delete({ where: { id } });
+  if (kind === "question") {
+    return prisma.questionCategory.delete({ where: { id } });
   }
 
-  return prisma.interviewTopic.delete({ where: { id } });
+  return prisma.questionTopic.delete({ where: { id } });
 }

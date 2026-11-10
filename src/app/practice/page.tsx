@@ -1,5 +1,5 @@
 import { PracticeHeader } from "@/components/features/practice/PracticeHeader";
-import { PracticeWorkspace } from "@/features/practice/PracticeWorkspace";
+import { PracticeWorkspace } from "@/components/features/practice/PracticeWorkspace";
 
 export default function PracticePage() {
   return (

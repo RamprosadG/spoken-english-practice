@@ -1,5 +1,5 @@
-import { SentenceActions } from "@/features/sentence/SentenceActions";
-import { SentenceSection } from "@/features/sentence/SentenceSection";
+import { SentenceActions } from "@/components/features/sentence/SentenceActions";
+import { SentenceSection } from "@/components/features/sentence/SentenceSection";
 import type { SentenceListData } from "@/types/sentence";
 import { SentenceHeader } from "./SentenceHeader";
 

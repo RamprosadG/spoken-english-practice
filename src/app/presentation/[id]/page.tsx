@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FiArrowLeft } from "react-icons/fi";
 import { PresentationPracticeNav } from "@/components/features/presentation/PresentationPracticeNav";
-import { PresentationPracticeWorkspace } from "@/features/presentation/PresentationPracticeWorkspace";
+import { PresentationPracticeWorkspace } from "@/components/features/presentation/PresentationPracticeWorkspace";
 import { getPresentationWithNavigation } from "@/server/services/presentation.service";
 
 interface PresentationPracticePageProps {
@@ -36,7 +36,7 @@ export default async function PresentationPracticePage({
           className="inline-flex items-center gap-1.5 self-start text-sm font-medium text-indigo-600 transition-colors hover:text-indigo-700"
         >
           <FiArrowLeft className="h-4 w-4" />
-          Back To Presentations
+          Back To Presentation
         </Link>
         <PresentationPracticeNav previousId={previousId} nextId={nextId} />
       </div>

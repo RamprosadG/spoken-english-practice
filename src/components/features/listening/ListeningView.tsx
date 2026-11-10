@@ -1,5 +1,5 @@
-import { ListeningActions } from "@/features/listening/ListeningActions";
-import { ListeningSection } from "@/features/listening/ListeningSection";
+import { ListeningActions } from "@/components/features/listening/ListeningActions";
+import { ListeningSection } from "@/components/features/listening/ListeningSection";
 import type { ListeningListData } from "@/types/listening";
 import { ListeningHeader } from "./ListeningHeader";
 

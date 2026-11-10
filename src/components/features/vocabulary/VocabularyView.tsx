@@ -1,5 +1,5 @@
-import { VocabularyActions } from "@/features/vocabulary/VocabularyActions";
-import { VocabularySection } from "@/features/vocabulary/VocabularySection";
+import { VocabularyActions } from "@/components/features/vocabulary/VocabularyActions";
+import { VocabularySection } from "@/components/features/vocabulary/VocabularySection";
 import type { VocabularyListData } from "@/types/vocabulary";
 import { VocabularyHeader } from "./VocabularyHeader";
 

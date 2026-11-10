@@ -1,5 +1,5 @@
-import { ConversationActions } from "@/features/conversation/ConversationActions";
-import { ConversationSection } from "@/features/conversation/ConversationSection";
+import { ConversationActions } from "@/components/features/conversation/ConversationActions";
+import { ConversationSection } from "@/components/features/conversation/ConversationSection";
 import type { ConversationListData } from "@/types/conversation";
 import { ConversationHeader } from "./ConversationHeader";
 

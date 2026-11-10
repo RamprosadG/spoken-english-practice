@@ -19,7 +19,7 @@ export function AppLayoutShell({ children }: { children: React.ReactNode }) {
       {/* 2. Main content area taking all remaining width (pl-72 on desktop, no max-w restriction) */}
       <div className="flex flex-col flex-1 min-w-0 lg:pl-72">
         {/* Fixed Top Header */}
-        <Navbar onOpenSidebar={() => setSidebarOpen(true)} />
+        <Navbar onOpenSidebar={() => setSidebarOpen(true)} onClose={() => setSidebarOpen(false)} />
 
         {/* Scrollable Main Viewport (offset by --app-nav-height, the height of the fixed header) */}
         <main className="flex-1 flex flex-col pt-[var(--app-nav-height)]">

@@ -3,8 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FiArrowLeft } from "react-icons/fi";
 import { VocabularyPracticeNav } from "@/components/features/vocabulary/VocabularyPracticeNav";
-import { InlineIpa } from "@/features/practice/InlineIpa";
-import { VocabularyPracticePanel } from "@/features/vocabulary/VocabularyPracticePanel";
+import { InlineIpa } from "@/components/features/practice/InlineIpa";
+import { VocabularyPracticePanel } from "@/components/features/vocabulary/VocabularyPracticePanel";
 import { getVocabularyWithNavigation } from "@/server/services/vocabulary.service";
 
 interface VocabularyPracticePageProps {
@@ -37,7 +37,7 @@ export default async function VocabularyPracticePage({
           className="inline-flex items-center gap-1.5 self-start text-sm font-medium text-indigo-600 transition-colors hover:text-indigo-700"
         >
           <FiArrowLeft className="h-4 w-4" />
-          Back To Vocabularies
+          Back To Vocabulary
         </Link>
         <VocabularyPracticeNav previousId={previousId} nextId={nextId} />
       </div>

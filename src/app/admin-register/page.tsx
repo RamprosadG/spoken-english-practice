@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { AdminRegisterHeader } from "@/components/features/auth/AdminRegisterHeader";
-import { AdminRegisterForm } from "@/features/auth/AdminRegisterForm";
+import { AdminRegisterForm } from "@/components/features/auth/AdminRegisterForm";
 
 export const metadata: Metadata = {
   title: "Admin Registration | Spoken English Practice",

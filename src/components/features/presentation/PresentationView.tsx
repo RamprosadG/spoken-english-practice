@@ -1,5 +1,5 @@
-import { PresentationActions } from "@/features/presentation/PresentationActions";
-import { PresentationSection } from "@/features/presentation/PresentationSection";
+import { PresentationActions } from "@/components/features/presentation/PresentationActions";
+import { PresentationSection } from "@/components/features/presentation/PresentationSection";
 import type { PresentationListData } from "@/types/presentation";
 import { PresentationHeader } from "./PresentationHeader";
 

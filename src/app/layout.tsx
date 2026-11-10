@@ -3,8 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "animate.css";
 import { AppLayoutShell } from "@/components/shared/AppLayoutShell";
-import { AuthProvider } from "@/features/auth/AuthProvider";
-import { GoogleAuthProvider } from "@/features/auth/GoogleAuthProvider";
+import { AuthProvider } from "@/components/features/auth/AuthProvider";
+import { GoogleAuthProvider } from "@/components/features/auth/GoogleAuthProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

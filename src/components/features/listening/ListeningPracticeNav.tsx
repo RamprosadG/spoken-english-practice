@@ -28,7 +28,7 @@ export function ListeningPracticeNav({
     >
       {previousId ? (
         <Link
-          href={`/listenings/${previousId}`}
+          href={`/listening/${previousId}`}
           className={`${navButtonClass} cursor-pointer hover:bg-slate-800 active:bg-slate-900 hover:shadow-md`}
         >
           <FiChevronLeft className="h-4 w-4" />
@@ -48,7 +48,7 @@ export function ListeningPracticeNav({
 
       {nextId ? (
         <Link
-          href={`/listenings/${nextId}`}
+          href={`/listening/${nextId}`}
           className={`${navButtonClass} cursor-pointer hover:bg-slate-800 active:bg-slate-900 hover:shadow-md`}
         >
           Next

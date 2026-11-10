@@ -24,7 +24,7 @@ export function ConversationPracticeNav({
     >
       {previousId ? (
         <Link
-          href={`/conversations/${previousId}`}
+          href={`/conversation/${previousId}`}
           className={`${navButtonClass} cursor-pointer hover:bg-slate-800 active:bg-slate-900 hover:shadow-md`}
         >
           <FiChevronLeft className="h-4 w-4" />
@@ -44,7 +44,7 @@ export function ConversationPracticeNav({
 
       {nextId ? (
         <Link
-          href={`/conversations/${nextId}`}
+          href={`/conversation/${nextId}`}
           className={`${navButtonClass} cursor-pointer hover:bg-slate-800 active:bg-slate-900 hover:shadow-md`}
         >
           Next

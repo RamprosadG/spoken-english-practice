@@ -13,7 +13,7 @@ import type { CategoryKind } from "@/server/types/category";
  *
  * A name is matched against the rows already in the table, so a category that
  * exists keeps its own id and sequence: saved library rows point at the id, and
- * the admin may have reordered it in the Categories modal. Nothing here deletes
+ * the admin may have reordered it in the Category modal. Nothing here deletes
  * or renumbers, which makes the script safe to re-run and leaves the
  * migration-seeded `General` rows — required by every legacy row — untouched.
  */
@@ -26,7 +26,7 @@ interface CategoryList {
 const CATEGORY_LISTS: CategoryList[] = [
   {
     kind: "vocabulary",
-    table: "vocabulary_category",
+    table: "vocabulary_categories",
     names: [
       "Greetings & Social Interaction",
       "Feelings & Emotions",
@@ -42,7 +42,7 @@ const CATEGORY_LISTS: CategoryList[] = [
   },
   {
     kind: "sentence",
-    table: "sentence_category",
+    table: "sentence_categories",
     names: [
       "Greetings & Introductions",
       "Asking Questions",
@@ -60,7 +60,7 @@ const CATEGORY_LISTS: CategoryList[] = [
   },
   {
     kind: "conversation",
-    table: "conversation_category",
+    table: "conversation_categories",
     names: [
       "Meeting Someone",
       "Greetings & Small Talk",
@@ -78,7 +78,7 @@ const CATEGORY_LISTS: CategoryList[] = [
   },
   {
     kind: "presentation",
-    table: "presentation_category",
+    table: "presentation_categories",
     names: [
       "Self Introduction",
       "Daily Routine",
@@ -94,7 +94,7 @@ const CATEGORY_LISTS: CategoryList[] = [
   },
   {
     kind: "listening",
-    table: "listening_category",
+    table: "listening_categories",
     names: [
       "Greetings & Small Talk",
       "Self Introduction",

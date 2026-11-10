@@ -42,7 +42,7 @@ interface HomeStat {
 // as the navigation rail next to it — admin-only entries included, in place.
 const destinations: HomeCard[] = [
   {
-    title: "Important Vocabularies",
+    title: "Vocabulary",
     href: "/vocabulary",
     description:
       "Words with meaning, example, synonym, and antonym — each with its own IPA and audio.",
@@ -51,35 +51,35 @@ const destinations: HomeCard[] = [
     tint: "bg-violet-50 text-violet-600",
   },
   {
-    title: "Common Sentences",
-    href: "/sentences",
+    title: "Sentence",
+    href: "/sentence",
     description:
       "Daily-use English lines with Bengali meanings. Expand any row and listen as many times as you need.",
-    action: "Open Sentences",
+    action: "Open Sentence",
     icon: HiOutlineChatAlt2,
     tint: "bg-sky-50 text-sky-600",
   },
   {
-    title: "Regular Conversation",
-    href: "/conversations",
+    title: "Conversation",
+    href: "/conversation",
     description:
       "Two-speaker dialogues with a separate voice for each side, so you can rehearse a real exchange turn by turn.",
-    action: "Open Conversations",
+    action: "Open Conversation",
     icon: HiOutlineUserGroup,
     tint: "bg-teal-50 text-teal-600",
   },
   {
-    title: "Daily Presentations",
+    title: "Presentation",
     href: "/presentation",
     description:
       "Full passages to rehearse aloud, with a read-only practice workspace for every saved text.",
-    action: "Open Presentations",
+    action: "Open Presentation",
     icon: HiOutlinePresentationChartBar,
     tint: "bg-indigo-50 text-indigo-600",
   },
   {
-    title: "Listening Practice",
-    href: "/listenings",
+    title: "Listening",
+    href: "/listening",
     description:
       "Play one hidden sentence at a time, type what you hear, and fix only the words you missed.",
     action: "Start A Dictation",
@@ -87,27 +87,27 @@ const destinations: HomeCard[] = [
     tint: "bg-amber-50 text-amber-600",
   },
   {
-    title: "Interview Questions",
-    href: "/interview-questions",
+    title: "Question",
+    href: "/question",
     description:
       "Saved questions with a model answer, grouped by category and topic and set to a difficulty.",
-    action: "Open Questions",
+    action: "Open Question",
     icon: HiOutlineClipboardCheck,
     tint: "bg-rose-50 text-rose-600",
     adminOnly: true,
   },
   {
-    title: "Active Learners",
-    href: "/learners",
+    title: "Learner",
+    href: "/learner",
     description:
       "Every account that can sign in, with its role, ready to add, edit, or remove.",
-    action: "Manage Learners",
+    action: "Manage Learner",
     icon: HiOutlineUsers,
     tint: "bg-blue-50 text-blue-600",
     adminOnly: true,
   },
   {
-    title: "Live Practice",
+    title: "Practice",
     href: "/practice",
     description:
       "Paste your own text, pick an accent and speed, then play it back sentence by sentence.",
@@ -138,11 +138,11 @@ function statSpanClass(index: number, total: number): string {
 }
 
 export function HomeView({ summary }: HomeViewProps) {
-  const isAdmin = summary.interview !== null;
+  const isAdmin = summary.question !== null;
 
   const stats: HomeStat[] = [
     {
-      title: "Important Vocabularies",
+      title: "Vocabulary",
       value: summary.vocabularies,
       subtitle: "Words with examples",
       meta: categoryLabel(summary.categories.vocabulary),
@@ -151,7 +151,7 @@ export function HomeView({ summary }: HomeViewProps) {
       iconColor: "text-violet-600",
     },
     {
-      title: "Common Sentences",
+      title: "Sentence",
       value: summary.sentences,
       subtitle: "Lines with audio",
       meta: categoryLabel(summary.categories.sentence),
@@ -160,7 +160,7 @@ export function HomeView({ summary }: HomeViewProps) {
       iconColor: "text-sky-600",
     },
     {
-      title: "Regular Conversation",
+      title: "Conversation",
       value: summary.conversations,
       subtitle: "Dialogues with two voices",
       meta: categoryLabel(summary.categories.conversation),
@@ -169,7 +169,7 @@ export function HomeView({ summary }: HomeViewProps) {
       iconColor: "text-teal-600",
     },
     {
-      title: "Daily Presentations",
+      title: "Presentation",
       value: summary.presentations,
       subtitle: "Passages to rehearse",
       meta: categoryLabel(summary.categories.presentation),
@@ -178,7 +178,7 @@ export function HomeView({ summary }: HomeViewProps) {
       iconColor: "text-indigo-600",
     },
     {
-      title: "Listening Practice",
+      title: "Listening",
       value: summary.listenings,
       subtitle: "Sentences to dictate",
       meta: categoryLabel(summary.categories.listening),
@@ -187,17 +187,17 @@ export function HomeView({ summary }: HomeViewProps) {
       iconColor: "text-amber-600",
     },
     {
-      title: "Interview Questions",
-      value: summary.interview?.questions ?? 0,
+      title: "Question",
+      value: summary.question?.questions ?? 0,
       subtitle: "Questions with model answers",
-      meta: categoryLabel(summary.interview?.categories ?? 0),
+      meta: categoryLabel(summary.question?.categories ?? 0),
       icon: HiOutlineClipboardCheck,
       iconBgColor: "bg-rose-50",
       iconColor: "text-rose-600",
       adminOnly: true,
     },
     {
-      title: "Learners",
+      title: "Learner",
       value: summary.users,
       subtitle: "Registered accounts",
       icon: HiOutlineUsers,

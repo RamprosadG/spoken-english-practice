@@ -16,7 +16,7 @@ import {
   HiOutlineUsers,
 } from "react-icons/hi";
 import { IconType } from "react-icons";
-import { useAuth } from "@/features/auth/AuthProvider";
+import { useAuth } from "@/components/features/auth/AuthProvider";
 
 interface NavItem {
   name: string;
@@ -28,19 +28,29 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { name: "Home", href: "/", icon: HiOutlineHome },
-  { name: "Important Vocabularies", href: "/vocabulary", icon: HiOutlineBookOpen },
-  { name: "Common Sentences", href: "/sentences", icon: HiOutlineChatAlt2 },
-  { name: "Regular Conversation", href: "/conversations", icon: HiOutlineUserGroup },
-  { name: "Daily Presentations", href: "/presentation", icon: HiOutlinePresentationChartBar },
-  { name: "Listening Practice", href: "/listenings", icon: HiOutlineVolumeUp },
-  { name: "Interview Questions", href: "/interview-questions", icon: HiOutlineClipboardCheck, adminOnly: true },
-  { name: "Active Learners", href: "/learners", icon: HiOutlineUsers, adminOnly: true },
-  { name: "Live Practice", href: "/practice", icon: HiOutlineMicrophone },
+  { name: "Vocabulary", href: "/vocabulary", icon: HiOutlineBookOpen },
+  { name: "Sentence", href: "/sentence", icon: HiOutlineChatAlt2 },
+  { name: "Conversation", href: "/conversation", icon: HiOutlineUserGroup },
+  { name: "Presentation", href: "/presentation", icon: HiOutlinePresentationChartBar },
+  { name: "Listening", href: "/listening", icon: HiOutlineVolumeUp },
+  { name: "Question", href: "/question", icon: HiOutlineClipboardCheck, adminOnly: true },
+  { name: "Learner", href: "/learner", icon: HiOutlineUsers, adminOnly: true },
+  { name: "Practice", href: "/practice", icon: HiOutlineMicrophone },
 ];
 
 interface SidebarProps {
   open: boolean;
   onClose: () => void;
+}
+
+/**
+ * A library stays active on its own practice route, so `/presentation/<id>`
+ * still marks Presentation. Home is the exception: every path starts with `/`.
+ */
+function isNavItemActive(pathname: string, href: string): boolean {
+  if (href === "/") return pathname === "/";
+
+  return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 export function Sidebar({ open, onClose }: SidebarProps) {
@@ -54,7 +64,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const navList = (onNavigate?: () => void) => (
     <ul className="space-y-1">
       {visibleNavItems.map((item) => {
-        const isActive = pathname === item.href;
+        const isActive = isNavItemActive(pathname, item.href);
         const Icon = item.icon;
 
         return (
@@ -128,16 +138,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         }`}
       >
         <div className="flex items-center justify-between h-16 border-b border-gray-100 shrink-0">
-          <Link href="/" className="flex items-center" onClick={onClose}>
-            <Image
-              src="/spoken-english.jpg"
-              alt=""
-              width={32}
-              height={32}
-              className="h-8 w-8 rounded-lg object-cover mr-3 shadow-xs"
-            />
-            <h1 className="text-lg font-bold text-slate-900">Spoken English</h1>
-          </Link>
+            <h1 className="text-lg font-bold text-slate-900">Menu</h1>
           <button
             onClick={onClose}
             className="p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"

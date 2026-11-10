@@ -11,7 +11,7 @@ export interface PublicationView {
 }
 
 export const PUBLICATION_FILTER_OPTIONS: { value: string; label: string }[] = [
-  { value: "", label: "All Statuses" },
+  { value: "", label: "All Status" },
   { value: "published", label: "Published" },
   { value: "draft", label: "Draft" },
 ];

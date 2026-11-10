@@ -9,13 +9,13 @@ export const CATEGORY_KINDS = [
   "conversation",
   "listening",
   "vocabulary",
-  "interview",
+  "question",
   "topic",
 ] as const;
 
 export type CategoryKind = (typeof CATEGORY_KINDS)[number];
 
-/** The kinds Home counts. Interview categories and topics are a private library. */
+/** The kinds Home counts. Question categories and topics are a private library. */
 export const HOME_CATEGORY_KINDS = [
   "presentation",
   "sentence",
@@ -26,10 +26,10 @@ export const HOME_CATEGORY_KINDS = [
 
 export type HomeCategoryKind = (typeof HOME_CATEGORY_KINDS)[number];
 
-const PRIVATE_CATEGORY_KINDS: CategoryKind[] = ["interview", "topic"];
+const PRIVATE_CATEGORY_KINDS: CategoryKind[] = ["question", "topic"];
 
 /**
- * Interview categories and topics only ever name rows of a library a public
+ * Question categories and topics only ever name rows of a library a public
  * reader cannot reach, so their option lists are admin-only as well.
  */
 export function isPrivateCategoryKind(kind: CategoryKind): boolean {
@@ -42,8 +42,8 @@ export const CATEGORY_ENTITY_LABELS: Record<CategoryKind, string> = {
   conversation: "conversation",
   listening: "listening",
   vocabulary: "vocabulary word",
-  interview: "interview question",
-  topic: "interview question",
+  question: "question",
+  topic: "question",
 };
 
 export interface CategoryNouns {
@@ -51,30 +51,30 @@ export interface CategoryNouns {
   plural: string;
 }
 
-/** Every kind but one groups with categories; the interview picker manages topics. */
+/** Every kind but one groups with categories; the question picker manages topics. */
 export const CATEGORY_NOUNS: Record<CategoryKind, CategoryNouns> = {
   presentation: { singular: "category", plural: "categories" },
   sentence: { singular: "category", plural: "categories" },
   conversation: { singular: "category", plural: "categories" },
   listening: { singular: "category", plural: "categories" },
   vocabulary: { singular: "category", plural: "categories" },
-  interview: { singular: "category", plural: "categories" },
+  question: { singular: "category", plural: "categories" },
   topic: { singular: "topic", plural: "topics" },
 };
 
 export const CATEGORY_MANAGE_TITLES: Record<CategoryKind, string> = {
-  presentation: "Presentation Categories",
-  sentence: "Sentence Categories",
-  conversation: "Conversation Categories",
-  listening: "Listening Categories",
-  vocabulary: "Vocabulary Categories",
-  interview: "Interview Categories",
-  topic: "Interview Topics",
+  presentation: "Presentation Category",
+  sentence: "Sentence Category",
+  conversation: "Conversation Category",
+  listening: "Listening Category",
+  vocabulary: "Vocabulary Category",
+  question: "Question Category",
+  topic: "Question Topic",
 };
 
 /**
  * Written out per kind because the article changes ("A presentation category",
- * "An interview topic"), and a generated sentence cannot know that.
+ * "A question topic"), and a generated sentence cannot know that.
  */
 export const CATEGORY_DUPLICATE_MESSAGES: Record<CategoryKind, string> = {
   presentation: "A presentation category with this name already exists.",
@@ -82,12 +82,12 @@ export const CATEGORY_DUPLICATE_MESSAGES: Record<CategoryKind, string> = {
   conversation: "A conversation category with this name already exists.",
   listening: "A listening category with this name already exists.",
   vocabulary: "A vocabulary category with this name already exists.",
-  interview: "An interview category with this name already exists.",
-  topic: "An interview topic with this name already exists.",
+  question: "A question category with this name already exists.",
+  topic: "A question topic with this name already exists.",
 };
 
-export const ALL_CATEGORIES_LABEL = "All Categories";
-export const ALL_TOPICS_LABEL = "All Topics";
+export const ALL_CATEGORIES_LABEL = "All Category";
+export const ALL_TOPICS_LABEL = "All Topic";
 
 export interface CategoryOptionSource {
   id: string;
@@ -128,7 +128,7 @@ export function capitalize(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-/** The action-row label a picker opens with: **Categories**, or **Topics**. */
+/** The action-row label a picker opens with: **Category**, or **Topic**. */
 export function categoryButtonLabel(kind: CategoryKind): string {
-  return capitalize(CATEGORY_NOUNS[kind].plural);
+  return capitalize(CATEGORY_NOUNS[kind].singular);
 }

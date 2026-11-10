@@ -10,9 +10,9 @@ import {
 } from "react-icons/fi";
 import { showSuccessAlert } from "@/components/ui/alerts/Alerts";
 import Modal from "@/components/ui/modals/Modal";
-import { UpdatePasswordForm } from "@/features/auth/UpdatePasswordForm";
-import { UpdateProfileForm } from "@/features/auth/UpdateProfileForm";
-import { useAuth } from "@/features/auth/AuthProvider";
+import { UpdatePasswordForm } from "@/components/features/auth/UpdatePasswordForm";
+import { UpdateProfileForm } from "@/components/features/auth/UpdateProfileForm";
+import { useAuth } from "@/components/features/auth/AuthProvider";
 
 type AccountModal = "profile" | "password" | null;
 

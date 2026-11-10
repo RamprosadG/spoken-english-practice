@@ -30,7 +30,7 @@ export function getCategoryOptions(kind: CategoryKind): Promise<CategoryOption[]
 }
 
 /**
- * The read behind `GET /api/categories/[kind]`. Interview categories and topics
+ * The read behind `GET /api/categories/[kind]`. Question categories and topics
  * only ever name rows of a private library, so their names stop being public;
  * the role is resolved without touching cookies, so this stays safe to call from
  * a request path.

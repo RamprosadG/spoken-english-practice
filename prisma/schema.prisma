@@ -26,7 +26,7 @@ enum PartsOfSpeech {
   interjection
 }
 
-enum InterviewDifficulty {
+enum QuestionDifficulty {
   beginner
   intermediate
   hard
@@ -73,7 +73,7 @@ model PresentationCategory {
   updatedAt DateTime @updatedAt
 
   @@index([sequence, createdAt])
-  @@map("presentation_category")
+  @@map("presentation_categories")
 }
 
 model Presentation {
@@ -91,7 +91,7 @@ model Presentation {
 
   @@index([sequence, createdAt])
   @@index([categoryId, sequence, createdAt])
-  @@map("presentation")
+  @@map("presentations")
 }
 
 model SentenceCategory {
@@ -105,7 +105,7 @@ model SentenceCategory {
   updatedAt DateTime @updatedAt
 
   @@index([sequence, createdAt])
-  @@map("sentence_category")
+  @@map("sentence_categories")
 }
 
 model Sentence {
@@ -126,7 +126,7 @@ model Sentence {
 
   @@index([sequence, createdAt])
   @@index([categoryId, sequence, createdAt])
-  @@map("sentence")
+  @@map("sentences")
 }
 
 model SentenceAlternate {
@@ -140,7 +140,7 @@ model SentenceAlternate {
   updatedAt DateTime @updatedAt
 
   @@index([sentenceId, sequence])
-  @@map("sentence_alternate")
+  @@map("sentence_alternates")
 }
 
 model ConversationCategory {
@@ -154,7 +154,7 @@ model ConversationCategory {
   updatedAt DateTime @updatedAt
 
   @@index([sequence, createdAt])
-  @@map("conversation_category")
+  @@map("conversation_categories")
 }
 
 model Conversation {
@@ -176,7 +176,7 @@ model Conversation {
 
   @@index([sequence, createdAt])
   @@index([categoryId, sequence, createdAt])
-  @@map("conversation")
+  @@map("conversations")
 }
 
 model ConversationLine {
@@ -190,7 +190,7 @@ model ConversationLine {
   updatedAt DateTime @updatedAt
 
   @@index([conversationId, sequence])
-  @@map("conversation_line")
+  @@map("conversation_lines")
 }
 
 model ListeningCategory {
@@ -204,7 +204,7 @@ model ListeningCategory {
   updatedAt DateTime @updatedAt
 
   @@index([sequence, createdAt])
-  @@map("listening_category")
+  @@map("listening_categories")
 }
 
 model Listening {
@@ -223,7 +223,7 @@ model Listening {
 
   @@index([sequence, createdAt])
   @@index([categoryId, sequence, createdAt])
-  @@map("listening")
+  @@map("listenings")
 }
 
 model ListeningItem {
@@ -237,7 +237,7 @@ model ListeningItem {
   updatedAt DateTime @updatedAt
 
   @@index([listeningId, sequence])
-  @@map("listening_item")
+  @@map("listening_items")
 }
 
 model VocabularyCategory {
@@ -251,7 +251,7 @@ model VocabularyCategory {
   updatedAt DateTime @updatedAt
 
   @@index([sequence, createdAt])
-  @@map("vocabulary_category")
+  @@map("vocabulary_categories")
 }
 
 model Vocabulary {
@@ -275,7 +275,7 @@ model Vocabulary {
 
   @@index([sequence, createdAt])
   @@index([categoryId, sequence, createdAt])
-  @@map("vocabulary")
+  @@map("vocabularies")
 }
 
 model VocabularySynonym {
@@ -290,7 +290,7 @@ model VocabularySynonym {
   updatedAt DateTime @updatedAt
 
   @@index([vocabularyId, sequence])
-  @@map("vocabulary_synonym")
+  @@map("vocabulary_synonyms")
 }
 
 model VocabularyAntonym {
@@ -305,50 +305,50 @@ model VocabularyAntonym {
   updatedAt DateTime @updatedAt
 
   @@index([vocabularyId, sequence])
-  @@map("vocabulary_antonym")
+  @@map("vocabulary_antonyms")
 }
 
-model InterviewCategory {
+model QuestionCategory {
   id       String @id @default(uuid())
   name     String @unique
   sequence Int
 
-  interviewQuestions InterviewQuestion[]
+  questions Question[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([sequence, createdAt])
-  @@map("interview_category")
+  @@map("question_categories")
 }
 
-model InterviewTopic {
+model QuestionTopic {
   id       String @id @default(uuid())
   name     String @unique
   sequence Int
 
-  interviewQuestions InterviewQuestion[]
+  questions Question[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([sequence, createdAt])
-  @@map("interview_topic")
+  @@map("question_topics")
 }
 
-model InterviewQuestion {
-  id          String              @id @default(uuid())
-  question    String              @unique
+model Question {
+  id          String             @id @default(uuid())
+  question    String             @unique
   answer      String
-  difficulty  InterviewDifficulty @default(beginner)
+  difficulty  QuestionDifficulty @default(beginner)
   sequence    Int
-  isPublished Boolean             @default(true)
+  isPublished Boolean            @default(true)
 
   categoryId String
-  category   InterviewCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  category   QuestionCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
 
   topicId String
-  topic   InterviewTopic @relation(fields: [topicId], references: [id], onDelete: Restrict)
+  topic   QuestionTopic @relation(fields: [topicId], references: [id], onDelete: Restrict)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -356,5 +356,5 @@ model InterviewQuestion {
   @@index([sequence, createdAt])
   @@index([categoryId, sequence, createdAt])
   @@index([topicId, sequence, createdAt])
-  @@map("interview_question")
+  @@map("questions")
 }
