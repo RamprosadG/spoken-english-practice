@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { buildVoiceOptions, findPickedVoice } from "./speechVoices";
 import { splitIntoSentences } from "./splitSentences";
+import { transcribe } from "./ipaEngine";
 
 export type Accent = "en-GB" | "en-US";
 export type Speed = "0.5" | "0.75" | "1" | "1.25" | "1.5";
@@ -112,13 +113,12 @@ export function useSpeechPractice(text: string) {
       }
 
       try {
-        const { phonemize } = await import("phonemize");
-        const sentenceTranscriptions: IpaPair[] = splitIntoSentences(
-          speakableText,
-        ).map((sentence) => ({
-          source: sentence,
-          ipa: phonemize(sentence, accent),
-        }));
+        const sentenceTranscriptions: IpaPair[] = await Promise.all(
+          splitIntoSentences(speakableText).map(async (sentence) => ({
+            source: sentence,
+            ipa: await transcribe(sentence, accent),
+          })),
+        );
 
         if (!cancelled) {
           setIpaPairs(sentenceTranscriptions);

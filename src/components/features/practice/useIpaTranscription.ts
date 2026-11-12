@@ -5,6 +5,7 @@ import type {
   Accent,
   IpaStatus,
 } from "@/components/features/practice/useSpeechPractice";
+import { transcribe } from "@/components/features/practice/ipaEngine";
 
 interface IpaState {
   ipa: string;
@@ -36,10 +37,10 @@ export function useIpaTranscription(text: string, accent: Accent): IpaState {
       setState({ ipa: "", status: "loading", error: null });
 
       try {
-        const { phonemize } = await import("phonemize");
+        const ipa = await transcribe(trimmed, accent);
         if (cancelled) return;
         setState({
-          ipa: phonemize(trimmed, accent),
+          ipa,
           status: "ready",
           error: null,
         });

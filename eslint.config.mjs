@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Static assets served verbatim, including the vendored espeak engine.
+    "public/**",
   ]),
 ]);
 
