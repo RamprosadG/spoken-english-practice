@@ -5,8 +5,13 @@ import { notFound } from "next/navigation";
 import { FiArrowLeft } from "react-icons/fi";
 import { ConversationPracticeNav } from "@/components/features/conversation/ConversationPracticeNav";
 import { ConversationPracticeWorkspace } from "@/components/features/conversation/ConversationPracticeWorkspace";
+import { JsonLd } from "@/components/shared/JsonLd";
 import { getConversationWithNavigation } from "@/server/services/conversation.service";
 import { metaDescription, metaTitle, pageMetadata } from "@/lib/seo";
+import {
+  breadcrumbJsonLd,
+  learningResourceJsonLd,
+} from "@/lib/structured-data";
 
 interface ConversationPracticePageProps {
   params: Promise<{ id: string }>;
@@ -47,9 +52,26 @@ export default async function ConversationPracticePage({
   }
 
   const { conversation, previousId, nextId } = navigation;
+  const path = `/conversation/${id}`;
 
   return (
     <div className="flex flex-col gap-6 w-full">
+      <JsonLd
+        data={[
+          breadcrumbJsonLd([
+            { name: "Home", path: "/" },
+            { name: "Conversation", path: "/conversation" },
+            { name: metaTitle(conversation.title), path },
+          ]),
+          learningResourceJsonLd({
+            name: conversation.title,
+            description: metaDescription(conversation.description),
+            path,
+            updatedAt: conversation.updatedAt,
+            learningResourceType: "Conversation",
+          }),
+        ]}
+      />
       <div className="flex flex-col gap-3">
         <Link
           href="/conversation"

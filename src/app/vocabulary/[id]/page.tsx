@@ -6,8 +6,13 @@ import { FiArrowLeft } from "react-icons/fi";
 import { VocabularyPracticeNav } from "@/components/features/vocabulary/VocabularyPracticeNav";
 import { InlineIpa } from "@/components/features/practice/InlineIpa";
 import { VocabularyPracticePanel } from "@/components/features/vocabulary/VocabularyPracticePanel";
+import { JsonLd } from "@/components/shared/JsonLd";
 import { getVocabularyWithNavigation } from "@/server/services/vocabulary.service";
 import { metaDescription, metaTitle, pageMetadata } from "@/lib/seo";
+import {
+  breadcrumbJsonLd,
+  definedTermJsonLd,
+} from "@/lib/structured-data";
 
 interface VocabularyPracticePageProps {
   params: Promise<{ id: string }>;
@@ -52,9 +57,27 @@ export default async function VocabularyPracticePage({
   }
 
   const { vocabulary, previousId, nextId } = navigation;
+  const path = `/vocabulary/${id}`;
 
   return (
     <div className="flex flex-col gap-6 w-full">
+      <JsonLd
+        data={[
+          breadcrumbJsonLd([
+            { name: "Home", path: "/" },
+            { name: "Vocabulary", path: "/vocabulary" },
+            { name: metaTitle(vocabulary.text), path },
+          ]),
+          definedTermJsonLd({
+            name: vocabulary.text,
+            description: metaDescription(
+              `${vocabulary.meaning}. ${vocabulary.sentence}`,
+            ),
+            path,
+            updatedAt: vocabulary.updatedAt,
+          }),
+        ]}
+      />
       <div className="flex flex-col gap-3">
         <Link
           href="/vocabulary"

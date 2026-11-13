@@ -5,6 +5,8 @@ import {
   HomeLoading,
 } from "@/components/features/home/HomeContent";
 import { HomeHeader } from "@/components/features/home/HomeHeader";
+import { JsonLd } from "@/components/shared/JsonLd";
+import { websiteJsonLd } from "@/lib/structured-data";
 
 // The canonical lives here rather than in the root layout, which every route
 // shares: a layout-level one would also be inherited by the 404 page and by the
@@ -17,6 +19,7 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <div className="flex flex-col gap-6 w-full">
+      <JsonLd data={websiteJsonLd()} />
       <HomeHeader />
       <Suspense fallback={<HomeLoading />}>
         <HomeContent />

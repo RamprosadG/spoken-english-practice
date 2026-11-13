@@ -5,8 +5,13 @@ import { notFound } from "next/navigation";
 import { FiArrowLeft } from "react-icons/fi";
 import { ListeningPracticeNav } from "@/components/features/listening/ListeningPracticeNav";
 import { ListeningPracticeTabs } from "@/components/features/listening/ListeningPracticeTabs";
+import { JsonLd } from "@/components/shared/JsonLd";
 import { getListeningWithNavigation } from "@/server/services/listening.service";
 import { metaTitle, pageMetadata } from "@/lib/seo";
+import {
+  breadcrumbJsonLd,
+  learningResourceJsonLd,
+} from "@/lib/structured-data";
 
 interface ListeningPracticePageProps {
   params: Promise<{ id: string }>;
@@ -15,6 +20,13 @@ interface ListeningPracticePageProps {
 
 // Blocking this route keeps the HTTP status honest (404) for unknown ids.
 export const instant = false;
+
+/** Shared by the meta description and the JSON-LD so the two cannot drift. */
+function describeListening(count: number): string {
+  return `Dictation practice with ${count} English ${
+    count === 1 ? "sentence" : "sentences"
+  }: listen, type what you hear and check it word by word, or read the full transcription with IPA.`;
+}
 
 export async function generateMetadata({
   params,
@@ -30,9 +42,7 @@ export async function generateMetadata({
 
   return pageMetadata({
     title: metaTitle(navigation.listening.title),
-    description: `Dictation practice with ${count} English ${
-      count === 1 ? "sentence" : "sentences"
-    }: listen, type what you hear and check it word by word, or read the full transcription with IPA.`,
+    description: describeListening(count),
     path: `/listening/${id}`,
     type: "article",
   });
@@ -77,9 +87,26 @@ export default async function ListeningPracticePage({
 
   const { listening, previousId, nextId } = navigation;
   const itemNumber = readItemNumber(query, listening.items.length);
+  const path = `/listening/${id}`;
 
   return (
     <div className="flex flex-col gap-6 w-full">
+      <JsonLd
+        data={[
+          breadcrumbJsonLd([
+            { name: "Home", path: "/" },
+            { name: "Listening", path: "/listening" },
+            { name: metaTitle(listening.title), path },
+          ]),
+          learningResourceJsonLd({
+            name: listening.title,
+            description: describeListening(listening.items.length),
+            path,
+            updatedAt: listening.updatedAt,
+            learningResourceType: "Dictation",
+          }),
+        ]}
+      />
       <div className="flex flex-col gap-3">
         <Link
           href="/listening"

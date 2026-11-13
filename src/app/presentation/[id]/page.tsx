@@ -5,8 +5,13 @@ import { notFound } from "next/navigation";
 import { FiArrowLeft } from "react-icons/fi";
 import { PresentationPracticeNav } from "@/components/features/presentation/PresentationPracticeNav";
 import { PresentationPracticeWorkspace } from "@/components/features/presentation/PresentationPracticeWorkspace";
+import { JsonLd } from "@/components/shared/JsonLd";
 import { getPresentationWithNavigation } from "@/server/services/presentation.service";
 import { metaDescription, metaTitle, pageMetadata } from "@/lib/seo";
+import {
+  breadcrumbJsonLd,
+  learningResourceJsonLd,
+} from "@/lib/structured-data";
 
 interface PresentationPracticePageProps {
   params: Promise<{ id: string }>;
@@ -49,9 +54,26 @@ export default async function PresentationPracticePage({
   }
 
   const { presentation, previousId, nextId } = navigation;
+  const path = `/presentation/${id}`;
 
   return (
     <div className="flex flex-col gap-6 w-full">
+      <JsonLd
+        data={[
+          breadcrumbJsonLd([
+            { name: "Home", path: "/" },
+            { name: "Presentation", path: "/presentation" },
+            { name: metaTitle(presentation.title), path },
+          ]),
+          learningResourceJsonLd({
+            name: presentation.title,
+            description: metaDescription(presentation.text),
+            path,
+            updatedAt: presentation.updatedAt,
+            learningResourceType: "Presentation",
+          }),
+        ]}
+      />
       <div className="flex flex-col gap-3">
         <Link
           href="/presentation"

@@ -5,8 +5,13 @@ import { notFound } from "next/navigation";
 import { FiArrowLeft } from "react-icons/fi";
 import { SentencePracticeNav } from "@/components/features/sentence/SentencePracticeNav";
 import { SentencePracticePanel } from "@/components/features/sentence/SentencePracticePanel";
+import { JsonLd } from "@/components/shared/JsonLd";
 import { getSentenceWithNavigation } from "@/server/services/sentence.service";
 import { metaDescription, metaTitle, pageMetadata } from "@/lib/seo";
+import {
+  breadcrumbJsonLd,
+  learningResourceJsonLd,
+} from "@/lib/structured-data";
 
 interface SentencePracticePageProps {
   params: Promise<{ id: string }>;
@@ -14,6 +19,17 @@ interface SentencePracticePageProps {
 
 // Blocking this route keeps the HTTP status honest (404) for unknown ids.
 export const instant = false;
+
+/** Shared by the meta description and the JSON-LD so the two cannot drift. */
+function describeSentence(sentence: {
+  text: string;
+  meaning: string;
+  whenToUse: string | null;
+}): string {
+  return sentence.whenToUse
+    ? `${sentence.text} — ${sentence.meaning}. ${sentence.whenToUse}`
+    : `${sentence.text} — ${sentence.meaning}`;
+}
 
 export async function generateMetadata({
   params,
@@ -29,11 +45,7 @@ export async function generateMetadata({
 
   return pageMetadata({
     title: metaTitle(sentence.text),
-    description: metaDescription(
-      sentence.whenToUse
-        ? `${sentence.text} — ${sentence.meaning}. ${sentence.whenToUse}`
-        : `${sentence.text} — ${sentence.meaning}`,
-    ),
+    description: metaDescription(describeSentence(sentence)),
     path: `/sentence/${id}`,
     type: "article",
   });
@@ -53,9 +65,26 @@ export default async function SentencePracticePage({
   }
 
   const { sentence, previousId, nextId } = navigation;
+  const path = `/sentence/${id}`;
 
   return (
     <div className="flex flex-col gap-6 w-full">
+      <JsonLd
+        data={[
+          breadcrumbJsonLd([
+            { name: "Home", path: "/" },
+            { name: "Sentence", path: "/sentence" },
+            { name: metaTitle(sentence.text), path },
+          ]),
+          learningResourceJsonLd({
+            name: sentence.text,
+            description: metaDescription(describeSentence(sentence)),
+            path,
+            updatedAt: sentence.updatedAt,
+            learningResourceType: "Sentence",
+          }),
+        ]}
+      />
       <div className="flex flex-col gap-3">
         <Link
           href="/sentence"
