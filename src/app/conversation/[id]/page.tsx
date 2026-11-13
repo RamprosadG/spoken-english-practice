@@ -6,7 +6,7 @@ import { FiArrowLeft } from "react-icons/fi";
 import { ConversationPracticeNav } from "@/components/features/conversation/ConversationPracticeNav";
 import { ConversationPracticeWorkspace } from "@/components/features/conversation/ConversationPracticeWorkspace";
 import { getConversationWithNavigation } from "@/server/services/conversation.service";
-import { metaDescription, metaTitle } from "@/lib/seo";
+import { metaDescription, metaTitle, pageMetadata } from "@/lib/seo";
 
 interface ConversationPracticePageProps {
   params: Promise<{ id: string }>;
@@ -25,10 +25,12 @@ export async function generateMetadata({
     return {};
   }
 
-  return {
+  return pageMetadata({
     title: metaTitle(navigation.conversation.title),
     description: metaDescription(navigation.conversation.description),
-  };
+    path: `/conversation/${id}`,
+    type: "article",
+  });
 }
 
 export default async function ConversationPracticePage({

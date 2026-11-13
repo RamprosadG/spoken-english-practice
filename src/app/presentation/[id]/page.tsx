@@ -6,7 +6,7 @@ import { FiArrowLeft } from "react-icons/fi";
 import { PresentationPracticeNav } from "@/components/features/presentation/PresentationPracticeNav";
 import { PresentationPracticeWorkspace } from "@/components/features/presentation/PresentationPracticeWorkspace";
 import { getPresentationWithNavigation } from "@/server/services/presentation.service";
-import { metaDescription, metaTitle } from "@/lib/seo";
+import { metaDescription, metaTitle, pageMetadata } from "@/lib/seo";
 
 interface PresentationPracticePageProps {
   params: Promise<{ id: string }>;
@@ -27,10 +27,12 @@ export async function generateMetadata({
     return {};
   }
 
-  return {
+  return pageMetadata({
     title: metaTitle(navigation.presentation.title),
     description: metaDescription(navigation.presentation.text),
-  };
+    path: `/presentation/${id}`,
+    type: "article",
+  });
 }
 
 export default async function PresentationPracticePage({

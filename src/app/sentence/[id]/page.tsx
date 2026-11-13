@@ -6,7 +6,7 @@ import { FiArrowLeft } from "react-icons/fi";
 import { SentencePracticeNav } from "@/components/features/sentence/SentencePracticeNav";
 import { SentencePracticePanel } from "@/components/features/sentence/SentencePracticePanel";
 import { getSentenceWithNavigation } from "@/server/services/sentence.service";
-import { metaDescription, metaTitle } from "@/lib/seo";
+import { metaDescription, metaTitle, pageMetadata } from "@/lib/seo";
 
 interface SentencePracticePageProps {
   params: Promise<{ id: string }>;
@@ -27,14 +27,16 @@ export async function generateMetadata({
 
   const { sentence } = navigation;
 
-  return {
+  return pageMetadata({
     title: metaTitle(sentence.text),
     description: metaDescription(
       sentence.whenToUse
         ? `${sentence.text} — ${sentence.meaning}. ${sentence.whenToUse}`
         : `${sentence.text} — ${sentence.meaning}`,
     ),
-  };
+    path: `/sentence/${id}`,
+    type: "article",
+  });
 }
 
 export default async function SentencePracticePage({

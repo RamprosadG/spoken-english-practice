@@ -4,12 +4,14 @@ import {
   SentenceContent,
   SentenceLoading,
 } from "@/components/features/sentence/SentenceContent";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Sentence",
   description:
     "Common English sentences with Bengali meanings, IPA pronunciation and alternate expressions. Listen, repeat and learn when to use each one.",
-};
+  path: "/sentence",
+});
 
 export default function SentencesPage({
   searchParams,

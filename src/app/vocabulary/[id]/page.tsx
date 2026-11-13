@@ -7,7 +7,7 @@ import { VocabularyPracticeNav } from "@/components/features/vocabulary/Vocabula
 import { InlineIpa } from "@/components/features/practice/InlineIpa";
 import { VocabularyPracticePanel } from "@/components/features/vocabulary/VocabularyPracticePanel";
 import { getVocabularyWithNavigation } from "@/server/services/vocabulary.service";
-import { metaDescription, metaTitle } from "@/lib/seo";
+import { metaDescription, metaTitle, pageMetadata } from "@/lib/seo";
 
 interface VocabularyPracticePageProps {
   params: Promise<{ id: string }>;
@@ -28,12 +28,14 @@ export async function generateMetadata({
 
   const { vocabulary } = navigation;
 
-  return {
+  return pageMetadata({
     title: metaTitle(vocabulary.text),
     description: metaDescription(
       `${vocabulary.text} — ${vocabulary.meaning}. ${vocabulary.sentence}`,
     ),
-  };
+    path: `/vocabulary/${id}`,
+    type: "article",
+  });
 }
 
 export default async function VocabularyPracticePage({

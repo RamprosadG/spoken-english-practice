@@ -6,7 +6,7 @@ import { FiArrowLeft } from "react-icons/fi";
 import { ListeningPracticeNav } from "@/components/features/listening/ListeningPracticeNav";
 import { ListeningPracticeTabs } from "@/components/features/listening/ListeningPracticeTabs";
 import { getListeningWithNavigation } from "@/server/services/listening.service";
-import { metaTitle } from "@/lib/seo";
+import { metaTitle, pageMetadata } from "@/lib/seo";
 
 interface ListeningPracticePageProps {
   params: Promise<{ id: string }>;
@@ -28,12 +28,14 @@ export async function generateMetadata({
 
   const count = navigation.listening.items.length;
 
-  return {
+  return pageMetadata({
     title: metaTitle(navigation.listening.title),
     description: `Dictation practice with ${count} English ${
       count === 1 ? "sentence" : "sentences"
     }: listen, type what you hear and check it word by word, or read the full transcription with IPA.`,
-  };
+    path: `/listening/${id}`,
+    type: "article",
+  });
 }
 
 /**
