@@ -146,6 +146,15 @@ export function countPresentations() {
   return prisma.presentation.count();
 }
 
+/** A crawler is a signed-out reader, so the sitemap lists published rows only. */
+export function findPresentationSitemapRows() {
+  return prisma.presentation.findMany({
+    where: publicationWhere({ canViewUnpublished: false }),
+    orderBy: [{ sequence: "asc" }, { createdAt: "asc" }],
+    select: { id: true, updatedAt: true },
+  });
+}
+
 export function createPresentation(data: PresentationWriteData) {
   return prisma.presentation.create({ data, select: PRESENTATION_SELECT });
 }

@@ -129,6 +129,15 @@ export function countSentences() {
   return prisma.sentence.count();
 }
 
+/** A crawler is a signed-out reader, so the sitemap lists published rows only. */
+export function findSentenceSitemapRows() {
+  return prisma.sentence.findMany({
+    where: publicationWhere({ canViewUnpublished: false }),
+    orderBy: [{ sequence: "asc" }, { createdAt: "asc" }],
+    select: { id: true, updatedAt: true },
+  });
+}
+
 /**
  * Neighbours are the closest rows on each side of this cursor in the list
  * order (sequence, then createdAt), so the walk matches the library table and

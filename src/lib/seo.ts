@@ -1,5 +1,10 @@
 export const SITE_NAME = "Spoken English Practice";
 
+/** Absolute origin for the sitemap, robots and canonical URLs, no trailing slash. */
+export const SITE_URL = (
+  process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
+).replace(/\/+$/, "");
+
 const TITLE_MAX_LENGTH = 60;
 const DESCRIPTION_MAX_LENGTH = 155;
 

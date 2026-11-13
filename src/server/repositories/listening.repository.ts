@@ -163,6 +163,15 @@ export function countListenings() {
   return prisma.listening.count();
 }
 
+/** A crawler is a signed-out reader, so the sitemap lists published rows only. */
+export function findListeningSitemapRows() {
+  return prisma.listening.findMany({
+    where: publicationWhere({ canViewUnpublished: false }),
+    orderBy: [{ sequence: "asc" }, { createdAt: "asc" }],
+    select: { id: true, updatedAt: true },
+  });
+}
+
 export function createListening(data: ListeningWriteData) {
   return prisma.$transaction(async (tx) => {
     const created = await tx.listening.create({
