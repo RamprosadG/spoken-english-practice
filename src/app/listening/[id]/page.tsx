@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { connection } from "next/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -5,6 +6,7 @@ import { FiArrowLeft } from "react-icons/fi";
 import { ListeningPracticeNav } from "@/components/features/listening/ListeningPracticeNav";
 import { ListeningPracticeTabs } from "@/components/features/listening/ListeningPracticeTabs";
 import { getListeningWithNavigation } from "@/server/services/listening.service";
+import { metaTitle } from "@/lib/seo";
 
 interface ListeningPracticePageProps {
   params: Promise<{ id: string }>;
@@ -13,6 +15,26 @@ interface ListeningPracticePageProps {
 
 // Blocking this route keeps the HTTP status honest (404) for unknown ids.
 export const instant = false;
+
+export async function generateMetadata({
+  params,
+}: ListeningPracticePageProps): Promise<Metadata> {
+  const { id } = await params;
+  const navigation = await getListeningWithNavigation(id);
+
+  if (!navigation) {
+    return {};
+  }
+
+  const count = navigation.listening.items.length;
+
+  return {
+    title: metaTitle(navigation.listening.title),
+    description: `Dictation practice with ${count} English ${
+      count === 1 ? "sentence" : "sentences"
+    }: listen, type what you hear and check it word by word, or read the full transcription with IPA.`,
+  };
+}
 
 /**
  * The sentence being dictated rides the URL, so a reload or a shared link lands

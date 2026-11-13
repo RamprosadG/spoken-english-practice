@@ -3,7 +3,7 @@ import { AdminRegisterHeader } from "@/components/features/auth/AdminRegisterHea
 import { AdminRegisterForm } from "@/components/features/auth/AdminRegisterForm";
 
 export const metadata: Metadata = {
-  title: "Admin Registration | Spoken English Practice",
+  title: "Admin Registration",
   robots: {
     index: false,
     follow: false,

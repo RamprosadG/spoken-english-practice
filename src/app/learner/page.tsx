@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
@@ -15,6 +16,12 @@ interface LearnersPageProps {
 // cannot: the guard below decides the HTTP status from the session cookies, so
 // the whole page is request-time and the validation is opted out of.
 export const instant = false;
+
+// The account list is private, so it is kept out of the index.
+export const metadata: Metadata = {
+  title: "Learner",
+  robots: { index: false, follow: false },
+};
 
 export default async function LearnersPage({
   searchParams,

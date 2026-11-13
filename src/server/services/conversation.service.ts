@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { connection } from "next/server";
 import { ApiError, uniqueViolationError } from "@/lib/api-error";
 import type { ConversationInput } from "@/lib/validations/conversation";
@@ -115,37 +116,38 @@ export async function getConversationDetail(
   return toConversationDetail(conversation);
 }
 
-export async function getConversationWithNavigation(
-  id: string,
-): Promise<ConversationNavigation | null> {
-  // Neighbours move with every saved row, so never prerender this.
-  await connection();
+// generateMetadata and the page read the same row, so one request shares one read.
+export const getConversationWithNavigation = cache(
+  async (id: string): Promise<ConversationNavigation | null> => {
+    // Neighbours move with every saved row, so never prerender this.
+    await connection();
 
-  const canViewUnpublished = await canViewUnpublishedContent();
+    const canViewUnpublished = await canViewUnpublishedContent();
 
-  const conversation = await findConversationById(id);
-  if (!conversation) {
-    return null;
-  }
+    const conversation = await findConversationById(id);
+    if (!conversation) {
+      return null;
+    }
 
-  if (!canViewUnpublished && !conversation.isPublished) {
-    return null;
-  }
+    if (!canViewUnpublished && !conversation.isPublished) {
+      return null;
+    }
 
-  const neighbors = await findConversationNeighbors(
-    {
-      sequence: conversation.sequence,
-      createdAt: conversation.createdAt,
-    },
-    { canViewUnpublished },
-  );
+    const neighbors = await findConversationNeighbors(
+      {
+        sequence: conversation.sequence,
+        createdAt: conversation.createdAt,
+      },
+      { canViewUnpublished },
+    );
 
-  return {
-    conversation: toConversationDetail(conversation),
-    previousId: neighbors.previousId,
-    nextId: neighbors.nextId,
-  };
-}
+    return {
+      conversation: toConversationDetail(conversation),
+      previousId: neighbors.previousId,
+      nextId: neighbors.nextId,
+    };
+  },
+);
 
 export async function createConversation(
   input: ConversationInput,

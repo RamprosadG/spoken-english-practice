@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { connection } from "next/server";
 import { ApiError, uniqueViolationError } from "@/lib/api-error";
 import type { ListeningInput } from "@/lib/validations/listening";
@@ -105,35 +106,36 @@ export async function getListeningDetail(id: string): Promise<ListeningDetail> {
  * neighbouring listenings, because the page's Previous and Next move through the
  * library rather than through one listening's sentences.
  */
-export async function getListeningWithNavigation(
-  id: string,
-): Promise<ListeningNavigation | null> {
-  // Which rows a reader may open, and which sit next to them, both change per
-  // request, so never prerender this.
-  await connection();
+// generateMetadata and the page read the same row, so one request shares one read.
+export const getListeningWithNavigation = cache(
+  async (id: string): Promise<ListeningNavigation | null> => {
+    // Which rows a reader may open, and which sit next to them, both change per
+    // request, so never prerender this.
+    await connection();
 
-  const canViewUnpublished = await canViewUnpublishedContent();
+    const canViewUnpublished = await canViewUnpublishedContent();
 
-  const listening = await findListeningById(id);
-  if (!listening) {
-    return null;
-  }
+    const listening = await findListeningById(id);
+    if (!listening) {
+      return null;
+    }
 
-  if (!canViewUnpublished && !listening.isPublished) {
-    return null;
-  }
+    if (!canViewUnpublished && !listening.isPublished) {
+      return null;
+    }
 
-  const neighbors = await findListeningNeighbors(
-    { sequence: listening.sequence, createdAt: listening.createdAt },
-    { canViewUnpublished },
-  );
+    const neighbors = await findListeningNeighbors(
+      { sequence: listening.sequence, createdAt: listening.createdAt },
+      { canViewUnpublished },
+    );
 
-  return {
-    listening: toListeningDetail(listening),
-    previousId: neighbors.previousId,
-    nextId: neighbors.nextId,
-  };
-}
+    return {
+      listening: toListeningDetail(listening),
+      previousId: neighbors.previousId,
+      nextId: neighbors.nextId,
+    };
+  },
+);
 
 export async function createListening(
   input: ListeningInput,

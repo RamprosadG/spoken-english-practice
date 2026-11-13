@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { connection } from "next/server";
 import { ApiError, uniqueViolationError } from "@/lib/api-error";
 import type { SentenceInput } from "@/lib/validations/sentence";
@@ -68,37 +69,38 @@ export async function listSentences(
   return { ...list, nextSequence, categories, categoryRows };
 }
 
-export async function getSentenceWithNavigation(
-  id: string,
-): Promise<SentenceNavigation | null> {
-  // Neighbours move with every saved row, so never prerender this.
-  await connection();
+// generateMetadata and the page read the same row, so one request shares one read.
+export const getSentenceWithNavigation = cache(
+  async (id: string): Promise<SentenceNavigation | null> => {
+    // Neighbours move with every saved row, so never prerender this.
+    await connection();
 
-  const canViewUnpublished = await canViewUnpublishedContent();
+    const canViewUnpublished = await canViewUnpublishedContent();
 
-  const sentence = await findSentenceById(id);
-  if (!sentence) {
-    return null;
-  }
+    const sentence = await findSentenceById(id);
+    if (!sentence) {
+      return null;
+    }
 
-  if (!canViewUnpublished && !sentence.isPublished) {
-    return null;
-  }
+    if (!canViewUnpublished && !sentence.isPublished) {
+      return null;
+    }
 
-  const neighbors = await findSentenceNeighbors(
-    {
-      sequence: sentence.sequence,
-      createdAt: sentence.createdAt,
-    },
-    { canViewUnpublished },
-  );
+    const neighbors = await findSentenceNeighbors(
+      {
+        sequence: sentence.sequence,
+        createdAt: sentence.createdAt,
+      },
+      { canViewUnpublished },
+    );
 
-  return {
-    sentence: toSentenceItem(sentence),
-    previousId: neighbors.previousId,
-    nextId: neighbors.nextId,
-  };
-}
+    return {
+      sentence: toSentenceItem(sentence),
+      previousId: neighbors.previousId,
+      nextId: neighbors.nextId,
+    };
+  },
+);
 
 export async function createSentence(
   input: SentenceInput,

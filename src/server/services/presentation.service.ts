@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { connection } from "next/server";
 import { ApiError, uniqueViolationError } from "@/lib/api-error";
 import type { PresentationInput } from "@/lib/validations/presentation";
@@ -71,37 +72,38 @@ export async function listPresentations(
   return { ...list, nextSequence, categories, categoryRows };
 }
 
-export async function getPresentationWithNavigation(
-  id: string,
-): Promise<PresentationNavigation | null> {
-  // Neighbours move with every saved row, so never prerender this.
-  await connection();
+// generateMetadata and the page read the same row, so one request shares one read.
+export const getPresentationWithNavigation = cache(
+  async (id: string): Promise<PresentationNavigation | null> => {
+    // Neighbours move with every saved row, so never prerender this.
+    await connection();
 
-  const canViewUnpublished = await canViewUnpublishedContent();
+    const canViewUnpublished = await canViewUnpublishedContent();
 
-  const presentation = await findPresentationById(id);
-  if (!presentation) {
-    return null;
-  }
+    const presentation = await findPresentationById(id);
+    if (!presentation) {
+      return null;
+    }
 
-  if (!canViewUnpublished && !presentation.isPublished) {
-    return null;
-  }
+    if (!canViewUnpublished && !presentation.isPublished) {
+      return null;
+    }
 
-  const neighbors = await findPresentationNeighbors(
-    {
-      sequence: presentation.sequence,
-      createdAt: presentation.createdAt,
-    },
-    { canViewUnpublished },
-  );
+    const neighbors = await findPresentationNeighbors(
+      {
+        sequence: presentation.sequence,
+        createdAt: presentation.createdAt,
+      },
+      { canViewUnpublished },
+    );
 
-  return {
-    presentation: toPresentationItem(presentation),
-    previousId: neighbors.previousId,
-    nextId: neighbors.nextId,
-  };
-}
+    return {
+      presentation: toPresentationItem(presentation),
+      previousId: neighbors.previousId,
+      nextId: neighbors.nextId,
+    };
+  },
+);
 
 export async function createPresentation(
   input: PresentationInput,

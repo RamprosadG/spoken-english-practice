@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
@@ -13,6 +14,12 @@ interface QuestionPageProps {
 
 // The guard below decides the HTTP status, so this route is never prerendered.
 export const instant = false;
+
+// This library is private, so it is kept out of the index without reading a row.
+export const metadata: Metadata = {
+  title: "Question",
+  robots: { index: false, follow: false },
+};
 
 export default async function QuestionPage({
   searchParams,

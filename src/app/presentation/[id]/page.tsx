@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { connection } from "next/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -5,6 +6,7 @@ import { FiArrowLeft } from "react-icons/fi";
 import { PresentationPracticeNav } from "@/components/features/presentation/PresentationPracticeNav";
 import { PresentationPracticeWorkspace } from "@/components/features/presentation/PresentationPracticeWorkspace";
 import { getPresentationWithNavigation } from "@/server/services/presentation.service";
+import { metaDescription, metaTitle } from "@/lib/seo";
 
 interface PresentationPracticePageProps {
   params: Promise<{ id: string }>;
@@ -12,6 +14,24 @@ interface PresentationPracticePageProps {
 
 // Blocking this route keeps the HTTP status honest (404) for unknown ids.
 export const instant = false;
+
+export async function generateMetadata({
+  params,
+}: PresentationPracticePageProps): Promise<Metadata> {
+  const { id } = await params;
+  const navigation = await getPresentationWithNavigation(id);
+
+  // A missing row or a draft this reader may not see stays on the root metadata;
+  // the page below answers the 404.
+  if (!navigation) {
+    return {};
+  }
+
+  return {
+    title: metaTitle(navigation.presentation.title),
+    description: metaDescription(navigation.presentation.text),
+  };
+}
 
 export default async function PresentationPracticePage({
   params,

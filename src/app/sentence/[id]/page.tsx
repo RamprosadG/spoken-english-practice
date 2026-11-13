@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { connection } from "next/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -5,6 +6,7 @@ import { FiArrowLeft } from "react-icons/fi";
 import { SentencePracticeNav } from "@/components/features/sentence/SentencePracticeNav";
 import { SentencePracticePanel } from "@/components/features/sentence/SentencePracticePanel";
 import { getSentenceWithNavigation } from "@/server/services/sentence.service";
+import { metaDescription, metaTitle } from "@/lib/seo";
 
 interface SentencePracticePageProps {
   params: Promise<{ id: string }>;
@@ -12,6 +14,28 @@ interface SentencePracticePageProps {
 
 // Blocking this route keeps the HTTP status honest (404) for unknown ids.
 export const instant = false;
+
+export async function generateMetadata({
+  params,
+}: SentencePracticePageProps): Promise<Metadata> {
+  const { id } = await params;
+  const navigation = await getSentenceWithNavigation(id);
+
+  if (!navigation) {
+    return {};
+  }
+
+  const { sentence } = navigation;
+
+  return {
+    title: metaTitle(sentence.text),
+    description: metaDescription(
+      sentence.whenToUse
+        ? `${sentence.text} — ${sentence.meaning}. ${sentence.whenToUse}`
+        : `${sentence.text} — ${sentence.meaning}`,
+    ),
+  };
+}
 
 export default async function SentencePracticePage({
   params,

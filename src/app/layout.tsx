@@ -5,6 +5,7 @@ import "animate.css";
 import { AppLayoutShell } from "@/components/shared/AppLayoutShell";
 import { AuthProvider } from "@/components/features/auth/AuthProvider";
 import { GoogleAuthProvider } from "@/components/features/auth/GoogleAuthProvider";
+import { SITE_NAME } from "@/lib/seo";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,8 +18,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Spoken English Practice",
-  description: "Practice spoken English with guided presentations and speaking exercises.",
+  title: {
+    template: `%s | ${SITE_NAME}`,
+    default: SITE_NAME,
+  },
+  description:
+    "Learn spoken English with daily presentations, common sentences, vocabulary with Bengali meanings, two-speaker conversations and dictation practice — each with audio and IPA pronunciation.",
   icons: {
     icon: [{ url: "/spoken-english.jpg", type: "image/jpeg" }],
   },

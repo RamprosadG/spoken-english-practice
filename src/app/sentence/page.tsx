@@ -1,8 +1,15 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import {
   SentenceContent,
   SentenceLoading,
 } from "@/components/features/sentence/SentenceContent";
+
+export const metadata: Metadata = {
+  title: "Sentence",
+  description:
+    "Common English sentences with Bengali meanings, IPA pronunciation and alternate expressions. Listen, repeat and learn when to use each one.",
+};
 
 export default function SentencesPage({
   searchParams,

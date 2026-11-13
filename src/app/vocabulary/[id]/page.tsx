@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { connection } from "next/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -6,6 +7,7 @@ import { VocabularyPracticeNav } from "@/components/features/vocabulary/Vocabula
 import { InlineIpa } from "@/components/features/practice/InlineIpa";
 import { VocabularyPracticePanel } from "@/components/features/vocabulary/VocabularyPracticePanel";
 import { getVocabularyWithNavigation } from "@/server/services/vocabulary.service";
+import { metaDescription, metaTitle } from "@/lib/seo";
 
 interface VocabularyPracticePageProps {
   params: Promise<{ id: string }>;
@@ -13,6 +15,26 @@ interface VocabularyPracticePageProps {
 
 // Blocking this route keeps the HTTP status honest (404) for unknown ids.
 export const instant = false;
+
+export async function generateMetadata({
+  params,
+}: VocabularyPracticePageProps): Promise<Metadata> {
+  const { id } = await params;
+  const navigation = await getVocabularyWithNavigation(id);
+
+  if (!navigation) {
+    return {};
+  }
+
+  const { vocabulary } = navigation;
+
+  return {
+    title: metaTitle(vocabulary.text),
+    description: metaDescription(
+      `${vocabulary.text} — ${vocabulary.meaning}. ${vocabulary.sentence}`,
+    ),
+  };
+}
 
 export default async function VocabularyPracticePage({
   params,

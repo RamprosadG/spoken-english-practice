@@ -1,8 +1,15 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import {
   ConversationContent,
   ConversationLoading,
 } from "@/components/features/conversation/ConversationContent";
+
+export const metadata: Metadata = {
+  title: "Conversation",
+  description:
+    "Everyday English conversations between two speakers. Hear both voices, follow the IPA for every turn and practise the dialogue out loud.",
+};
 
 export default function ConversationsPage({
   searchParams,

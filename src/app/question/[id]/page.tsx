@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { connection } from "next/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -12,6 +13,12 @@ interface QuestionPracticePageProps {
 
 // Blocking this route keeps the HTTP status honest (404) for unknown ids.
 export const instant = false;
+
+// This library is private, so it is kept out of the index without reading a row.
+export const metadata: Metadata = {
+  title: "Question",
+  robots: { index: false, follow: false },
+};
 
 export default async function QuestionPracticePage({
   params,

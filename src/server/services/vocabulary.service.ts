@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { connection } from "next/server";
 import { ApiError, uniqueViolationError } from "@/lib/api-error";
 import type { VocabularyInput } from "@/lib/validations/vocabulary";
@@ -77,37 +78,38 @@ export async function listVocabulary(
   return { ...list, nextSequence, categories, categoryRows };
 }
 
-export async function getVocabularyWithNavigation(
-  id: string,
-): Promise<VocabularyNavigation | null> {
-  // Neighbours move with every saved row, so never prerender this.
-  await connection();
+// generateMetadata and the page read the same row, so one request shares one read.
+export const getVocabularyWithNavigation = cache(
+  async (id: string): Promise<VocabularyNavigation | null> => {
+    // Neighbours move with every saved row, so never prerender this.
+    await connection();
 
-  const canViewUnpublished = await canViewUnpublishedContent();
+    const canViewUnpublished = await canViewUnpublishedContent();
 
-  const vocabulary = await findVocabularyById(id);
-  if (!vocabulary) {
-    return null;
-  }
+    const vocabulary = await findVocabularyById(id);
+    if (!vocabulary) {
+      return null;
+    }
 
-  if (!canViewUnpublished && !vocabulary.isPublished) {
-    return null;
-  }
+    if (!canViewUnpublished && !vocabulary.isPublished) {
+      return null;
+    }
 
-  const neighbors = await findVocabularyNeighbors(
-    {
-      sequence: vocabulary.sequence,
-      createdAt: vocabulary.createdAt,
-    },
-    { canViewUnpublished },
-  );
+    const neighbors = await findVocabularyNeighbors(
+      {
+        sequence: vocabulary.sequence,
+        createdAt: vocabulary.createdAt,
+      },
+      { canViewUnpublished },
+    );
 
-  return {
-    vocabulary: toVocabularyItem(vocabulary),
-    previousId: neighbors.previousId,
-    nextId: neighbors.nextId,
-  };
-}
+    return {
+      vocabulary: toVocabularyItem(vocabulary),
+      previousId: neighbors.previousId,
+      nextId: neighbors.nextId,
+    };
+  },
+);
 
 export async function createVocabulary(
   input: VocabularyInput,

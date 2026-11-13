@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { connection } from "next/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -5,6 +6,7 @@ import { FiArrowLeft } from "react-icons/fi";
 import { ConversationPracticeNav } from "@/components/features/conversation/ConversationPracticeNav";
 import { ConversationPracticeWorkspace } from "@/components/features/conversation/ConversationPracticeWorkspace";
 import { getConversationWithNavigation } from "@/server/services/conversation.service";
+import { metaDescription, metaTitle } from "@/lib/seo";
 
 interface ConversationPracticePageProps {
   params: Promise<{ id: string }>;
@@ -12,6 +14,22 @@ interface ConversationPracticePageProps {
 
 // Blocking this route keeps the HTTP status honest (404) for unknown ids.
 export const instant = false;
+
+export async function generateMetadata({
+  params,
+}: ConversationPracticePageProps): Promise<Metadata> {
+  const { id } = await params;
+  const navigation = await getConversationWithNavigation(id);
+
+  if (!navigation) {
+    return {};
+  }
+
+  return {
+    title: metaTitle(navigation.conversation.title),
+    description: metaDescription(navigation.conversation.description),
+  };
+}
 
 export default async function ConversationPracticePage({
   params,
