@@ -6,6 +6,7 @@ import {
   createListening as createListeningRecord,
   deleteListening as deleteListeningRecord,
   findListeningById,
+  findListeningBySlugOrId,
   findListeningNeighbors,
   findListeningPage,
   findNextListeningSequence,
@@ -43,6 +44,7 @@ function toListening(listening: ListeningWithItems): Listening {
   return {
     id: listening.id,
     title: listening.title,
+    slug: listening.slug,
     sequence: listening.sequence,
     isPublished: listening.isPublished,
     categoryId: listening.categoryId,
@@ -108,14 +110,14 @@ export async function getListeningDetail(id: string): Promise<ListeningDetail> {
  */
 // generateMetadata and the page read the same row, so one request shares one read.
 export const getListeningWithNavigation = cache(
-  async (id: string): Promise<ListeningNavigation | null> => {
+  async (slugOrId: string): Promise<ListeningNavigation | null> => {
     // Which rows a reader may open, and which sit next to them, both change per
     // request, so never prerender this.
     await connection();
 
     const canViewUnpublished = await canViewUnpublishedContent();
 
-    const listening = await findListeningById(id);
+    const listening = await findListeningBySlugOrId(slugOrId);
     if (!listening) {
       return null;
     }
@@ -131,8 +133,8 @@ export const getListeningWithNavigation = cache(
 
     return {
       listening: toListeningDetail(listening),
-      previousId: neighbors.previousId,
-      nextId: neighbors.nextId,
+      previousSlug: neighbors.previousSlug,
+      nextSlug: neighbors.nextSlug,
     };
   },
 );

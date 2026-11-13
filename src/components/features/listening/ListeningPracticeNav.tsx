@@ -2,8 +2,8 @@ import Link from "next/link";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
 interface ListeningPracticeNavProps {
-  previousId: string | null;
-  nextId: string | null;
+  previousSlug: string | null;
+  nextSlug: string | null;
 }
 
 // Mirrors the secondary `Button` recipe so the link and disabled states match
@@ -18,17 +18,17 @@ const navButtonClass =
  * the sentences have their own pair of buttons inside the dictation card.
  */
 export function ListeningPracticeNav({
-  previousId,
-  nextId,
+  previousSlug,
+  nextSlug,
 }: ListeningPracticeNavProps) {
   return (
     <nav
       aria-label="Listening Navigation"
       className="flex items-center justify-between gap-3"
     >
-      {previousId ? (
+      {previousSlug ? (
         <Link
-          href={`/listening/${previousId}`}
+          href={`/listening/${previousSlug}`}
           className={`${navButtonClass} cursor-pointer hover:bg-slate-800 active:bg-slate-900 hover:shadow-md`}
         >
           <FiChevronLeft className="h-4 w-4" />
@@ -46,9 +46,9 @@ export function ListeningPracticeNav({
         </button>
       )}
 
-      {nextId ? (
+      {nextSlug ? (
         <Link
-          href={`/listening/${nextId}`}
+          href={`/listening/${nextSlug}`}
           className={`${navButtonClass} cursor-pointer hover:bg-slate-800 active:bg-slate-900 hover:shadow-md`}
         >
           Next

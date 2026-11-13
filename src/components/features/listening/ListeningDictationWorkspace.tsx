@@ -32,7 +32,7 @@ const sentenceStepClass =
   "inline-flex h-6 shrink-0 cursor-pointer items-center justify-center gap-1 rounded-lg bg-slate-700 px-2.5 text-xs font-medium text-white shadow-sm transition-all duration-200 hover:bg-slate-800 hover:shadow-md active:bg-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 disabled:cursor-not-allowed disabled:opacity-60 max-sm:flex-1";
 
 interface ListeningDictationWorkspaceProps {
-  listeningId: string;
+  listeningSlug: string;
   item: ListeningItem;
   itemNumber: number;
   totalItems: number;
@@ -40,7 +40,7 @@ interface ListeningDictationWorkspaceProps {
 }
 
 export function ListeningDictationWorkspace({
-  listeningId,
+  listeningSlug,
   item,
   itemNumber,
   totalItems,
@@ -78,7 +78,7 @@ export function ListeningDictationWorkspace({
     }
 
     speech.stop();
-    router.push(`/listening/${listeningId}?item=${target}`);
+    router.push(`/listening/${listeningSlug}?item=${target}`);
   };
 
   useEffect(() => {
@@ -88,11 +88,11 @@ export function ListeningDictationWorkspace({
 
     const timer = window.setTimeout(() => {
       stopRef.current();
-      router.push(`/listening/${listeningId}?item=${itemNumber + 1}`);
+      router.push(`/listening/${listeningSlug}?item=${itemNumber + 1}`);
     }, AUTO_ADVANCE_MS);
 
     return () => window.clearTimeout(timer);
-  }, [completed, hasNext, isActive, itemNumber, listeningId, router]);
+  }, [completed, hasNext, isActive, itemNumber, listeningSlug, router]);
 
   const handleCheck = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

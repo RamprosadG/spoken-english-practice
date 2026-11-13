@@ -7,6 +7,7 @@ import {
   deleteVocabulary as deleteVocabularyRecord,
   findNextVocabularySequence,
   findVocabularyById,
+  findVocabularyBySlugOrId,
   findVocabularyNeighbors,
   findVocabularyPage,
   updateVocabulary as updateVocabularyRecord,
@@ -33,6 +34,7 @@ function toVocabularyItem(vocabulary: VocabularySelected): VocabularyItem {
   return {
     id: vocabulary.id,
     text: vocabulary.text,
+    slug: vocabulary.slug,
     meaning: vocabulary.meaning,
     sentence: vocabulary.sentence,
     sentenceMeaning: vocabulary.sentenceMeaning,
@@ -80,13 +82,13 @@ export async function listVocabulary(
 
 // generateMetadata and the page read the same row, so one request shares one read.
 export const getVocabularyWithNavigation = cache(
-  async (id: string): Promise<VocabularyNavigation | null> => {
+  async (slugOrId: string): Promise<VocabularyNavigation | null> => {
     // Neighbours move with every saved row, so never prerender this.
     await connection();
 
     const canViewUnpublished = await canViewUnpublishedContent();
 
-    const vocabulary = await findVocabularyById(id);
+    const vocabulary = await findVocabularyBySlugOrId(slugOrId);
     if (!vocabulary) {
       return null;
     }
@@ -105,8 +107,8 @@ export const getVocabularyWithNavigation = cache(
 
     return {
       vocabulary: toVocabularyItem(vocabulary),
-      previousId: neighbors.previousId,
-      nextId: neighbors.nextId,
+      previousSlug: neighbors.previousSlug,
+      nextSlug: neighbors.nextSlug,
     };
   },
 );

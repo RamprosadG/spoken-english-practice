@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { publicationWhere, type PublicationView } from "@/lib/publishing";
 import { DEFAULT_PAGE_SIZE, buildPaginationMeta } from "@/lib/utils";
+import { resolveSlug } from "@/lib/slug";
 import type {
   ConversationFilterParams,
   ConversationListResult,
@@ -43,6 +44,7 @@ export type ConversationWithLines = Prisma.ConversationGetPayload<{
 const CONVERSATION_LIST_SELECT = {
   id: true,
   title: true,
+  slug: true,
   speaker1: true,
   speaker2: true,
   description: true,
@@ -99,6 +101,7 @@ export async function findConversationPage(
   const items = conversations.map<ConversationRow>((conversation) => ({
     id: conversation.id,
     title: conversation.title,
+    slug: conversation.slug,
     speaker1: conversation.speaker1,
     speaker2: conversation.speaker2,
     description: conversation.description,
@@ -129,6 +132,14 @@ export function findConversationById(id: string) {
   });
 }
 
+// Resolve legacy UUIDs too, so the page can redirect them to the slug.
+export function findConversationBySlugOrId(slugOrId: string) {
+  return prisma.conversation.findFirst({
+    where: { OR: [{ slug: slugOrId }, { id: slugOrId }] },
+    include: conversationInclude,
+  });
+}
+
 export function countConversations() {
   return prisma.conversation.count();
 }
@@ -138,7 +149,7 @@ export function findConversationSitemapRows() {
   return prisma.conversation.findMany({
     where: publicationWhere({ canViewUnpublished: false }),
     orderBy: [{ sequence: "asc" }, { createdAt: "asc" }],
-    select: { id: true, updatedAt: true },
+    select: { slug: true, updatedAt: true },
   });
 }
 
@@ -161,7 +172,7 @@ export async function findConversationNeighbors(
         ],
       },
       orderBy: [{ sequence: "desc" }, { createdAt: "desc" }],
-      select: { id: true },
+      select: { slug: true },
     }),
     prisma.conversation.findFirst({
       where: {
@@ -172,21 +183,32 @@ export async function findConversationNeighbors(
         ],
       },
       orderBy: [{ sequence: "asc" }, { createdAt: "asc" }],
-      select: { id: true },
+      select: { slug: true },
     }),
   ]);
 
   return {
-    previousId: previous?.id ?? null,
-    nextId: next?.id ?? null,
+    previousSlug: previous?.slug ?? null,
+    nextSlug: next?.slug ?? null,
   };
 }
 
-export function createConversation(data: ConversationWriteData) {
+// Generate the public address only on create; edits must not break shared URLs.
+export async function createConversation(data: ConversationWriteData) {
+  const slug = await resolveSlug(
+    data.title,
+    async (candidate) =>
+      (await prisma.conversation.findUnique({
+        where: { slug: candidate },
+        select: { id: true },
+      })) !== null,
+  );
+
   return prisma.$transaction(async (tx) => {
     const created = await tx.conversation.create({
       data: {
         title: data.title,
+        slug,
         speaker1: data.speaker1,
         speaker2: data.speaker2,
         description: data.description,

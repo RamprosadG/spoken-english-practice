@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { FiArrowLeft } from "react-icons/fi";
 import { ConversationPracticeNav } from "@/components/features/conversation/ConversationPracticeNav";
 import { ConversationPracticeWorkspace } from "@/components/features/conversation/ConversationPracticeWorkspace";
@@ -14,7 +14,7 @@ import {
 } from "@/lib/structured-data";
 
 interface ConversationPracticePageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }
 
 // Blocking this route keeps the HTTP status honest (404) for unknown ids.
@@ -23,17 +23,20 @@ export const instant = false;
 export async function generateMetadata({
   params,
 }: ConversationPracticePageProps): Promise<Metadata> {
-  const { id } = await params;
-  const navigation = await getConversationWithNavigation(id);
+  const { slug } = await params;
+  const navigation = await getConversationWithNavigation(slug);
 
-  if (!navigation) {
+  // A UUID address redirects, so it must not also publish a canonical of its own.
+  if (!navigation || slug !== navigation.conversation.slug) {
     return {};
   }
 
+  const { conversation } = navigation;
+
   return pageMetadata({
-    title: metaTitle(navigation.conversation.title),
-    description: metaDescription(navigation.conversation.description),
-    path: `/conversation/${id}`,
+    title: metaTitle(conversation.title),
+    description: metaDescription(conversation.description),
+    path: `/conversation/${conversation.slug}`,
     type: "article",
   });
 }
@@ -44,15 +47,21 @@ export default async function ConversationPracticePage({
   // The record is read per request, so this route is never prerendered.
   await connection();
 
-  const { id } = await params;
-  const navigation = await getConversationWithNavigation(id);
+  const { slug } = await params;
+  const navigation = await getConversationWithNavigation(slug);
 
   if (!navigation) {
     notFound();
   }
 
-  const { conversation, previousId, nextId } = navigation;
-  const path = `/conversation/${id}`;
+  const { conversation, previousSlug, nextSlug } = navigation;
+
+  // A permanent redirect consolidates legacy UUID links onto one public URL.
+  if (slug !== conversation.slug) {
+    permanentRedirect(`/conversation/${conversation.slug}`);
+  }
+
+  const path = `/conversation/${conversation.slug}`;
 
   return (
     <div className="flex flex-col gap-6 w-full">
@@ -80,7 +89,7 @@ export default async function ConversationPracticePage({
           <FiArrowLeft className="h-4 w-4" />
           Back To Conversation
         </Link>
-        <ConversationPracticeNav previousId={previousId} nextId={nextId} />
+        <ConversationPracticeNav previousSlug={previousSlug} nextSlug={nextSlug} />
       </div>
 
       <header className="border-b border-slate-200 pb-5">

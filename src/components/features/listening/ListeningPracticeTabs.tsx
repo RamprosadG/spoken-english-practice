@@ -13,7 +13,7 @@ const TABS: { id: ListeningTab; label: string }[] = [
 ];
 
 interface ListeningPracticeTabsProps {
-  listeningId: string;
+  listeningSlug: string;
   items: ListeningItem[];
   itemNumber: number;
 }
@@ -25,7 +25,7 @@ interface ListeningPracticeTabsProps {
  * place the IPA data is ever needed, and closing it unmounts the playback.
  */
 export function ListeningPracticeTabs({
-  listeningId,
+  listeningSlug,
   items,
   itemNumber,
 }: ListeningPracticeTabsProps) {
@@ -95,7 +95,7 @@ export function ListeningPracticeTabs({
             and cancels the audio, exactly as the separate route did before. */}
         <ListeningDictationWorkspace
           key={currentItem.id}
-          listeningId={listeningId}
+          listeningSlug={listeningSlug}
           item={currentItem}
           itemNumber={itemNumber}
           totalItems={items.length}

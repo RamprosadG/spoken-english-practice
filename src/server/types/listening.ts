@@ -12,6 +12,7 @@ export interface ListeningFilterParams extends PublicationView {
 export interface ListeningRow {
   id: string;
   title: string;
+  slug: string;
   sequence: number;
   isPublished: boolean;
   categoryId: string;
@@ -33,6 +34,6 @@ export interface ListeningPageResult extends ListeningListResult {
 }
 
 export interface ListeningNeighbors {
-  previousId: string | null;
-  nextId: string | null;
+  previousSlug: string | null;
+  nextSlug: string | null;
 }

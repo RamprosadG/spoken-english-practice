@@ -27,7 +27,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     for (const row of library.rows) {
       entries.push({
-        url: `${SITE_URL}${library.path}/${row.id}`,
+        url: `${SITE_URL}${library.path}/${row.slug}`,
         lastModified: row.updatedAt,
         changeFrequency: "monthly",
         priority: 0.7,

@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { publicationWhere, type PublicationView } from "@/lib/publishing";
 import { DEFAULT_PAGE_SIZE, buildPaginationMeta } from "@/lib/utils";
+import { resolveSlug } from "@/lib/slug";
 import type {
   SentenceFilterParams,
   SentenceListResult,
@@ -32,6 +33,7 @@ interface SentenceCursor {
 const SENTENCE_SELECT = {
   id: true,
   text: true,
+  slug: true,
   meaning: true,
   whenToUse: true,
   sequence: true,
@@ -95,6 +97,7 @@ export async function findSentencePage(
   const items = sentences.map<SentenceRow>((sentence) => ({
     id: sentence.id,
     text: sentence.text,
+    slug: sentence.slug,
     meaning: sentence.meaning,
     whenToUse: sentence.whenToUse,
     sequence: sentence.sequence,
@@ -125,6 +128,14 @@ export function findSentenceById(id: string) {
   });
 }
 
+// Resolve legacy UUIDs too, so the page can redirect them to the slug.
+export function findSentenceBySlugOrId(slugOrId: string) {
+  return prisma.sentence.findFirst({
+    where: { OR: [{ slug: slugOrId }, { id: slugOrId }] },
+    select: SENTENCE_SELECT,
+  });
+}
+
 export function countSentences() {
   return prisma.sentence.count();
 }
@@ -134,7 +145,7 @@ export function findSentenceSitemapRows() {
   return prisma.sentence.findMany({
     where: publicationWhere({ canViewUnpublished: false }),
     orderBy: [{ sequence: "asc" }, { createdAt: "asc" }],
-    select: { id: true, updatedAt: true },
+    select: { slug: true, updatedAt: true },
   });
 }
 
@@ -157,7 +168,7 @@ export async function findSentenceNeighbors(
         ],
       },
       orderBy: [{ sequence: "desc" }, { createdAt: "desc" }],
-      select: { id: true },
+      select: { slug: true },
     }),
     prisma.sentence.findFirst({
       where: {
@@ -168,20 +179,31 @@ export async function findSentenceNeighbors(
         ],
       },
       orderBy: [{ sequence: "asc" }, { createdAt: "asc" }],
-      select: { id: true },
+      select: { slug: true },
     }),
   ]);
 
   return {
-    previousId: previous?.id ?? null,
-    nextId: next?.id ?? null,
+    previousSlug: previous?.slug ?? null,
+    nextSlug: next?.slug ?? null,
   };
 }
 
-export function createSentence(data: SentenceWriteData) {
+// Generate the public address only on create; edits must not break shared URLs.
+export async function createSentence(data: SentenceWriteData) {
+  const slug = await resolveSlug(
+    data.text,
+    async (candidate) =>
+      (await prisma.sentence.findUnique({
+        where: { slug: candidate },
+        select: { id: true },
+      })) !== null,
+  );
+
   return prisma.sentence.create({
     data: {
       text: data.text,
+      slug,
       meaning: data.meaning,
       whenToUse: data.whenToUse,
       categoryId: data.categoryId,

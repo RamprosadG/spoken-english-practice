@@ -7,6 +7,7 @@ import {
   deletePresentation as deletePresentationRecord,
   findNextPresentationSequence,
   findPresentationById,
+  findPresentationBySlugOrId,
   findPresentationNeighbors,
   findPresentationPage,
   updatePresentation as updatePresentationRecord,
@@ -35,6 +36,7 @@ function toPresentationItem(
   return {
     id: presentation.id,
     title: presentation.title,
+    slug: presentation.slug,
     text: presentation.text,
     sequence: presentation.sequence,
     isPublished: presentation.isPublished,
@@ -74,13 +76,13 @@ export async function listPresentations(
 
 // generateMetadata and the page read the same row, so one request shares one read.
 export const getPresentationWithNavigation = cache(
-  async (id: string): Promise<PresentationNavigation | null> => {
+  async (slugOrId: string): Promise<PresentationNavigation | null> => {
     // Neighbours move with every saved row, so never prerender this.
     await connection();
 
     const canViewUnpublished = await canViewUnpublishedContent();
 
-    const presentation = await findPresentationById(id);
+    const presentation = await findPresentationBySlugOrId(slugOrId);
     if (!presentation) {
       return null;
     }
@@ -99,8 +101,8 @@ export const getPresentationWithNavigation = cache(
 
     return {
       presentation: toPresentationItem(presentation),
-      previousId: neighbors.previousId,
-      nextId: neighbors.nextId,
+      previousSlug: neighbors.previousSlug,
+      nextSlug: neighbors.nextSlug,
     };
   },
 );

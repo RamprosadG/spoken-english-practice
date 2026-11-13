@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { publicationWhere, type PublicationView } from "@/lib/publishing";
 import { DEFAULT_PAGE_SIZE, buildPaginationMeta } from "@/lib/utils";
+import { resolveSlug } from "@/lib/slug";
 import type { VocabularyPartsOfSpeech } from "@/types/vocabulary";
 import type {
   VocabularyFilterParams,
@@ -48,6 +49,7 @@ const RELATIVE_WORD_SELECT = {
 const VOCABULARY_SELECT = {
   id: true,
   text: true,
+  slug: true,
   meaning: true,
   sentence: true,
   sentenceMeaning: true,
@@ -115,6 +117,7 @@ export async function findVocabularyPage(
   const items = vocabularies.map<VocabularyRow>((vocabulary) => ({
     id: vocabulary.id,
     text: vocabulary.text,
+    slug: vocabulary.slug,
     meaning: vocabulary.meaning,
     sentence: vocabulary.sentence,
     sentenceMeaning: vocabulary.sentenceMeaning,
@@ -148,6 +151,14 @@ export function findVocabularyById(id: string) {
   });
 }
 
+// Resolve legacy UUIDs too, so the page can redirect them to the slug.
+export function findVocabularyBySlugOrId(slugOrId: string) {
+  return prisma.vocabulary.findFirst({
+    where: { OR: [{ slug: slugOrId }, { id: slugOrId }] },
+    select: VOCABULARY_SELECT,
+  });
+}
+
 export function countVocabulary() {
   return prisma.vocabulary.count();
 }
@@ -157,7 +168,7 @@ export function findVocabularySitemapRows() {
   return prisma.vocabulary.findMany({
     where: publicationWhere({ canViewUnpublished: false }),
     orderBy: [{ sequence: "asc" }, { createdAt: "asc" }],
-    select: { id: true, updatedAt: true },
+    select: { slug: true, updatedAt: true },
   });
 }
 
@@ -180,7 +191,7 @@ export async function findVocabularyNeighbors(
         ],
       },
       orderBy: [{ sequence: "desc" }, { createdAt: "desc" }],
-      select: { id: true },
+      select: { slug: true },
     }),
     prisma.vocabulary.findFirst({
       where: {
@@ -191,20 +202,31 @@ export async function findVocabularyNeighbors(
         ],
       },
       orderBy: [{ sequence: "asc" }, { createdAt: "asc" }],
-      select: { id: true },
+      select: { slug: true },
     }),
   ]);
 
   return {
-    previousId: previous?.id ?? null,
-    nextId: next?.id ?? null,
+    previousSlug: previous?.slug ?? null,
+    nextSlug: next?.slug ?? null,
   };
 }
 
-export function createVocabulary(data: VocabularyWriteData) {
+// Generate the public address only on create; edits must not break shared URLs.
+export async function createVocabulary(data: VocabularyWriteData) {
+  const slug = await resolveSlug(
+    data.text,
+    async (candidate) =>
+      (await prisma.vocabulary.findUnique({
+        where: { slug: candidate },
+        select: { id: true },
+      })) !== null,
+  );
+
   return prisma.vocabulary.create({
     data: {
       text: data.text,
+      slug,
       meaning: data.meaning,
       sentence: data.sentence,
       sentenceMeaning: data.sentenceMeaning,

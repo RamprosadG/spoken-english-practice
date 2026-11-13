@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { FiArrowLeft } from "react-icons/fi";
 import { PresentationPracticeNav } from "@/components/features/presentation/PresentationPracticeNav";
 import { PresentationPracticeWorkspace } from "@/components/features/presentation/PresentationPracticeWorkspace";
@@ -14,7 +14,7 @@ import {
 } from "@/lib/structured-data";
 
 interface PresentationPracticePageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }
 
 // Blocking this route keeps the HTTP status honest (404) for unknown ids.
@@ -23,19 +23,20 @@ export const instant = false;
 export async function generateMetadata({
   params,
 }: PresentationPracticePageProps): Promise<Metadata> {
-  const { id } = await params;
-  const navigation = await getPresentationWithNavigation(id);
+  const { slug } = await params;
+  const navigation = await getPresentationWithNavigation(slug);
 
-  // A missing row or a draft this reader may not see stays on the root metadata;
-  // the page below answers the 404.
-  if (!navigation) {
+  // A UUID address redirects, so it must not also publish a canonical of its own.
+  if (!navigation || slug !== navigation.presentation.slug) {
     return {};
   }
 
+  const { presentation } = navigation;
+
   return pageMetadata({
-    title: metaTitle(navigation.presentation.title),
-    description: metaDescription(navigation.presentation.text),
-    path: `/presentation/${id}`,
+    title: metaTitle(presentation.title),
+    description: metaDescription(presentation.text),
+    path: `/presentation/${presentation.slug}`,
     type: "article",
   });
 }
@@ -46,15 +47,21 @@ export default async function PresentationPracticePage({
   // The record is read per request, so this route is never prerendered.
   await connection();
 
-  const { id } = await params;
-  const navigation = await getPresentationWithNavigation(id);
+  const { slug } = await params;
+  const navigation = await getPresentationWithNavigation(slug);
 
   if (!navigation) {
     notFound();
   }
 
-  const { presentation, previousId, nextId } = navigation;
-  const path = `/presentation/${id}`;
+  const { presentation, previousSlug, nextSlug } = navigation;
+
+  // A permanent redirect consolidates legacy UUID links onto one public URL.
+  if (slug !== presentation.slug) {
+    permanentRedirect(`/presentation/${presentation.slug}`);
+  }
+
+  const path = `/presentation/${presentation.slug}`;
 
   return (
     <div className="flex flex-col gap-6 w-full">
@@ -82,7 +89,7 @@ export default async function PresentationPracticePage({
           <FiArrowLeft className="h-4 w-4" />
           Back To Presentation
         </Link>
-        <PresentationPracticeNav previousId={previousId} nextId={nextId} />
+        <PresentationPracticeNav previousSlug={previousSlug} nextSlug={nextSlug} />
       </div>
 
       <header className="border-b border-slate-200 pb-5">

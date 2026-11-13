@@ -7,6 +7,7 @@ import {
   deleteSentence as deleteSentenceRecord,
   findNextSentenceSequence,
   findSentenceById,
+  findSentenceBySlugOrId,
   findSentenceNeighbors,
   findSentencePage,
   updateSentence as updateSentenceRecord,
@@ -30,6 +31,7 @@ function toSentenceItem(sentence: SentenceSelected): SentenceItem {
   return {
     id: sentence.id,
     text: sentence.text,
+    slug: sentence.slug,
     meaning: sentence.meaning,
     whenToUse: sentence.whenToUse,
     sequence: sentence.sequence,
@@ -71,13 +73,13 @@ export async function listSentences(
 
 // generateMetadata and the page read the same row, so one request shares one read.
 export const getSentenceWithNavigation = cache(
-  async (id: string): Promise<SentenceNavigation | null> => {
+  async (slugOrId: string): Promise<SentenceNavigation | null> => {
     // Neighbours move with every saved row, so never prerender this.
     await connection();
 
     const canViewUnpublished = await canViewUnpublishedContent();
 
-    const sentence = await findSentenceById(id);
+    const sentence = await findSentenceBySlugOrId(slugOrId);
     if (!sentence) {
       return null;
     }
@@ -96,8 +98,8 @@ export const getSentenceWithNavigation = cache(
 
     return {
       sentence: toSentenceItem(sentence),
-      previousId: neighbors.previousId,
-      nextId: neighbors.nextId,
+      previousSlug: neighbors.previousSlug,
+      nextSlug: neighbors.nextSlug,
     };
   },
 );

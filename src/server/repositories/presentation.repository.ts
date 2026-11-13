@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { publicationWhere, type PublicationView } from "@/lib/publishing";
 import { DEFAULT_PAGE_SIZE, buildPaginationMeta } from "@/lib/utils";
+import { resolveSlug } from "@/lib/slug";
 import type {
   PresentationFilterParams,
   PresentationListResult,
@@ -26,6 +27,7 @@ interface PresentationCursor {
 const PRESENTATION_SELECT = {
   id: true,
   title: true,
+  slug: true,
   text: true,
   sequence: true,
   isPublished: true,
@@ -74,6 +76,7 @@ export async function findPresentationPage(
   const items = presentations.map<PresentationRow>((presentation) => ({
     id: presentation.id,
     title: presentation.title,
+    slug: presentation.slug,
     text: presentation.text,
     sequence: presentation.sequence,
     isPublished: presentation.isPublished,
@@ -102,6 +105,14 @@ export function findPresentationById(id: string) {
   });
 }
 
+// Resolve legacy UUIDs too, so the page can redirect them to the slug.
+export function findPresentationBySlugOrId(slugOrId: string) {
+  return prisma.presentation.findFirst({
+    where: { OR: [{ slug: slugOrId }, { id: slugOrId }] },
+    select: PRESENTATION_SELECT,
+  });
+}
+
 /**
  * Neighbours are the closest rows on each side of this cursor in the list
  * order (sequence, then createdAt), so the walk matches the library table and
@@ -121,7 +132,7 @@ export async function findPresentationNeighbors(
         ],
       },
       orderBy: [{ sequence: "desc" }, { createdAt: "desc" }],
-      select: { id: true },
+      select: { slug: true },
     }),
     prisma.presentation.findFirst({
       where: {
@@ -132,13 +143,13 @@ export async function findPresentationNeighbors(
         ],
       },
       orderBy: [{ sequence: "asc" }, { createdAt: "asc" }],
-      select: { id: true },
+      select: { slug: true },
     }),
   ]);
 
   return {
-    previousId: previous?.id ?? null,
-    nextId: next?.id ?? null,
+    previousSlug: previous?.slug ?? null,
+    nextSlug: next?.slug ?? null,
   };
 }
 
@@ -151,12 +162,32 @@ export function findPresentationSitemapRows() {
   return prisma.presentation.findMany({
     where: publicationWhere({ canViewUnpublished: false }),
     orderBy: [{ sequence: "asc" }, { createdAt: "asc" }],
-    select: { id: true, updatedAt: true },
+    select: { slug: true, updatedAt: true },
   });
 }
 
-export function createPresentation(data: PresentationWriteData) {
-  return prisma.presentation.create({ data, select: PRESENTATION_SELECT });
+// Generate the public address only on create; edits must not break shared URLs.
+export async function createPresentation(data: PresentationWriteData) {
+  const slug = await resolveSlug(
+    data.title,
+    async (candidate) =>
+      (await prisma.presentation.findUnique({
+        where: { slug: candidate },
+        select: { id: true },
+      })) !== null,
+  );
+
+  return prisma.presentation.create({
+    data: {
+      title: data.title,
+      slug,
+      text: data.text,
+      categoryId: data.categoryId,
+      sequence: data.sequence,
+      isPublished: data.isPublished,
+    },
+    select: PRESENTATION_SELECT,
+  });
 }
 
 export function updatePresentation(id: string, data: PresentationWriteData) {

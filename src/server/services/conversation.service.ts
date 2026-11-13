@@ -6,6 +6,7 @@ import {
   createConversation as createConversationRecord,
   deleteConversation as deleteConversationRecord,
   findConversationById,
+  findConversationBySlugOrId,
   findConversationNeighbors,
   findConversationPage,
   findNextConversationSequence,
@@ -51,6 +52,7 @@ function toConversationItem(conversation: ConversationWithLines): ConversationIt
   return {
     id: conversation.id,
     title: conversation.title,
+    slug: conversation.slug,
     speaker1: conversation.speaker1,
     speaker2: conversation.speaker2,
     description: conversation.description,
@@ -118,13 +120,13 @@ export async function getConversationDetail(
 
 // generateMetadata and the page read the same row, so one request shares one read.
 export const getConversationWithNavigation = cache(
-  async (id: string): Promise<ConversationNavigation | null> => {
+  async (slugOrId: string): Promise<ConversationNavigation | null> => {
     // Neighbours move with every saved row, so never prerender this.
     await connection();
 
     const canViewUnpublished = await canViewUnpublishedContent();
 
-    const conversation = await findConversationById(id);
+    const conversation = await findConversationBySlugOrId(slugOrId);
     if (!conversation) {
       return null;
     }
@@ -143,8 +145,8 @@ export const getConversationWithNavigation = cache(
 
     return {
       conversation: toConversationDetail(conversation),
-      previousId: neighbors.previousId,
-      nextId: neighbors.nextId,
+      previousSlug: neighbors.previousSlug,
+      nextSlug: neighbors.nextSlug,
     };
   },
 );

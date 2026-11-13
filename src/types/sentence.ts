@@ -10,6 +10,7 @@ export interface SentenceAlternateItem {
 export interface SentenceItem {
   id: string;
   text: string;
+  slug: string;
   meaning: string;
   whenToUse: string | null;
   sequence: number;
@@ -30,8 +31,8 @@ export interface SentenceFilters {
 
 export interface SentenceNavigation {
   sentence: SentenceItem;
-  previousId: string | null;
-  nextId: string | null;
+  previousSlug: string | null;
+  nextSlug: string | null;
 }
 
 export interface SentenceListData {

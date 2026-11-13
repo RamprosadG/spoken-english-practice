@@ -1,5 +1,5 @@
 export interface SitemapRow {
-  id: string;
+  slug: string;
   updatedAt: Date;
 }
 

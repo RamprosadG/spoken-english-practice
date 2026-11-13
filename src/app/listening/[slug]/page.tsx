@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { FiArrowLeft } from "react-icons/fi";
 import { ListeningPracticeNav } from "@/components/features/listening/ListeningPracticeNav";
 import { ListeningPracticeTabs } from "@/components/features/listening/ListeningPracticeTabs";
@@ -14,7 +14,7 @@ import {
 } from "@/lib/structured-data";
 
 interface ListeningPracticePageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
@@ -31,19 +31,21 @@ function describeListening(count: number): string {
 export async function generateMetadata({
   params,
 }: ListeningPracticePageProps): Promise<Metadata> {
-  const { id } = await params;
-  const navigation = await getListeningWithNavigation(id);
+  const { slug } = await params;
+  const navigation = await getListeningWithNavigation(slug);
 
-  if (!navigation) {
+  // A UUID address redirects, so it must not also publish a canonical of its own.
+  if (!navigation || slug !== navigation.listening.slug) {
     return {};
   }
 
-  const count = navigation.listening.items.length;
+  const { listening } = navigation;
+  const count = listening.items.length;
 
   return pageMetadata({
-    title: metaTitle(navigation.listening.title),
+    title: metaTitle(listening.title),
     description: describeListening(count),
-    path: `/listening/${id}`,
+    path: `/listening/${listening.slug}`,
     type: "article",
   });
 }
@@ -77,17 +79,23 @@ export default async function ListeningPracticePage({
   // The record and the reader's role are both read per request.
   await connection();
 
-  const { id } = await params;
+  const { slug } = await params;
   const query = await searchParams;
-  const navigation = await getListeningWithNavigation(id);
+  const navigation = await getListeningWithNavigation(slug);
 
   if (!navigation || navigation.listening.items.length === 0) {
     notFound();
   }
 
-  const { listening, previousId, nextId } = navigation;
+  const { listening, previousSlug, nextSlug } = navigation;
+
   const itemNumber = readItemNumber(query, listening.items.length);
-  const path = `/listening/${id}`;
+  const path = `/listening/${listening.slug}`;
+
+  // Preserve a shared sentence cursor when a legacy UUID URL redirects.
+  if (slug !== listening.slug) {
+    permanentRedirect(query.item === undefined ? path : `${path}?item=${itemNumber}`);
+  }
 
   return (
     <div className="flex flex-col gap-6 w-full">
@@ -115,7 +123,7 @@ export default async function ListeningPracticePage({
           <FiArrowLeft className="h-4 w-4" />
           Back To Listening
         </Link>
-        <ListeningPracticeNav previousId={previousId} nextId={nextId} />
+        <ListeningPracticeNav previousSlug={previousSlug} nextSlug={nextSlug} />
       </div>
 
       <header className="border-b border-slate-200 pb-5">
@@ -130,7 +138,7 @@ export default async function ListeningPracticePage({
       </header>
 
       <ListeningPracticeTabs
-        listeningId={listening.id}
+        listeningSlug={listening.slug}
         items={listening.items}
         itemNumber={itemNumber}
       />

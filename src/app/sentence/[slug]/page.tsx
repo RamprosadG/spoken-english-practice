@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { FiArrowLeft } from "react-icons/fi";
 import { SentencePracticeNav } from "@/components/features/sentence/SentencePracticeNav";
 import { SentencePracticePanel } from "@/components/features/sentence/SentencePracticePanel";
@@ -14,7 +14,7 @@ import {
 } from "@/lib/structured-data";
 
 interface SentencePracticePageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }
 
 // Blocking this route keeps the HTTP status honest (404) for unknown ids.
@@ -34,10 +34,11 @@ function describeSentence(sentence: {
 export async function generateMetadata({
   params,
 }: SentencePracticePageProps): Promise<Metadata> {
-  const { id } = await params;
-  const navigation = await getSentenceWithNavigation(id);
+  const { slug } = await params;
+  const navigation = await getSentenceWithNavigation(slug);
 
-  if (!navigation) {
+  // A UUID address redirects, so it must not also publish a canonical of its own.
+  if (!navigation || slug !== navigation.sentence.slug) {
     return {};
   }
 
@@ -46,7 +47,7 @@ export async function generateMetadata({
   return pageMetadata({
     title: metaTitle(sentence.text),
     description: metaDescription(describeSentence(sentence)),
-    path: `/sentence/${id}`,
+    path: `/sentence/${sentence.slug}`,
     type: "article",
   });
 }
@@ -57,15 +58,21 @@ export default async function SentencePracticePage({
   // The record is read per request, so this route is never prerendered.
   await connection();
 
-  const { id } = await params;
-  const navigation = await getSentenceWithNavigation(id);
+  const { slug } = await params;
+  const navigation = await getSentenceWithNavigation(slug);
 
   if (!navigation) {
     notFound();
   }
 
-  const { sentence, previousId, nextId } = navigation;
-  const path = `/sentence/${id}`;
+  const { sentence, previousSlug, nextSlug } = navigation;
+
+  // A permanent redirect consolidates legacy UUID links onto one public URL.
+  if (slug !== sentence.slug) {
+    permanentRedirect(`/sentence/${sentence.slug}`);
+  }
+
+  const path = `/sentence/${sentence.slug}`;
 
   return (
     <div className="flex flex-col gap-6 w-full">
@@ -93,7 +100,7 @@ export default async function SentencePracticePage({
           <FiArrowLeft className="h-4 w-4" />
           Back To Sentence
         </Link>
-        <SentencePracticeNav previousId={previousId} nextId={nextId} />
+        <SentencePracticeNav previousSlug={previousSlug} nextSlug={nextSlug} />
       </div>
 
       <header className="border-b border-slate-200 pb-5">

@@ -14,6 +14,7 @@ export interface ConversationLineItem {
 export interface ConversationItem {
   id: string;
   title: string;
+  slug: string;
   speaker1: string;
   speaker2: string;
   description: string;
@@ -38,8 +39,8 @@ export interface ConversationFilters {
 
 export interface ConversationNavigation {
   conversation: ConversationDetailItem;
-  previousId: string | null;
-  nextId: string | null;
+  previousSlug: string | null;
+  nextSlug: string | null;
 }
 
 export interface ConversationListData {

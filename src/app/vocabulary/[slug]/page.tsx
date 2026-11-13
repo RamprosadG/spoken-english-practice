@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { FiArrowLeft } from "react-icons/fi";
 import { VocabularyPracticeNav } from "@/components/features/vocabulary/VocabularyPracticeNav";
 import { InlineIpa } from "@/components/features/practice/InlineIpa";
@@ -15,19 +15,20 @@ import {
 } from "@/lib/structured-data";
 
 interface VocabularyPracticePageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }
 
-// Blocking this route keeps the HTTP status honest (404) for unknown ids.
+// Blocking this route keeps the HTTP status honest (404) for unknown slugs.
 export const instant = false;
 
 export async function generateMetadata({
   params,
 }: VocabularyPracticePageProps): Promise<Metadata> {
-  const { id } = await params;
-  const navigation = await getVocabularyWithNavigation(id);
+  const { slug } = await params;
+  const navigation = await getVocabularyWithNavigation(slug);
 
-  if (!navigation) {
+  // A UUID address redirects, so it must not also publish a canonical of its own.
+  if (!navigation || slug !== navigation.vocabulary.slug) {
     return {};
   }
 
@@ -38,7 +39,7 @@ export async function generateMetadata({
     description: metaDescription(
       `${vocabulary.text} — ${vocabulary.meaning}. ${vocabulary.sentence}`,
     ),
-    path: `/vocabulary/${id}`,
+    path: `/vocabulary/${vocabulary.slug}`,
     type: "article",
   });
 }
@@ -49,15 +50,21 @@ export default async function VocabularyPracticePage({
   // The record is read per request, so this route is never prerendered.
   await connection();
 
-  const { id } = await params;
-  const navigation = await getVocabularyWithNavigation(id);
+  const { slug } = await params;
+  const navigation = await getVocabularyWithNavigation(slug);
 
   if (!navigation) {
     notFound();
   }
 
-  const { vocabulary, previousId, nextId } = navigation;
-  const path = `/vocabulary/${id}`;
+  const { vocabulary, previousSlug, nextSlug } = navigation;
+
+  // A permanent redirect consolidates legacy UUID links onto one public URL.
+  if (slug !== vocabulary.slug) {
+    permanentRedirect(`/vocabulary/${vocabulary.slug}`);
+  }
+
+  const path = `/vocabulary/${vocabulary.slug}`;
 
   return (
     <div className="flex flex-col gap-6 w-full">
@@ -86,7 +93,7 @@ export default async function VocabularyPracticePage({
           <FiArrowLeft className="h-4 w-4" />
           Back To Vocabulary
         </Link>
-        <VocabularyPracticeNav previousId={previousId} nextId={nextId} />
+        <VocabularyPracticeNav previousSlug={previousSlug} nextSlug={nextSlug} />
       </div>
 
       <header className="border-b border-slate-200 pb-5">

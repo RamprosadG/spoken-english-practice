@@ -79,6 +79,7 @@ model PresentationCategory {
 model Presentation {
   id          String  @id @default(uuid())
   title       String  @unique
+  slug        String  @unique
   text        String
   sequence    Int
   isPublished Boolean @default(true)
@@ -111,6 +112,7 @@ model SentenceCategory {
 model Sentence {
   id          String  @id @default(uuid())
   text        String  @unique
+  slug        String  @unique
   meaning     String
   whenToUse   String?
   sequence    Int
@@ -160,6 +162,7 @@ model ConversationCategory {
 model Conversation {
   id          String  @id @default(uuid())
   title       String  @unique
+  slug        String  @unique
   speaker1    String
   speaker2    String
   description String
@@ -210,6 +213,7 @@ model ListeningCategory {
 model Listening {
   id          String  @id @default(uuid())
   title       String  @unique
+  slug        String  @unique
   sequence    Int
   isPublished Boolean @default(true)
 
@@ -257,6 +261,7 @@ model VocabularyCategory {
 model Vocabulary {
   id              String        @id @default(uuid())
   text            String        @unique
+  slug            String        @unique
   meaning         String
   sentence        String
   sentenceMeaning String

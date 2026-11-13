@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { publicationWhere, type PublicationView } from "@/lib/publishing";
 import { DEFAULT_PAGE_SIZE, buildPaginationMeta } from "@/lib/utils";
+import { resolveSlug } from "@/lib/slug";
 import type {
   ListeningFilterParams,
   ListeningListResult,
@@ -40,6 +41,7 @@ export type ListeningWithItems = Prisma.ListeningGetPayload<{
 const LISTENING_LIST_SELECT = {
   id: true,
   title: true,
+  slug: true,
   sequence: true,
   isPublished: true,
   categoryId: true,
@@ -90,6 +92,7 @@ export async function findListeningPage(
   const items = listenings.map<ListeningRow>((listening) => ({
     id: listening.id,
     title: listening.title,
+    slug: listening.slug,
     sequence: listening.sequence,
     isPublished: listening.isPublished,
     categoryId: listening.categoryId,
@@ -118,6 +121,14 @@ export function findListeningById(id: string) {
   });
 }
 
+// Resolve legacy UUIDs too, so the page can redirect them to the slug.
+export function findListeningBySlugOrId(slugOrId: string) {
+  return prisma.listening.findFirst({
+    where: { OR: [{ slug: slugOrId }, { id: slugOrId }] },
+    include: listeningInclude,
+  });
+}
+
 /**
  * The two rows either side of this one in the order the library lists by, found
  * with the same keyset `OR` walk the other libraries use. The publication filter
@@ -138,7 +149,7 @@ export async function findListeningNeighbors(
         ],
       },
       orderBy: [{ sequence: "desc" }, { createdAt: "desc" }],
-      select: { id: true },
+      select: { slug: true },
     }),
     prisma.listening.findFirst({
       where: {
@@ -149,13 +160,13 @@ export async function findListeningNeighbors(
         ],
       },
       orderBy: [{ sequence: "asc" }, { createdAt: "asc" }],
-      select: { id: true },
+      select: { slug: true },
     }),
   ]);
 
   return {
-    previousId: previous?.id ?? null,
-    nextId: next?.id ?? null,
+    previousSlug: previous?.slug ?? null,
+    nextSlug: next?.slug ?? null,
   };
 }
 
@@ -168,15 +179,26 @@ export function findListeningSitemapRows() {
   return prisma.listening.findMany({
     where: publicationWhere({ canViewUnpublished: false }),
     orderBy: [{ sequence: "asc" }, { createdAt: "asc" }],
-    select: { id: true, updatedAt: true },
+    select: { slug: true, updatedAt: true },
   });
 }
 
-export function createListening(data: ListeningWriteData) {
+// Generate the public address only on create; edits must not break shared URLs.
+export async function createListening(data: ListeningWriteData) {
+  const slug = await resolveSlug(
+    data.title,
+    async (candidate) =>
+      (await prisma.listening.findUnique({
+        where: { slug: candidate },
+        select: { id: true },
+      })) !== null,
+  );
+
   return prisma.$transaction(async (tx) => {
     const created = await tx.listening.create({
       data: {
         title: data.title,
+        slug,
         categoryId: data.categoryId,
         sequence: data.sequence,
         isPublished: data.isPublished,

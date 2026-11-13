@@ -31,6 +31,7 @@ export interface VocabularyRelatedWord {
 export interface VocabularyItem {
   id: string;
   text: string;
+  slug: string;
   meaning: string;
   sentence: string;
   sentenceMeaning: string;
@@ -55,8 +56,8 @@ export interface VocabularyFilters {
 
 export interface VocabularyNavigation {
   vocabulary: VocabularyItem;
-  previousId: string | null;
-  nextId: string | null;
+  previousSlug: string | null;
+  nextSlug: string | null;
 }
 
 export interface VocabularyListData {

@@ -18,6 +18,7 @@ export interface SentenceAlternateRow {
 export interface SentenceRow {
   id: string;
   text: string;
+  slug: string;
   meaning: string;
   whenToUse: string | null;
   sequence: number;
@@ -41,6 +42,6 @@ export interface SentencePageResult extends SentenceListResult {
 }
 
 export interface SentenceNeighbors {
-  previousId: string | null;
-  nextId: string | null;
+  previousSlug: string | null;
+  nextSlug: string | null;
 }

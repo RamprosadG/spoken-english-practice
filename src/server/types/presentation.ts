@@ -12,6 +12,7 @@ export interface PresentationFilterParams extends PublicationView {
 export interface PresentationRow {
   id: string;
   title: string;
+  slug: string;
   text: string;
   sequence: number;
   isPublished: boolean;
@@ -33,6 +34,6 @@ export interface PresentationPageResult extends PresentationListResult {
 }
 
 export interface PresentationNeighbors {
-  previousId: string | null;
-  nextId: string | null;
+  previousSlug: string | null;
+  nextSlug: string | null;
 }

@@ -22,6 +22,7 @@ export interface VocabularyRelatedWordRow {
 export interface VocabularyRow {
   id: string;
   text: string;
+  slug: string;
   meaning: string;
   sentence: string;
   sentenceMeaning: string;
@@ -48,6 +49,6 @@ export interface VocabularyPageResult extends VocabularyListResult {
 }
 
 export interface VocabularyNeighbors {
-  previousId: string | null;
-  nextId: string | null;
+  previousSlug: string | null;
+  nextSlug: string | null;
 }

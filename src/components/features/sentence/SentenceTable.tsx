@@ -93,7 +93,7 @@ function SentenceCard({
 
       <div className="mt-3 flex flex-col gap-3">
         <Link
-          href={`/sentence/${sentence.id}`}
+          href={`/sentence/${sentence.slug}`}
           className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-indigo-50 px-3 py-3.5 text-xs font-semibold text-indigo-600 transition-colors hover:bg-indigo-100 hover:text-indigo-700"
         >
           <FiPlayCircle className="h-4 w-4" />
@@ -184,7 +184,7 @@ export function SentenceTable({
       header: "Practice",
       render: (sentence) => (
         <Link
-          href={`/sentence/${sentence.id}`}
+          href={`/sentence/${sentence.slug}`}
           className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-600 transition-colors hover:bg-indigo-100 hover:text-indigo-700"
         >
           <FiPlayCircle className="h-4 w-4" />

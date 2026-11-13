@@ -12,6 +12,7 @@ export interface ConversationFilterParams extends PublicationView {
 export interface ConversationRow {
   id: string;
   title: string;
+  slug: string;
   speaker1: string;
   speaker2: string;
   description: string;
@@ -35,6 +36,6 @@ export interface ConversationPageResult extends ConversationListResult {
 }
 
 export interface ConversationNeighbors {
-  previousId: string | null;
-  nextId: string | null;
+  previousSlug: string | null;
+  nextSlug: string | null;
 }

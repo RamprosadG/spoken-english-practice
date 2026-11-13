@@ -9,6 +9,7 @@ import type { CategoryOption, CategoryRow } from "@/server/types/category";
 export interface Listening {
   id: string;
   title: string;
+  slug: string;
   sequence: number;
   isPublished: boolean;
   categoryId: string;
@@ -31,8 +32,8 @@ export interface ListeningDetail extends Listening {
 /** The practice route walks sideways through the library, one listening at a time. */
 export interface ListeningNavigation {
   listening: ListeningDetail;
-  previousId: string | null;
-  nextId: string | null;
+  previousSlug: string | null;
+  nextSlug: string | null;
 }
 
 export interface ListeningFilters {

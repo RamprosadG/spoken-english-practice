@@ -4,6 +4,7 @@ import type { CategoryOption, CategoryRow } from "@/server/types/category";
 export interface PresentationItem {
   id: string;
   title: string;
+  slug: string;
   text: string;
   sequence: number;
   isPublished: boolean;
@@ -22,8 +23,8 @@ export interface PresentationFilters {
 
 export interface PresentationNavigation {
   presentation: PresentationItem;
-  previousId: string | null;
-  nextId: string | null;
+  previousSlug: string | null;
+  nextSlug: string | null;
 }
 
 export interface PresentationListData {
