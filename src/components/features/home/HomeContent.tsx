@@ -7,11 +7,11 @@ export function HomeLoading() {
     <div className="flex flex-col gap-8" aria-busy="true" aria-live="polite">
       <div className="flex flex-col gap-4">
         <div className="h-6 w-44 animate-pulse rounded bg-slate-200" />
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-12">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, index) => (
             <div
               key={index}
-              className="h-[136px] animate-pulse rounded-xl border border-slate-200 bg-white lg:col-span-4 max-sm:h-36"
+              className="h-[136px] animate-pulse rounded-xl border border-slate-200 bg-white max-sm:h-36"
             />
           ))}
         </div>
@@ -20,10 +20,10 @@ export function HomeLoading() {
       <div className="flex flex-col gap-4">
         <div className="h-6 w-52 animate-pulse rounded bg-slate-200" />
         <div className="grid grid-cols-2 gap-4">
-          {Array.from({ length: 6 }).map((_, index) => (
+          {Array.from({ length: 7 }).map((_, index) => (
             <div
               key={index}
-              className="h-[214px] animate-pulse rounded-xl border border-slate-200 bg-white max-sm:h-56"
+              className={`h-[214px] animate-pulse rounded-xl border border-slate-200 bg-white max-sm:h-56 ${index === 0 ? "col-span-2" : ""}`}
             />
           ))}
         </div>
@@ -38,6 +38,7 @@ export async function HomeContent() {
   await connection();
 
   const summary = await getHomeSummary();
+  const { question, ...publicSummary } = summary;
 
-  return <HomeView summary={summary} />;
+  return <HomeView summary={publicSummary} adminTotals={question} />;
 }

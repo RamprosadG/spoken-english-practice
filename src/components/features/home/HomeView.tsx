@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { FiArrowRight } from "react-icons/fi";
 import {
@@ -5,6 +8,7 @@ import {
   HiOutlineChatAlt2,
   HiOutlineClipboardCheck,
   HiOutlineMicrophone,
+  HiOutlineSpeakerphone,
   HiOutlinePresentationChartBar,
   HiOutlineUserGroup,
   HiOutlineUsers,
@@ -13,6 +17,9 @@ import {
 import type { IconType } from "react-icons";
 import StatCard from "@/components/ui/stats/StatCard";
 import type { HomeSummary } from "@/types/home";
+import { IPA_SOUND_CATEGORIES, IPA_SOUND_COUNT } from "@/lib/ipa-sounds";
+import { useAuth } from "@/components/features/auth/AuthProvider";
+import { authRequest } from "@/components/features/auth/auth-client";
 
 const numberFormatter = new Intl.NumberFormat("en-US");
 
@@ -29,7 +36,7 @@ interface HomeCard {
 
 interface HomeStat {
   title: string;
-  value: number;
+  value: number | string;
   subtitle: string;
   meta?: string;
   icon: IconType;
@@ -41,6 +48,14 @@ interface HomeStat {
 // Both card lists follow the sidebar order so the home page reads the same way
 // as the navigation rail next to it — admin-only entries included, in place.
 const destinations: HomeCard[] = [
+  {
+    title: "IPA Sound",
+    href: "/ipa-sound",
+    description: `${IPA_SOUND_COUNT} English sounds in four categories, with recorded sounds and example words to practise individually.`,
+    action: "Explore IPA Sound",
+    icon: HiOutlineSpeakerphone,
+    tint: "bg-cyan-50 text-cyan-600",
+  },
   {
     title: "Vocabulary",
     href: "/vocabulary",
@@ -118,29 +133,62 @@ const destinations: HomeCard[] = [
 ];
 
 interface HomeViewProps {
-  summary: HomeSummary;
+  summary: Omit<HomeSummary, "question">;
+  adminTotals: HomeSummary["question"];
 }
 
 function categoryLabel(count: number): string {
   return `${numberFormatter.format(count)} ${count === 1 ? "Category" : "Categories"}`;
 }
 
-/**
- * Below `lg` the list is two columns, and an odd total hands the first card the
- * whole row so the rest still pair up. From `lg` the twelve-column grid keeps a
- * six-card list at three per row and splits a seven-card list into 3 + 4.
- */
-function statSpanClass(index: number, total: number): string {
-  const mobile = total % 2 === 1 && index === 0 ? "col-span-2" : "";
-  const large = total > 6 && index >= 3 ? "lg:col-span-3" : "lg:col-span-4";
+export function HomeView({ summary: publicSummary, adminTotals }: HomeViewProps) {
+  const initialSummary: HomeSummary = {
+    ...publicSummary,
+    question: adminTotals,
+  };
+  const { user, isAuthLoading } = useAuth();
+  const [fetchedSummary, setFetchedSummary] = useState<{
+    isAdmin: boolean;
+    summary: HomeSummary;
+  } | null>(null);
 
-  return `${mobile} ${large}`.trim();
-}
+  const isAdmin = user
+    ? user.role === "admin"
+    : isAuthLoading && initialSummary.question !== null;
+  const matchingFetched =
+    fetchedSummary?.isAdmin === isAdmin ? fetchedSummary : null;
+  const summary =
+    (initialSummary.question !== null) === isAdmin
+      ? initialSummary
+      : matchingFetched?.summary ?? initialSummary;
+  const summaryMatchesRole = (summary.question !== null) === isAdmin;
 
-export function HomeView({ summary }: HomeViewProps) {
-  const isAdmin = summary.question !== null;
+  useEffect(() => {
+    if (isAuthLoading || summaryMatchesRole) return;
+
+    let cancelled = false;
+
+    authRequest<HomeSummary>("/api/home")
+      .then((nextSummary) => {
+        if (!cancelled) setFetchedSummary({ isAdmin, summary: nextSummary });
+      })
+      .catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthLoading, summaryMatchesRole, isAdmin]);
 
   const stats: HomeStat[] = [
+    {
+      title: "IPA Sound",
+      value: IPA_SOUND_COUNT,
+      subtitle: "IPA Sounds",
+      meta: categoryLabel(IPA_SOUND_CATEGORIES.length),
+      icon: HiOutlineSpeakerphone,
+      iconBgColor: "bg-cyan-50",
+      iconColor: "text-cyan-600",
+    },
     {
       title: "Vocabulary",
       value: summary.vocabularies,
@@ -188,9 +236,13 @@ export function HomeView({ summary }: HomeViewProps) {
     },
     {
       title: "Question",
-      value: summary.question?.questions ?? 0,
+      value: summary.question
+        ? numberFormatter.format(summary.question.questions)
+        : "…",
       subtitle: "Questions with model answers",
-      meta: categoryLabel(summary.question?.categories ?? 0),
+      meta: summary.question
+        ? categoryLabel(summary.question.categories)
+        : "Loading Categories",
       icon: HiOutlineClipboardCheck,
       iconBgColor: "bg-rose-50",
       iconColor: "text-rose-600",
@@ -203,6 +255,7 @@ export function HomeView({ summary }: HomeViewProps) {
       icon: HiOutlineUsers,
       iconBgColor: "bg-emerald-50",
       iconColor: "text-emerald-600",
+      adminOnly: true,
     },
   ];
 
@@ -220,21 +273,24 @@ export function HomeView({ summary }: HomeViewProps) {
         >
           What Is Inside Today
         </h2>
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-12">
-          {visibleStats.map((stat, index) => {
+        <div className={`grid grid-cols-2 gap-4 ${isAdmin ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
+          {visibleStats.map((stat) => {
             const Icon = stat.icon;
 
             return (
               <StatCard
                 key={stat.title}
                 title={stat.title}
-                value={numberFormatter.format(stat.value)}
+                value={
+                  typeof stat.value === "number"
+                    ? numberFormatter.format(stat.value)
+                    : stat.value
+                }
                 subtitle={stat.subtitle}
                 meta={stat.meta}
                 icon={<Icon className="h-5 w-5" />}
                 iconBgColor={stat.iconBgColor}
                 iconColor={stat.iconColor}
-                className={statSpanClass(index, visibleStats.length)}
               />
             );
           })}
@@ -262,7 +318,7 @@ export function HomeView({ summary }: HomeViewProps) {
               <Link
                 key={destination.href}
                 href={destination.href}
-                className="group flex h-full flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white max-sm:p-3"
+                className={`group flex h-full flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white max-sm:p-3 ${destination.href === "/ipa-sound" ? "col-span-2" : ""}`}
               >
                 <div
                   className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg max-sm:h-9 max-sm:w-9 ${destination.tint}`}

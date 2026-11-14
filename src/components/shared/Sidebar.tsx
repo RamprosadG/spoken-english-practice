@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { FiX } from "react-icons/fi";
 import {
   HiOutlineHome,
+  HiOutlineSpeakerphone,
   HiOutlinePresentationChartBar,
   HiOutlineChatAlt2,
   HiOutlineBookOpen,
@@ -28,6 +29,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { name: "Home", href: "/", icon: HiOutlineHome },
+  { name: "IPA Sound", href: "/ipa-sound", icon: HiOutlineSpeakerphone },
   { name: "Vocabulary", href: "/vocabulary", icon: HiOutlineBookOpen },
   { name: "Sentence", href: "/sentence", icon: HiOutlineChatAlt2 },
   { name: "Conversation", href: "/conversation", icon: HiOutlineUserGroup },
