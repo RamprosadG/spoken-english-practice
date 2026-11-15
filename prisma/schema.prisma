@@ -277,6 +277,39 @@ model ListeningItem {
   @@map("listening_items")
 }
 
+model VideoCategory {
+  id       String @id @default(uuid())
+  name     String @unique
+  sequence Int
+
+  videos Video[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sequence, createdAt])
+  @@map("video_categories")
+}
+
+model Video {
+  id          String  @id @default(uuid())
+  title       String  @unique
+  slug        String  @unique
+  link        String
+  sequence    Int
+  isPublished Boolean @default(true)
+
+  categoryId String
+  category   VideoCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sequence, createdAt])
+  @@index([categoryId, sequence, createdAt])
+  @@map("videos")
+}
+
 model VocabularyCategory {
   id       String @id @default(uuid())
   name     String @unique

@@ -10,6 +10,7 @@ export const CATEGORY_KINDS = [
   "listening",
   "vocabulary",
   "story",
+  "video",
   "question",
   "topic",
 ] as const;
@@ -24,6 +25,7 @@ export const HOME_CATEGORY_KINDS = [
   "listening",
   "vocabulary",
   "story",
+  "video",
 ] as const;
 
 export type HomeCategoryKind = (typeof HOME_CATEGORY_KINDS)[number];
@@ -45,6 +47,7 @@ export const CATEGORY_ENTITY_LABELS: Record<CategoryKind, string> = {
   listening: "listening",
   vocabulary: "vocabulary word",
   story: "story",
+  video: "video",
   question: "question",
   topic: "question",
 };
@@ -57,6 +60,7 @@ export const CATEGORY_ENTITY_PLURAL_LABELS: Record<CategoryKind, string> = {
   listening: "listenings",
   vocabulary: "vocabulary words",
   story: "stories",
+  video: "videos",
   question: "questions",
   topic: "questions",
 };
@@ -74,6 +78,7 @@ export const CATEGORY_NOUNS: Record<CategoryKind, CategoryNouns> = {
   listening: { singular: "category", plural: "categories" },
   vocabulary: { singular: "category", plural: "categories" },
   story: { singular: "category", plural: "categories" },
+  video: { singular: "category", plural: "categories" },
   question: { singular: "category", plural: "categories" },
   topic: { singular: "topic", plural: "topics" },
 };
@@ -85,6 +90,7 @@ export const CATEGORY_MANAGE_TITLES: Record<CategoryKind, string> = {
   listening: "Listening Category",
   vocabulary: "Vocabulary Category",
   story: "Story Category",
+  video: "Video Category",
   question: "Question Category",
   topic: "Question Topic",
 };
@@ -100,6 +106,7 @@ export const CATEGORY_DUPLICATE_MESSAGES: Record<CategoryKind, string> = {
   listening: "A listening category with this name already exists.",
   vocabulary: "A vocabulary category with this name already exists.",
   story: "A story category with this name already exists.",
+  video: "A video category with this name already exists.",
   question: "A question category with this name already exists.",
   topic: "A question topic with this name already exists.",
 };

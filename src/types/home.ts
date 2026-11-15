@@ -7,9 +7,10 @@ export interface HomeSummary {
   conversations: number;
   presentations: number;
   stories: number;
+  videos: number;
   listenings: number;
   /**
-   * Only the six kinds Home links to. The question kinds belong to a private
+   * Only the seven kinds Home links to. The question kinds belong to a private
    * library, so they are counted in `question` instead of widening this record.
    */
   categories: Record<HomeCategoryKind, number>;

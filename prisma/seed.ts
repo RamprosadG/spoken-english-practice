@@ -9,7 +9,7 @@ import {
 import type { CategoryKind } from "@/server/types/category";
 
 /**
- * Adds the study category lists to the six public library category tables.
+ * Adds the study category lists to the seven public library category tables.
  *
  * A name is matched against the rows already in the table, so a category that
  * exists keeps its own id and sequence: saved library rows point at the id, and
@@ -122,6 +122,22 @@ const CATEGORY_LISTS: CategoryList[] = [
       "Mystery Stories",
       "Inspirational Stories",
       "Everyday Life Stories",
+    ],
+  },
+  {
+    kind: "video",
+    table: "video_categories",
+    names: [
+      "Pronunciation & Accent",
+      "Daily Conversation",
+      "Interview Preparation",
+      "Grammar Lessons",
+      "Vocabulary Building",
+      "Listening Practice",
+      "Business English",
+      "Storytelling",
+      "Motivational Talks",
+      "English For Beginners",
     ],
   },
 ];

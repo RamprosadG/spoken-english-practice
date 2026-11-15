@@ -11,6 +11,7 @@ import {
   HiOutlineSpeakerphone,
   HiOutlinePresentationChartBar,
   HiOutlineDocumentText,
+  HiOutlineFilm,
   HiOutlineUserGroup,
   HiOutlineUsers,
   HiOutlineVolumeUp,
@@ -101,6 +102,15 @@ const destinations: HomeCard[] = [
     action: "Open Story",
     icon: HiOutlineDocumentText,
     tint: "bg-fuchsia-50 text-fuchsia-600",
+  },
+  {
+    title: "Video",
+    href: "/video",
+    description:
+      "Curated video lessons and conversations with an embedded player to watch without leaving the site.",
+    action: "Watch Video",
+    icon: HiOutlineFilm,
+    tint: "bg-red-50 text-red-600",
   },
   {
     title: "Listening",
@@ -272,6 +282,15 @@ export function HomeView({ summary: publicSummary, adminTotals }: HomeViewProps)
       icon: HiOutlineDocumentText,
       iconBgColor: "bg-fuchsia-50",
       iconColor: "text-fuchsia-600",
+    },
+    {
+      title: "Video",
+      value: summary.videos,
+      subtitle: "Curated videos to watch",
+      meta: categoryLabel(summary.categories.video),
+      icon: HiOutlineFilm,
+      iconBgColor: "bg-red-50",
+      iconColor: "text-red-600",
     },
     {
       title: "Listening",

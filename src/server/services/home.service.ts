@@ -8,6 +8,7 @@ import { countPresentations } from "@/server/repositories/presentation.repositor
 import { countSentences } from "@/server/repositories/sentence.repository";
 import { countStories } from "@/server/repositories/story.repository";
 import { countUsers } from "@/server/repositories/user.repository";
+import { countVideos } from "@/server/repositories/video.repository";
 import { countVocabulary } from "@/server/repositories/vocabulary.repository";
 import type { HomeSummary } from "@/types/home";
 
@@ -28,6 +29,7 @@ export async function getHomeSummary(): Promise<HomeSummary> {
     conversations,
     presentations,
     stories,
+    videos,
     listenings,
     presentationCategories,
     sentenceCategories,
@@ -35,6 +37,7 @@ export async function getHomeSummary(): Promise<HomeSummary> {
     listeningCategories,
     vocabularyCategories,
     storyCategories,
+    videoCategories,
     questions,
     questionCategories,
   ] = await Promise.all([
@@ -44,6 +47,7 @@ export async function getHomeSummary(): Promise<HomeSummary> {
     countConversations(),
     countPresentations(),
     countStories(),
+    countVideos(),
     countListenings(),
     countCategories("presentation"),
     countCategories("sentence"),
@@ -51,6 +55,7 @@ export async function getHomeSummary(): Promise<HomeSummary> {
     countCategories("listening"),
     countCategories("vocabulary"),
     countCategories("story"),
+    countCategories("video"),
     isAdmin ? countQuestions() : Promise.resolve(0),
     isAdmin ? countCategories("question") : Promise.resolve(0),
   ]);
@@ -62,6 +67,7 @@ export async function getHomeSummary(): Promise<HomeSummary> {
     conversations,
     presentations,
     stories,
+    videos,
     listenings,
     categories: {
       presentation: presentationCategories,
@@ -70,6 +76,7 @@ export async function getHomeSummary(): Promise<HomeSummary> {
       listening: listeningCategories,
       vocabulary: vocabularyCategories,
       story: storyCategories,
+      video: videoCategories,
     },
     question: isAdmin
       ? { questions, categories: questionCategories }

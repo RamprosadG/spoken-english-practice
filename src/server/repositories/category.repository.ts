@@ -63,6 +63,13 @@ export async function findCategoryOptions(
     });
   }
 
+  if (kind === "video") {
+    return prisma.videoCategory.findMany({
+      orderBy: CATEGORY_LIST_ORDER,
+      select: { id: true, name: true },
+    });
+  }
+
   if (kind === "question") {
     return prisma.questionCategory.findMany({
       orderBy: CATEGORY_LIST_ORDER,
@@ -191,6 +198,25 @@ export async function findCategoryRows(kind: CategoryKind): Promise<CategoryRow[
     }));
   }
 
+  if (kind === "video") {
+    const rows = await prisma.videoCategory.findMany({
+      orderBy: CATEGORY_LIST_ORDER,
+      select: {
+        id: true,
+        name: true,
+        sequence: true,
+        _count: { select: { videos: true } },
+      },
+    });
+
+    return rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      sequence: row.sequence,
+      usageCount: row._count.videos,
+    }));
+  }
+
   if (kind === "question") {
     const rows = await prisma.questionCategory.findMany({
       orderBy: CATEGORY_LIST_ORDER,
@@ -258,6 +284,10 @@ export async function findCategoryById(
     return prisma.storyCategory.findUnique({ where: { id }, select });
   }
 
+  if (kind === "video") {
+    return prisma.videoCategory.findUnique({ where: { id }, select });
+  }
+
   if (kind === "question") {
     return prisma.questionCategory.findUnique({ where: { id }, select });
   }
@@ -293,6 +323,10 @@ export async function countCategoryUsage(
     return prisma.story.count({ where: { categoryId: id } });
   }
 
+  if (kind === "video") {
+    return prisma.video.count({ where: { categoryId: id } });
+  }
+
   if (kind === "question") {
     return prisma.question.count({ where: { categoryId: id } });
   }
@@ -323,6 +357,10 @@ export function countCategories(kind: CategoryKind): Promise<number> {
 
   if (kind === "story") {
     return prisma.storyCategory.count();
+  }
+
+  if (kind === "video") {
+    return prisma.videoCategory.count();
   }
 
   if (kind === "question") {
@@ -375,6 +413,12 @@ export async function findNextCategorySequence(
   if (kind === "story") {
     return nextSequenceOf(
       await prisma.storyCategory.findFirst({ orderBy, select }),
+    );
+  }
+
+  if (kind === "video") {
+    return nextSequenceOf(
+      await prisma.videoCategory.findFirst({ orderBy, select }),
     );
   }
 
@@ -504,6 +548,25 @@ export async function createCategory(
       name: row.name,
       sequence: row.sequence,
       usageCount: row._count.stories,
+    };
+  }
+
+  if (kind === "video") {
+    const row = await prisma.videoCategory.create({
+      data,
+      select: {
+        id: true,
+        name: true,
+        sequence: true,
+        _count: { select: { videos: true } },
+      },
+    });
+
+    return {
+      id: row.id,
+      name: row.name,
+      sequence: row.sequence,
+      usageCount: row._count.videos,
     };
   }
 
@@ -669,6 +732,26 @@ export async function updateCategory(
     };
   }
 
+  if (kind === "video") {
+    const row = await prisma.videoCategory.update({
+      where: { id },
+      data,
+      select: {
+        id: true,
+        name: true,
+        sequence: true,
+        _count: { select: { videos: true } },
+      },
+    });
+
+    return {
+      id: row.id,
+      name: row.name,
+      sequence: row.sequence,
+      usageCount: row._count.videos,
+    };
+  }
+
   if (kind === "question") {
     const row = await prisma.questionCategory.update({
       where: { id },
@@ -731,6 +814,10 @@ export function deleteCategory(kind: CategoryKind, id: string): Promise<unknown>
 
   if (kind === "story") {
     return prisma.storyCategory.delete({ where: { id } });
+  }
+
+  if (kind === "video") {
+    return prisma.videoCategory.delete({ where: { id } });
   }
 
   if (kind === "question") {
