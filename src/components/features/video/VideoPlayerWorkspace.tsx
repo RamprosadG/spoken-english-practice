@@ -47,14 +47,6 @@ export function VideoPlayerWorkspace({
           <span className="inline-flex items-center rounded-md bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700">
             {categoryName}
           </span>
-          <a
-            href={link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
-          >
-            Source: YouTube
-          </a>
         </div>
         <h2 className="mt-3 text-lg font-bold text-slate-900 sm:text-xl">
           {title}

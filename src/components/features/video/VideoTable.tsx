@@ -99,9 +99,6 @@ function VideoCard({
           >
             {video.title}
           </Link>
-          <p className="mt-1 truncate text-xs text-slate-400">
-            {video.link}
-          </p>
         </div>
       </div>
 
@@ -172,14 +169,6 @@ export function VideoTable({
               </Badge>
             )}
           </div>
-          <a
-            href={video.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-1 block truncate text-xs text-slate-400 hover:text-slate-600"
-          >
-            {video.link}
-          </a>
         </div>
       ),
     },

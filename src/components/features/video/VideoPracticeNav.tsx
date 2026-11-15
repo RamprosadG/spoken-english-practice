@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
@@ -8,47 +6,57 @@ interface VideoPracticeNavProps {
   nextSlug: string | null;
 }
 
+const navButtonClass =
+  "inline-flex items-center justify-center gap-2 max-sm:gap-1.5 rounded-lg bg-slate-700 px-4 py-2 max-sm:px-3 max-sm:py-1.5 text-sm max-sm:text-xs font-medium text-white shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 transition-all duration-200";
+
 export function VideoPracticeNav({
   previousSlug,
   nextSlug,
 }: VideoPracticeNavProps) {
   return (
-    <div className="flex items-center justify-between gap-3 border-b border-slate-200 pb-3">
+    <nav
+      aria-label="Video Navigation"
+      className="flex items-center justify-between gap-3"
+    >
       {previousSlug ? (
         <Link
           href={`/video/${previousSlug}`}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs transition-colors hover:border-indigo-300 hover:text-indigo-600 max-sm:text-[11px]"
+          className={`${navButtonClass} cursor-pointer hover:bg-slate-800 active:bg-slate-900 hover:shadow-md`}
         >
           <FiChevronLeft className="h-4 w-4" />
-          Previous Video
+          Previous
         </Link>
       ) : (
-        <span
+        <button
+          type="button"
+          disabled
           aria-disabled="true"
-          className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-lg border border-slate-100 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-400 max-sm:text-[11px]"
+          className={`${navButtonClass} cursor-not-allowed opacity-60`}
         >
           <FiChevronLeft className="h-4 w-4" />
-          Previous Video
-        </span>
+          Previous
+        </button>
       )}
 
       {nextSlug ? (
         <Link
           href={`/video/${nextSlug}`}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs transition-colors hover:border-indigo-300 hover:text-indigo-600 max-sm:text-[11px]"
+          className={`${navButtonClass} cursor-pointer hover:bg-slate-800 active:bg-slate-900 hover:shadow-md`}
         >
-          Next Video
+          Next
           <FiChevronRight className="h-4 w-4" />
         </Link>
       ) : (
-        <span
+        <button
+          type="button"
+          disabled
           aria-disabled="true"
-          className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-lg border border-slate-100 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-400 max-sm:text-[11px]"
+          className={`${navButtonClass} cursor-not-allowed opacity-60`}
         >
-          Next Video
+          Next
           <FiChevronRight className="h-4 w-4" />
-        </span>
+        </button>
       )}
-    </div>
+    </nav>
   );
 }
