@@ -268,7 +268,7 @@ This document tracks the step-by-step implementation of the Spoken English Pract
 
   These rules govern the two home card sections for **every** reader (signed-out, `public`, and admin) and must be preserved by any future home change — they are a standing contract, not a one-time task.
 
-  **Stat cards ("What Is Inside Today")** — each row holds **at least 3 and at most 4** cards, and every row fills the full content width. For a total `N ≥ 6`, use as many 4-card rows as fit, then 3-card rows for the remainder:
+  **Stat cards ("What Is Inside Today") — desktop (`md` up)**: each row holds **at least 3 and at most 4** cards, and every row fills the full content width. For a total `N ≥ 6`, use as many 4-card rows as fit, then 3-card rows for the remainder:
 
   | N | Rows |
   |---|------|
@@ -280,13 +280,15 @@ This document tracks the step-by-step implementation of the Spoken English Pract
   | 11 | 4 + 4 + 3 |
   | 12 | 4 + 4 + 4 |
 
-  Algorithm (`statRowSizes` in `HomeView.tsx`): take the largest `fours ≤ floor(N/4)` with `(N − 4·fours) % 3 === 0`, then emit `fours` rows of 4 followed by `(N − 4·fours)/3` rows of 3. This both maximizes 4-card rows and minimizes the row count. Current totals: **public = 7 → [4,3]**, **admin = 9 → [3,3,3]**.
+  Algorithm (`statRowSizes` in `HomeView.tsx`): take the largest `fours ≤ floor(N/4)` with `(N − 4·fours) % 3 === 0`, then emit `fours` rows of 4 followed by `(N − 4·fours)/3` rows of 3. This both maximizes 4-card rows and minimizes the row count. Current desktop totals: **public = 7 → [4,3]**, **admin = 9 → [3,3,3]**.
 
-  **Destination cards ("Choose Where To Practise")** — always **two cards per row**. If the total is **even**, every row is two cards. If the total is **odd**, the **first card spans the full row** and the remaining (even) cards pair two per row. No card is hard-coded to full width — the parity of the visible count alone decides. Current totals: **public = 8 (even)**, **admin = 10 (even)** → both render two per row with no full-width card.
+  **Destination cards ("Choose Where To Practise") — every width**: the **parity rule**. If the total is **even**, every row is two cards. If the total is **odd**, the **first card spans the full row** and the remaining (even) cards pair two per row. No card is hard-coded to full width — the parity of the visible count alone decides. Current totals: **public = 8 (even)**, **admin = 10 (even)** → both render two per row with no full-width card.
 
-  **Implementation**: one `grid grid-cols-2 gap-4 md:grid-cols-12` for the stats; each card gets `md:col-span-3` (a 4-card row) or `md:col-span-4` (a 3-card row) so each row sums to 12 and fills the width. Below `md` the spans are inert and the cards flow two per row. Destinations stay `grid grid-cols-2 gap-4` at every width, with `col-span-2` on index 0 only when the count is odd. The `HomeLoading` skeleton mirrors the public geometry (7 stats as [4,3], 8 destinations two per row).
+  **Mobile (`< md`) — both sections**: the **same parity rule** governs the stat cards too (instead of the desktop 3–4-per-row contract). If the visible count is **odd**, the **first card spans the full row** and the remaining (even) cards pair two per row; if it is **even**, every row is two cards. Current mobile totals: **public stats = 7 (odd) → [full, 2, 2, 2]**, **admin stats = 9 (odd) → [full, 2, 2, 2, 2]**; destinations **public = 8 / admin = 10 (even) → all two-per-row**. No lone half-width card is left in any section.
 
-  **Responsive**: the 3–4 / two-per-row full-width pattern applies from `md` up; phones (`< md`) keep a readable two-per-row flow for both sections. Verify no horizontal overflow at 390 / 768 / 1440 px for both roles.
+  **Implementation**: one `grid grid-cols-2 gap-4 md:grid-cols-12` for the stats; each card gets `md:col-span-3` (a 4-card row) or `md:col-span-4` (a 3-card row) so each desktop row sums to 12 and fills the width. Below `md` those `md:` spans are inert and the **first stat card takes `max-md:col-span-2` when the count is odd** (`statFirstSpansRow` in `HomeView.tsx`), so it spans the full 2-column row and the rest pair; an even count leaves every stat at span 1. Destinations stay `grid grid-cols-2 gap-4` at every width, with `col-span-2` on index 0 only when the count is odd (`destinationFirstSpansRow`) — the same parity rule, applied at all widths. The `HomeLoading` skeleton mirrors the public geometry (7 stats as [4,3] on desktop with the first placeholder `max-md:col-span-2` on mobile, 8 destinations two per row).
+
+  **Responsive**: from `md` up the stats use the 3–4-per-row full-width contract and the destinations use the parity rule; below `md` **both** sections use the parity rule (odd → full-width first card + two-per-row rest, even → all two-per-row). Verify no horizontal overflow at 390 / 768 / 1440 px for both roles, and remember a 768 px iframe reports a few px less once its scrollbar is counted, so it is still below `md` — measure the desktop contract at ≥ 800 px.
 
 ---
 

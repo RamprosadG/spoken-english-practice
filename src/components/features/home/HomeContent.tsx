@@ -11,7 +11,7 @@ export function HomeLoading() {
           {Array.from({ length: 7 }).map((_, index) => (
             <div
               key={index}
-              className={`h-[136px] animate-pulse rounded-xl border border-slate-200 bg-white max-sm:h-36 ${index < 4 ? "md:col-span-3" : "md:col-span-4"}`}
+              className={`h-[136px] animate-pulse rounded-xl border border-slate-200 bg-white max-sm:h-36 ${index < 4 ? "md:col-span-3" : "md:col-span-4"}${index === 0 ? " max-md:col-span-2" : ""}`}
             />
           ))}
         </div>

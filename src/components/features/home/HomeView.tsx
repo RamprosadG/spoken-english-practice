@@ -313,8 +313,11 @@ export function HomeView({ summary: publicSummary, adminTotals }: HomeViewProps)
   );
 
   const statSpans = statSpanClasses(visibleStats.length);
-  // Destination rule: an even count shows two cards per row; an odd count gives
-  // the first card the full row and pairs the rest.
+  // Mobile parity rule (both sections, below md): an odd count gives the first
+  // card the full row and pairs the rest; an even count pairs every row. From
+  // md up the stats switch to the 3–4-per-row contract above instead, so the
+  // mobile span is max-md-only and never touches the desktop 12-column grid.
+  const statFirstSpansRow = visibleStats.length % 2 === 1;
   const destinationFirstSpansRow = visibleDestinations.length % 2 === 1;
 
   return (
@@ -333,7 +336,7 @@ export function HomeView({ summary: publicSummary, adminTotals }: HomeViewProps)
             return (
               <StatCard
                 key={stat.title}
-                className={statSpans[index]}
+                className={`${statSpans[index]}${statFirstSpansRow && index === 0 ? " max-md:col-span-2" : ""}`}
                 title={stat.title}
                 value={
                   typeof stat.value === "number"
