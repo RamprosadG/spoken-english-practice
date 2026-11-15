@@ -56,6 +56,13 @@ export async function findCategoryOptions(
     });
   }
 
+  if (kind === "story") {
+    return prisma.storyCategory.findMany({
+      orderBy: CATEGORY_LIST_ORDER,
+      select: { id: true, name: true },
+    });
+  }
+
   if (kind === "question") {
     return prisma.questionCategory.findMany({
       orderBy: CATEGORY_LIST_ORDER,
@@ -165,6 +172,25 @@ export async function findCategoryRows(kind: CategoryKind): Promise<CategoryRow[
     }));
   }
 
+  if (kind === "story") {
+    const rows = await prisma.storyCategory.findMany({
+      orderBy: CATEGORY_LIST_ORDER,
+      select: {
+        id: true,
+        name: true,
+        sequence: true,
+        _count: { select: { stories: true } },
+      },
+    });
+
+    return rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      sequence: row.sequence,
+      usageCount: row._count.stories,
+    }));
+  }
+
   if (kind === "question") {
     const rows = await prisma.questionCategory.findMany({
       orderBy: CATEGORY_LIST_ORDER,
@@ -228,6 +254,10 @@ export async function findCategoryById(
     return prisma.vocabularyCategory.findUnique({ where: { id }, select });
   }
 
+  if (kind === "story") {
+    return prisma.storyCategory.findUnique({ where: { id }, select });
+  }
+
   if (kind === "question") {
     return prisma.questionCategory.findUnique({ where: { id }, select });
   }
@@ -259,6 +289,10 @@ export async function countCategoryUsage(
     return prisma.vocabulary.count({ where: { categoryId: id } });
   }
 
+  if (kind === "story") {
+    return prisma.story.count({ where: { categoryId: id } });
+  }
+
   if (kind === "question") {
     return prisma.question.count({ where: { categoryId: id } });
   }
@@ -285,6 +319,10 @@ export function countCategories(kind: CategoryKind): Promise<number> {
 
   if (kind === "vocabulary") {
     return prisma.vocabularyCategory.count();
+  }
+
+  if (kind === "story") {
+    return prisma.storyCategory.count();
   }
 
   if (kind === "question") {
@@ -331,6 +369,12 @@ export async function findNextCategorySequence(
   if (kind === "vocabulary") {
     return nextSequenceOf(
       await prisma.vocabularyCategory.findFirst({ orderBy, select }),
+    );
+  }
+
+  if (kind === "story") {
+    return nextSequenceOf(
+      await prisma.storyCategory.findFirst({ orderBy, select }),
     );
   }
 
@@ -441,6 +485,25 @@ export async function createCategory(
       name: row.name,
       sequence: row.sequence,
       usageCount: row._count.vocabularies,
+    };
+  }
+
+  if (kind === "story") {
+    const row = await prisma.storyCategory.create({
+      data,
+      select: {
+        id: true,
+        name: true,
+        sequence: true,
+        _count: { select: { stories: true } },
+      },
+    });
+
+    return {
+      id: row.id,
+      name: row.name,
+      sequence: row.sequence,
+      usageCount: row._count.stories,
     };
   }
 
@@ -586,6 +649,26 @@ export async function updateCategory(
     };
   }
 
+  if (kind === "story") {
+    const row = await prisma.storyCategory.update({
+      where: { id },
+      data,
+      select: {
+        id: true,
+        name: true,
+        sequence: true,
+        _count: { select: { stories: true } },
+      },
+    });
+
+    return {
+      id: row.id,
+      name: row.name,
+      sequence: row.sequence,
+      usageCount: row._count.stories,
+    };
+  }
+
   if (kind === "question") {
     const row = await prisma.questionCategory.update({
       where: { id },
@@ -644,6 +727,10 @@ export function deleteCategory(kind: CategoryKind, id: string): Promise<unknown>
 
   if (kind === "vocabulary") {
     return prisma.vocabularyCategory.delete({ where: { id } });
+  }
+
+  if (kind === "story") {
+    return prisma.storyCategory.delete({ where: { id } });
   }
 
   if (kind === "question") {

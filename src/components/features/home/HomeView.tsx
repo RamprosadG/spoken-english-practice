@@ -10,6 +10,7 @@ import {
   HiOutlineMicrophone,
   HiOutlineSpeakerphone,
   HiOutlinePresentationChartBar,
+  HiOutlineDocumentText,
   HiOutlineUserGroup,
   HiOutlineUsers,
   HiOutlineVolumeUp,
@@ -93,6 +94,15 @@ const destinations: HomeCard[] = [
     tint: "bg-indigo-50 text-indigo-600",
   },
   {
+    title: "Story",
+    href: "/story",
+    description:
+      "Full stories to rehearse aloud, with a read-only practice workspace for every saved text.",
+    action: "Open Story",
+    icon: HiOutlineDocumentText,
+    tint: "bg-fuchsia-50 text-fuchsia-600",
+  },
+  {
     title: "Listening",
     href: "/listening",
     description:
@@ -139,6 +149,35 @@ interface HomeViewProps {
 
 function categoryLabel(count: number): string {
   return `${numberFormatter.format(count)} ${count === 1 ? "Category" : "Categories"}`;
+}
+
+// Standing home layout rule: stat rows hold 3 or 4 cards and always fill the
+// full width — as many 4-card rows as fit, then 3-card rows for the remainder
+// (6 -> 3+3, 7 -> 4+3, 8 -> 4+4, 9 -> 3+3+3, 10 -> 4+3+3). Every row is 3 or 4.
+function statRowSizes(total: number): number[] {
+  for (let fours = Math.floor(total / 4); fours >= 0; fours -= 1) {
+    const remainder = total - fours * 4;
+    if (remainder % 3 === 0) {
+      return [
+        ...Array.from({ length: fours }, () => 4),
+        ...Array.from({ length: remainder / 3 }, () => 3),
+      ];
+    }
+  }
+  return [total];
+}
+
+// A 12-column grid turns each row size into a card span: 4 cards x span-3 or
+// 3 cards x span-4 both fill one full-width row.
+const STAT_SPAN_CLASS: Record<number, string> = {
+  3: "md:col-span-4",
+  4: "md:col-span-3",
+};
+
+function statSpanClasses(total: number): string[] {
+  return statRowSizes(total).flatMap((size) =>
+    Array.from({ length: size }, () => STAT_SPAN_CLASS[size] ?? ""),
+  );
 }
 
 export function HomeView({ summary: publicSummary, adminTotals }: HomeViewProps) {
@@ -226,6 +265,15 @@ export function HomeView({ summary: publicSummary, adminTotals }: HomeViewProps)
       iconColor: "text-indigo-600",
     },
     {
+      title: "Story",
+      value: summary.stories,
+      subtitle: "Stories to rehearse",
+      meta: categoryLabel(summary.categories.story),
+      icon: HiOutlineDocumentText,
+      iconBgColor: "bg-fuchsia-50",
+      iconColor: "text-fuchsia-600",
+    },
+    {
       title: "Listening",
       value: summary.listenings,
       subtitle: "Sentences to dictate",
@@ -264,6 +312,11 @@ export function HomeView({ summary: publicSummary, adminTotals }: HomeViewProps)
     (destination) => !destination.adminOnly || isAdmin,
   );
 
+  const statSpans = statSpanClasses(visibleStats.length);
+  // Destination rule: an even count shows two cards per row; an odd count gives
+  // the first card the full row and pairs the rest.
+  const destinationFirstSpansRow = visibleDestinations.length % 2 === 1;
+
   return (
     <div className="flex flex-col gap-8">
       <section aria-labelledby="home-overview-heading" className="flex flex-col gap-4">
@@ -273,13 +326,14 @@ export function HomeView({ summary: publicSummary, adminTotals }: HomeViewProps)
         >
           What Is Inside Today
         </h2>
-        <div className={`grid grid-cols-2 gap-4 ${isAdmin ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
-          {visibleStats.map((stat) => {
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-12">
+          {visibleStats.map((stat, index) => {
             const Icon = stat.icon;
 
             return (
               <StatCard
                 key={stat.title}
+                className={statSpans[index]}
                 title={stat.title}
                 value={
                   typeof stat.value === "number"
@@ -311,14 +365,14 @@ export function HomeView({ summary: publicSummary, adminTotals }: HomeViewProps)
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          {visibleDestinations.map((destination) => {
+          {visibleDestinations.map((destination, index) => {
             const Icon = destination.icon;
 
             return (
               <Link
                 key={destination.href}
                 href={destination.href}
-                className={`group flex h-full flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white max-sm:p-3 ${destination.href === "/ipa-sound" ? "col-span-2" : ""}`}
+                className={`group flex h-full flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white max-sm:p-3 ${destinationFirstSpansRow && index === 0 ? "col-span-2" : ""}`}
               >
                 <div
                   className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg max-sm:h-9 max-sm:w-9 ${destination.tint}`}

@@ -1,0 +1,24 @@
+import { z } from "zod";
+import { isPublishedInputSchema } from "@/lib/validations/publishing";
+
+export const storyInputSchema = z.object({
+  title: z
+    .string()
+    .trim()
+    .min(1, "Title is required.")
+    .max(200, "Title cannot exceed 200 characters."),
+  categoryId: z.string().trim().min(1, "Category is required."),
+  text: z
+    .string()
+    .trim()
+    .min(1, "Text is required.")
+    .max(20000, "Text cannot exceed 20,000 characters."),
+  sequence: z.coerce
+    .number()
+    .int("Sequence must be a whole number.")
+    .min(1, "Sequence must be at least 1.")
+    .max(100000, "Sequence cannot exceed 100,000."),
+  isPublished: isPublishedInputSchema,
+});
+
+export type StoryInput = z.infer<typeof storyInputSchema>;

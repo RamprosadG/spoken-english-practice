@@ -264,6 +264,30 @@ This document tracks the step-by-step implementation of the Spoken English Pract
   - [x] Compiled CSS contains the wide-screen variants (`sm:grid-cols-2`, `xl:grid-cols-4`, `sm:px-10`, `sm:text-4xl`, `xl:text-5xl`), so the desktop layout is wired even though only the 554 px viewport could be measured live.
   - [x] `npx tsc --noEmit` and `npm run lint` are clean (only the known `SearchInput` warning); `npm run build` passes with `/` listed as `◐` partial prerender — static hero, streamed counts.
 
+- [x] **6.4 Home Card Layout Rules (Standing Contract)**:
+
+  These rules govern the two home card sections for **every** reader (signed-out, `public`, and admin) and must be preserved by any future home change — they are a standing contract, not a one-time task.
+
+  **Stat cards ("What Is Inside Today")** — each row holds **at least 3 and at most 4** cards, and every row fills the full content width. For a total `N ≥ 6`, use as many 4-card rows as fit, then 3-card rows for the remainder:
+
+  | N | Rows |
+  |---|------|
+  | 6 | 3 + 3 |
+  | 7 | 4 + 3 |
+  | 8 | 4 + 4 |
+  | 9 | 3 + 3 + 3 |
+  | 10 | 4 + 3 + 3 |
+  | 11 | 4 + 4 + 3 |
+  | 12 | 4 + 4 + 4 |
+
+  Algorithm (`statRowSizes` in `HomeView.tsx`): take the largest `fours ≤ floor(N/4)` with `(N − 4·fours) % 3 === 0`, then emit `fours` rows of 4 followed by `(N − 4·fours)/3` rows of 3. This both maximizes 4-card rows and minimizes the row count. Current totals: **public = 7 → [4,3]**, **admin = 9 → [3,3,3]**.
+
+  **Destination cards ("Choose Where To Practise")** — always **two cards per row**. If the total is **even**, every row is two cards. If the total is **odd**, the **first card spans the full row** and the remaining (even) cards pair two per row. No card is hard-coded to full width — the parity of the visible count alone decides. Current totals: **public = 8 (even)**, **admin = 10 (even)** → both render two per row with no full-width card.
+
+  **Implementation**: one `grid grid-cols-2 gap-4 md:grid-cols-12` for the stats; each card gets `md:col-span-3` (a 4-card row) or `md:col-span-4` (a 3-card row) so each row sums to 12 and fills the width. Below `md` the spans are inert and the cards flow two per row. Destinations stay `grid grid-cols-2 gap-4` at every width, with `col-span-2` on index 0 only when the count is odd. The `HomeLoading` skeleton mirrors the public geometry (7 stats as [4,3], 8 destinations two per row).
+
+  **Responsive**: the 3–4 / two-per-row full-width pattern applies from `md` up; phones (`< md`) keep a readable two-per-row flow for both sections. Verify no horizontal overflow at 390 / 768 / 1440 px for both roles.
+
 ---
 
 ### Step 7: Persistence & Progress Tracking *(Planned — scope to be confirmed)*

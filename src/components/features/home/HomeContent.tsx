@@ -7,11 +7,11 @@ export function HomeLoading() {
     <div className="flex flex-col gap-8" aria-busy="true" aria-live="polite">
       <div className="flex flex-col gap-4">
         <div className="h-6 w-44 animate-pulse rounded bg-slate-200" />
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, index) => (
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-12">
+          {Array.from({ length: 7 }).map((_, index) => (
             <div
               key={index}
-              className="h-[136px] animate-pulse rounded-xl border border-slate-200 bg-white max-sm:h-36"
+              className={`h-[136px] animate-pulse rounded-xl border border-slate-200 bg-white max-sm:h-36 ${index < 4 ? "md:col-span-3" : "md:col-span-4"}`}
             />
           ))}
         </div>
@@ -20,10 +20,10 @@ export function HomeLoading() {
       <div className="flex flex-col gap-4">
         <div className="h-6 w-52 animate-pulse rounded bg-slate-200" />
         <div className="grid grid-cols-2 gap-4">
-          {Array.from({ length: 7 }).map((_, index) => (
+          {Array.from({ length: 8 }).map((_, index) => (
             <div
               key={index}
-              className={`h-[214px] animate-pulse rounded-xl border border-slate-200 bg-white max-sm:h-56 ${index === 0 ? "col-span-2" : ""}`}
+              className="h-[214px] animate-pulse rounded-xl border border-slate-200 bg-white max-sm:h-56"
             />
           ))}
         </div>

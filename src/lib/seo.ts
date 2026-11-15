@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const SITE_NAME = "Spoken English Practice";
 
 export const SITE_DESCRIPTION =
-  "Learn spoken English with daily presentations, common sentences, vocabulary with Bengali meanings, two-speaker conversations and dictation practice — each with audio and IPA pronunciation.";
+  "Learn spoken English with daily presentations and stories, common sentences, vocabulary with Bengali meanings, two-speaker conversations and dictation practice — each with audio and IPA pronunciation.";
 
 /** Absolute origin for the sitemap, robots and canonical URLs, no trailing slash. */
 export const SITE_URL = (

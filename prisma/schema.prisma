@@ -95,6 +95,39 @@ model Presentation {
   @@map("presentations")
 }
 
+model StoryCategory {
+  id       String @id @default(uuid())
+  name     String @unique
+  sequence Int
+
+  stories Story[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sequence, createdAt])
+  @@map("story_categories")
+}
+
+model Story {
+  id          String  @id @default(uuid())
+  title       String  @unique
+  slug        String  @unique
+  text        String
+  sequence    Int
+  isPublished Boolean @default(true)
+
+  categoryId String
+  category   StoryCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sequence, createdAt])
+  @@index([categoryId, sequence, createdAt])
+  @@map("stories")
+}
+
 model SentenceCategory {
   id       String @id @default(uuid())
   name     String @unique

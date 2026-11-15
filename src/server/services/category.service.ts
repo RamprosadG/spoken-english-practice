@@ -2,7 +2,6 @@ import { Prisma } from "@/generated/prisma/client";
 import { ApiError, uniqueViolationError } from "@/lib/api-error";
 import {
   CATEGORY_DUPLICATE_MESSAGES,
-  CATEGORY_ENTITY_LABELS,
   CATEGORY_NOUNS,
   categoryUsageLabel,
   isPrivateCategoryKind,
@@ -138,7 +137,7 @@ export async function deleteCategory(
     ) {
       throw new ApiError(
         409,
-        `"${existing.name}" still has ${CATEGORY_ENTITY_LABELS[kind]}s assigned to it. Move them to another ${CATEGORY_NOUNS[kind].singular} first.`,
+        `"${existing.name}" still has ${categoryUsageLabel(kind, usage)} assigned to it. Move them to another ${CATEGORY_NOUNS[kind].singular} first.`,
       );
     }
 

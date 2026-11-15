@@ -9,6 +9,7 @@ export const CATEGORY_KINDS = [
   "conversation",
   "listening",
   "vocabulary",
+  "story",
   "question",
   "topic",
 ] as const;
@@ -22,6 +23,7 @@ export const HOME_CATEGORY_KINDS = [
   "conversation",
   "listening",
   "vocabulary",
+  "story",
 ] as const;
 
 export type HomeCategoryKind = (typeof HOME_CATEGORY_KINDS)[number];
@@ -42,8 +44,21 @@ export const CATEGORY_ENTITY_LABELS: Record<CategoryKind, string> = {
   conversation: "conversation",
   listening: "listening",
   vocabulary: "vocabulary word",
+  story: "story",
   question: "question",
   topic: "question",
+};
+
+// "story" pluralises to "stories", so the count labels cannot just append "s".
+export const CATEGORY_ENTITY_PLURAL_LABELS: Record<CategoryKind, string> = {
+  presentation: "presentations",
+  sentence: "sentences",
+  conversation: "conversations",
+  listening: "listenings",
+  vocabulary: "vocabulary words",
+  story: "stories",
+  question: "questions",
+  topic: "questions",
 };
 
 export interface CategoryNouns {
@@ -58,6 +73,7 @@ export const CATEGORY_NOUNS: Record<CategoryKind, CategoryNouns> = {
   conversation: { singular: "category", plural: "categories" },
   listening: { singular: "category", plural: "categories" },
   vocabulary: { singular: "category", plural: "categories" },
+  story: { singular: "category", plural: "categories" },
   question: { singular: "category", plural: "categories" },
   topic: { singular: "topic", plural: "topics" },
 };
@@ -68,6 +84,7 @@ export const CATEGORY_MANAGE_TITLES: Record<CategoryKind, string> = {
   conversation: "Conversation Category",
   listening: "Listening Category",
   vocabulary: "Vocabulary Category",
+  story: "Story Category",
   question: "Question Category",
   topic: "Question Topic",
 };
@@ -82,6 +99,7 @@ export const CATEGORY_DUPLICATE_MESSAGES: Record<CategoryKind, string> = {
   conversation: "A conversation category with this name already exists.",
   listening: "A listening category with this name already exists.",
   vocabulary: "A vocabulary category with this name already exists.",
+  story: "A story category with this name already exists.",
   question: "A question category with this name already exists.",
   topic: "A question topic with this name already exists.",
 };
@@ -120,8 +138,7 @@ export function categoryUsageLabel(
   kind: CategoryKind,
   count: number,
 ): string {
-  const label = CATEGORY_ENTITY_LABELS[kind];
-  return `${count} ${count === 1 ? label : `${label}s`}`;
+  return `${count} ${count === 1 ? CATEGORY_ENTITY_LABELS[kind] : CATEGORY_ENTITY_PLURAL_LABELS[kind]}`;
 }
 
 export function capitalize(value: string): string {
