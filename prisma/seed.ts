@@ -5,171 +5,205 @@ import {
   countCategories,
   createCategory,
   findCategoryRows,
+  updateCategory,
 } from "@/server/repositories/category.repository";
 import type { CategoryKind } from "@/server/types/category";
 
-/**
- * Adds the study category lists to the seven public library category tables.
- *
- * A name is matched against the rows already in the table, so a category that
- * exists keeps its own id and sequence: saved library rows point at the id, and
- * the admin may have reordered it in the Category modal. Nothing here deletes
- * or renumbers, which makes the script safe to re-run and leaves the
- * migration-seeded `General` rows — required by every legacy row — untouched.
- */
 interface CategoryList {
   kind: CategoryKind;
   table: string;
-  names: readonly string[];
+  items: readonly { name: string; sequence: number }[];
 }
 
 const CATEGORY_LISTS: CategoryList[] = [
   {
     kind: "vocabulary",
     table: "vocabulary_categories",
-    names: [
-      "Greetings & Social Interaction",
-      "Feelings & Emotions",
-      "Daily Activities & Routine",
-      "People & Relationships",
-      "Work & Professional Life",
-      "Time & Frequency",
-      "Places & Directions",
-      "Food & Shopping",
-      "Health & Body",
-      "Problems & Solutions",
+    items: [
+      { name: "Greetings & Social Interaction", sequence: 1 },
+      { name: "Feelings & Emotions", sequence: 2 },
+      { name: "Daily Activities & Routine", sequence: 3 },
+      { name: "People & Relationships", sequence: 4 },
+      { name: "Work & Professional Life", sequence: 5 },
+      { name: "Time & Frequency", sequence: 6 },
+      { name: "Places & Directions", sequence: 7 },
+      { name: "Food & Shopping", sequence: 8 },
+      { name: "Health & Body", sequence: 9 },
+      { name: "Problems & Solutions", sequence: 10 },
+      { name: "Fruits & Vegetables", sequence: 11 },
     ],
   },
   {
     kind: "sentence",
     table: "sentence_categories",
-    names: [
-      "Greetings & Introductions",
-      "Asking Questions",
-      "Giving Answers & Responses",
-      "Daily Activities",
-      "Requests & Offers",
-      "Likes & Dislikes",
-      "Opinions & Suggestions",
-      "Agreement & Disagreement",
-      "Apologies & Thanks",
-      "Invitations & Arrangements",
-      "Problems & Help",
-      "Goodbye & Closing Conversations",
+    items: [
+      { name: "Greetings & Introductions", sequence: 1 },
+      { name: "Asking Questions", sequence: 2 },
+      { name: "Giving Answers & Responses", sequence: 3 },
+      { name: "Daily Activities", sequence: 4 },
+      { name: "Requests & Offers", sequence: 5 },
+      { name: "Likes & Dislikes", sequence: 6 },
+      { name: "Opinions & Suggestions", sequence: 7 },
+      { name: "Agreement & Disagreement", sequence: 8 },
+      { name: "Apologies & Thanks", sequence: 9 },
+      { name: "Invitations & Arrangements", sequence: 10 },
+      { name: "Problems & Help", sequence: 11 },
+      { name: "Goodbye & Closing Conversations", sequence: 12 },
     ],
   },
   {
     kind: "conversation",
     table: "conversation_categories",
-    names: [
-      "Meeting Someone",
-      "Greetings & Small Talk",
-      "Self Introduction",
-      "Friends & Family",
-      "Workplace Conversations",
-      "Phone Conversations",
-      "Shopping & Payments",
-      "Food & Restaurants",
-      "Travel & Transportation",
-      "Asking for Help",
-      "Making Plans",
-      "Everyday Problems",
+    items: [
+      { name: "Meeting Someone", sequence: 1 },
+      { name: "Greetings & Small Talk", sequence: 2 },
+      { name: "Daily Routine & Small Talk", sequence: 2 },
+      { name: "Self Introduction", sequence: 3 },
+      { name: "Friends & Family", sequence: 4 },
+      { name: "Workplace Conversations", sequence: 5 },
+      { name: "Phone Conversations", sequence: 6 },
+      { name: "Shopping & Payments", sequence: 7 },
+      { name: "Food & Restaurants", sequence: 8 },
+      { name: "Travel & Transportation", sequence: 9 },
+      { name: "Asking for Help", sequence: 10 },
+      { name: "Making Plans", sequence: 11 },
+      { name: "Everyday Problems", sequence: 12 },
     ],
   },
   {
     kind: "presentation",
     table: "presentation_categories",
-    names: [
-      "Self Introduction",
-      "Daily Routine",
-      "Personal Experiences",
-      "People & Relationships",
-      "Places & Environment",
-      "Work & Career",
-      "Hobbies & Interests",
-      "Opinions & Ideas",
-      "Events & Occasions",
-      "Storytelling",
+    items: [
+      { name: "General", sequence: 1 },
+      { name: "Self Introduction", sequence: 1 },
+      { name: "Daily Routine", sequence: 2 },
+      { name: "Personal Experiences", sequence: 3 },
+      { name: "People & Relationships", sequence: 4 },
+      { name: "Places & Environment", sequence: 5 },
+      { name: "Work & Career", sequence: 6 },
+      { name: "Hobbies & Interests", sequence: 7 },
+      { name: "Opinions & Ideas", sequence: 8 },
+      { name: "Events & Occasions", sequence: 9 },
+      { name: "Storytelling", sequence: 10 },
     ],
   },
   {
     kind: "listening",
     table: "listening_categories",
-    names: [
-      "Greetings & Small Talk",
-      "Self Introduction",
-      "Daily Routine",
-      "Family & Friends",
-      "Workplace & Office",
-      "Shopping & Restaurants",
-      "Travel & Transportation",
-      "Experiences & Events",
-      "Problems & Solutions",
-      "Stories & Descriptions",
+    items: [
+      { name: "Greetings & Small Talk", sequence: 1 },
+      { name: "Self Introduction", sequence: 2 },
+      { name: "Daily Routine", sequence: 3 },
+      { name: "Family & Friends", sequence: 4 },
+      { name: "Workplace & Office", sequence: 5 },
+      { name: "Shopping & Restaurants", sequence: 6 },
+      { name: "Travel & Transportation", sequence: 7 },
+      { name: "Experiences & Events", sequence: 8 },
+      { name: "Problems & Solutions", sequence: 9 },
+      { name: "Stories & Descriptions", sequence: 10 },
     ],
   },
   {
     kind: "story",
     table: "story_categories",
-    names: [
-      "Moral Stories",
-      "Fairy Tales",
-      "Fables",
-      "Adventure Stories",
-      "Funny Stories",
-      "Bedtime Stories",
-      "Historical Stories",
-      "Mystery Stories",
-      "Inspirational Stories",
-      "Everyday Life Stories",
+    items: [
+      { name: "Daily Life", sequence: 1 },
+      { name: "Adventure", sequence: 2 },
+      { name: "Fantasy", sequence: 3 },
+      { name: "Science Fiction", sequence: 4 },
+      { name: "Mystery", sequence: 5 },
+      { name: "Funny", sequence: 6 },
+      { name: "Moral / Inspirational", sequence: 7 },
+      { name: "Historical / Biography", sequence: 8 },
+      { name: "Horror", sequence: 9 },
+      { name: "Romance / Emotional", sequence: 10 },
     ],
   },
   {
     kind: "video",
     table: "video_categories",
-    names: [
-      "Pronunciation & Accent",
-      "Daily Conversation",
-      "Interview Preparation",
-      "Grammar Lessons",
-      "Vocabulary Building",
-      "Listening Practice",
-      "Business English",
-      "Storytelling",
-      "Motivational Talks",
-      "English For Beginners",
+    items: [
+      { name: "Shadowing Practice", sequence: 1 },
+      { name: "Songs and Lyrics", sequence: 2 },
+      { name: "Conversations and Dialogues", sequence: 3 },
+      { name: "Pronunciation and Accent", sequence: 4 },
+      { name: "Grammar Lessons", sequence: 5 },
+      { name: "Vocabulary and Idioms", sequence: 6 },
+      { name: "Listening Practice", sequence: 7 },
+      { name: "Speeches and Talks", sequence: 8 },
+      { name: "Movies and TV Clips", sequence: 9 },
+      { name: "Interview and Professional English", sequence: 10 },
+    ],
+  },
+  {
+    kind: "question",
+    table: "question_categories",
+    items: [
+      { name: "Technical", sequence: 1 },
+      { name: "Coding", sequence: 2 },
+      { name: "System Design", sequence: 3 },
+      { name: "Behavioral", sequence: 4 },
+      { name: "Situational", sequence: 5 },
+      { name: "Project Based", sequence: 6 },
+      { name: "HR / Culture Fit", sequence: 7 },
+      { name: "Leadership", sequence: 8 },
+    ],
+  },
+  {
+    kind: "topic",
+    table: "question_topics",
+    items: [
+      { name: "Data Structures and Algorithms", sequence: 1 },
+      { name: "OOP and Design Patterns", sequence: 2 },
+      { name: "System Design and Architecture", sequence: 3 },
+      { name: "Database (SQL and NoSQL)", sequence: 4 },
+      { name: "API and Backend Development", sequence: 5 },
+      { name: "Frontend and Web Development", sequence: 6 },
+      { name: "CS Fundamentals", sequence: 7 },
+      { name: "DevOps, Cloud and Tools", sequence: 8 },
+      { name: "Testing, Debugging and Code Quality", sequence: 9 },
+      { name: "Teamwork, Leadership and Projects", sequence: 10 },
+      { name: "Personal and Career", sequence: 11 },
     ],
   },
 ];
 
-async function seedCategoryList({ kind, table, names }: CategoryList) {
+async function seedCategoryList({ kind, table, items }: CategoryList) {
   const rowsBefore = await countCategories(kind);
-  const existingNames = new Set(
-    (await findCategoryRows(kind)).map((row) => row.name),
-  );
+  const existingRows = await findCategoryRows(kind);
+  const existingMap = new Map(existingRows.map((row) => [row.name, row]));
 
-  const kept: string[] = [];
+  let updated = 0;
   let created = 0;
+  let unchanged = 0;
 
-  for (const [index, name] of names.entries()) {
-    if (existingNames.has(name)) {
-      kept.push(name);
+  for (const item of items) {
+    const existing = existingMap.get(item.name);
+    if (existing) {
+      if (existing.sequence !== item.sequence) {
+        await updateCategory(kind, existing.id, {
+          name: item.name,
+          sequence: item.sequence,
+        });
+        updated += 1;
+      } else {
+        unchanged += 1;
+      }
       continue;
     }
 
-    await createCategory(kind, { name, sequence: index + 1 });
+    await createCategory(kind, {
+      name: item.name,
+      sequence: item.sequence,
+    });
     created += 1;
   }
 
   const rowsAfter = await countCategories(kind);
 
   console.log(
-    `${table}: ${created} created, ${kept.length} already existed — ${rowsBefore} rows before, ${rowsAfter} after.`,
+    `${table}: ${created} created, ${updated} updated, ${unchanged} unchanged — ${rowsBefore} rows before, ${rowsAfter} after.`,
   );
-
-  if (kept.length > 0) {
-    console.log(`  left as they are: ${kept.join(", ")}`);
-  }
 }
 
 async function main() {
