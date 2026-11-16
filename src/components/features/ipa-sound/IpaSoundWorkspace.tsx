@@ -64,11 +64,6 @@ export function IpaSoundWorkspace({
         are played as two component vowel recordings. Recordings keep their
         original voice.
       </p>
-      <p className="mt-2 max-w-prose text-sm leading-6 text-slate-500">
-        Example words use your browser voice. Accent and Voice apply to words
-        only; Speed applies to both. American pronunciation and some modern
-        British vowels differ, especially /ʊə/ in “pure”.
-      </p>
       <div className="mt-4 flex items-center justify-between gap-3">
         <p className="text-xs leading-5 text-slate-500" role="status" aria-live="polite">
           {statusText(activeStep, individual)}
