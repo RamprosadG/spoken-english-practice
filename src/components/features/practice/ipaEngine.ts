@@ -16,6 +16,7 @@ const NOTATION: readonly (readonly [RegExp, string])[] = [
   [/ʲ/g, ""],
   [/ᵻ/g, "ɪ"],
   [/ɐ/g, "ə"],
+  [/ɛ/g, "e"],
   // eSpeak writes the r of "around" twice, as ɚ + ɹ; one r survives, as the next onset.
   [/ɚɹ?/g, "ər"],
   [/ɾ/g, "t"],

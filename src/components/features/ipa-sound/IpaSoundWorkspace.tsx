@@ -5,6 +5,7 @@ import { FiArrowRight, FiSquare } from "react-icons/fi";
 import Button from "@/components/ui/buttons/Button";
 import { ListenControls } from "@/components/features/practice/ListenControls";
 import { PlayTextButton } from "@/components/features/practice/PlayTextButton";
+import { InlineIpa } from "@/components/features/practice/InlineIpa";
 import { useListenSpeech } from "@/components/features/practice/useListenSpeech";
 import type { IpaSoundCategory } from "@/lib/ipa-sounds";
 import {
@@ -120,7 +121,7 @@ export function IpaSoundWorkspace({
                   <div className="min-w-0">
                     <p className="font-mono text-2xl leading-8">/{sound.symbol}/</p>
                     {individual ? (
-                      <ol className="mt-2 space-y-1 text-sm leading-6">
+                      <ol className="mt-2 space-y-1.5 text-sm leading-6">
                         {sound.examples.map((example, index) => {
                           const isExamplePlaying =
                             isPlaying &&
@@ -130,18 +131,24 @@ export function IpaSoundWorkspace({
                           return (
                             <li
                               key={example}
-                              className={isExamplePlaying ? "font-semibold text-indigo-700" : "text-slate-500"}
+                              className={isExamplePlaying ? "font-semibold text-indigo-700" : "text-slate-600"}
                             >
-                              <span className="mr-1.5 text-xs text-slate-400">{index + 1}.</span>
-                              {example}
+                              <div className="flex flex-wrap items-baseline gap-x-1.5">
+                                <span className="text-xs text-slate-400">{index + 1}.</span>
+                                <span>{example}</span>
+                                <InlineIpa text={example} accent={speech.accent} className="!mt-0 text-xs" />
+                              </div>
                             </li>
                           );
                         })}
                       </ol>
                     ) : (
-                      <p className={`mt-1 break-words text-sm ${isPlaying && activeStep?.kind === "example" ? "font-semibold text-indigo-700" : "text-slate-500"}`}>
-                        {sound.examples[0]}
-                      </p>
+                      <div className="mt-1">
+                        <p className={`break-words text-sm ${isPlaying && activeStep?.kind === "example" ? "font-semibold text-indigo-700" : "text-slate-700"}`}>
+                          {sound.examples[0]}
+                        </p>
+                        <InlineIpa text={sound.examples[0]} accent={speech.accent} className="!mt-0.5 text-xs" />
+                      </div>
                     )}
                   </div>
                   {individual && (
